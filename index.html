@@ -33,6 +33,8 @@
     .setup-btn:hover { background: #3742fa; }
     .secondary-btn { background: #2ecc71; }
     .secondary-btn:hover { background: #27ae60; }
+    .purple-btn { background: #9b59b6; }
+    .purple-btn:hover { background: #8e44ad; }
     .back-btn { background: #7f8c8d; }
 
     .modal-overlay {
@@ -41,7 +43,7 @@
       justify-content: center; align-items: center; z-index: 100;
     }
     
-    #local-menu, #online-menu, #help-screen, #settings-screen { display: none; }
+    #local-menu, #online-menu, #private-menu, #help-screen, #settings-screen { display: none; }
 
     .modal-box {
       background: white; color: #333; padding: 25px; border-radius: 15px;
@@ -167,11 +169,31 @@
     </div>
 
     <div class="modal-box" id="online-menu">
-      <h2 style="margin-top: 0;">Online Mode</h2>
-      <button class="setup-btn secondary-btn" onclick="startOnlineGame(2)">Join 2-Player Room</button>
-      <button class="setup-btn secondary-btn" onclick="startOnlineGame(3)">Join 3-Player Room</button>
-      <button class="setup-btn secondary-btn" onclick="startOnlineGame(4)">Join 4-Player Room</button>
+      <h2 style="margin-top: 0;">Online Matchmaking</h2>
+      <button class="setup-btn secondary-btn" onclick="startOnlineGame(2)">Public 2-Player</button>
+      <button class="setup-btn secondary-btn" onclick="startOnlineGame(3)">Public 3-Player</button>
+      <button class="setup-btn secondary-btn" onclick="startOnlineGame(4)">Public 4-Player</button>
+      <hr style="border-color: #eee; margin: 15px 0;">
+      <button class="setup-btn purple-btn" onclick="showPrivateMenu()">Private Room (Code)</button>
       <button class="setup-btn back-btn" onclick="backToMain()">Back</button>
+    </div>
+
+    <div class="modal-box" id="private-menu">
+      <h2 style="margin-top: 0;">Private Room</h2>
+      <p style="text-align: center;">Create a room or join a friend's room.</p>
+      
+      <div style="display:flex; gap: 5px; margin-bottom: 10px;">
+          <button class="setup-btn secondary-btn" onclick="createPrivateGame(2)" style="margin:0; font-size:12px;">Create 2P</button>
+          <button class="setup-btn secondary-btn" onclick="createPrivateGame(3)" style="margin:0; font-size:12px;">Create 3P</button>
+          <button class="setup-btn secondary-btn" onclick="createPrivateGame(4)" style="margin:0; font-size:12px;">Create 4P</button>
+      </div>
+      
+      <p style="text-align: center; margin: 15px 0; font-weight: bold; color: #777;">— OR —</p>
+
+      <input type="text" id="room-code-input" placeholder="Enter Room Code" style="width: 100%; padding: 12px; box-sizing: border-box; border-radius: 5px; border: 1px solid #ccc; font-size: 18px; text-transform: uppercase; text-align: center; font-weight: bold; margin-bottom: 10px;">
+      
+      <button class="setup-btn purple-btn" onclick="joinPrivateGame()">Join Room</button>
+      <button class="setup-btn back-btn" onclick="showOnlineMenu()">Back</button>
     </div>
   </div>
 
@@ -232,11 +254,17 @@
     }
     function showOnlineMenu() {
         document.getElementById('main-menu').style.display = 'none';
+        document.getElementById('private-menu').style.display = 'none';
         document.getElementById('online-menu').style.display = 'block';
+    }
+    function showPrivateMenu() {
+        document.getElementById('online-menu').style.display = 'none';
+        document.getElementById('private-menu').style.display = 'block';
     }
     function backToMain() {
         document.getElementById('local-menu').style.display = 'none';
         document.getElementById('online-menu').style.display = 'none';
+        document.getElementById('private-menu').style.display = 'none';
         document.getElementById('main-menu').style.display = 'block';
     }
 
@@ -252,6 +280,16 @@
 
     socket.on('systemMessage', (msg) => {
         document.getElementById('status').innerText = msg;
+    });
+    
+    socket.on('privateRoomCreated', (code) => {
+        document.getElementById('status').innerText = `Room Code: ${code}. Share this with your friends!`;
+    });
+
+    socket.on('roomError', (msg) => {
+        alert(msg);
+        document.getElementById('setup-screen').style.display = 'flex';
+        document.getElementById('status').style.display = 'none';
     });
 
     socket.on('gameStart', (ids) => {
@@ -276,7 +314,6 @@
         if (isOnlineMode) handleIncomingMove(data.playerId, data.pawnIndex);
     });
 
-    // --- NEW: Force the game state to match the server if we drift out of sync ---
     socket.on('forceSync', (state) => {
         if (isOnlineMode) {
             activePlayerIndex = state.activeIndex;
@@ -377,8 +414,31 @@
       isOnlineMode = true;
       document.getElementById('setup-screen').style.display = 'none';
       document.getElementById('status').style.display = 'block';
-      document.getElementById('status').innerText = "Connecting to server...";
+      document.getElementById('status').innerText = "Connecting to public server...";
       socket.emit('joinGame', numPlayers);
+    }
+    
+    function createPrivateGame(numPlayers) {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      isOnlineMode = true;
+      document.getElementById('setup-screen').style.display = 'none';
+      document.getElementById('status').style.display = 'block';
+      document.getElementById('status').innerText = "Generating Room Code...";
+      socket.emit('createPrivateGame', numPlayers);
+    }
+
+    function joinPrivateGame() {
+      let codeInput = document.getElementById('room-code-input').value.trim();
+      if (!codeInput) {
+          alert("Please enter a Room Code to join!");
+          return;
+      }
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      isOnlineMode = true;
+      document.getElementById('setup-screen').style.display = 'none';
+      document.getElementById('status').style.display = 'block';
+      document.getElementById('status').innerText = "Connecting to room...";
+      socket.emit('joinPrivateGame', codeInput);
     }
 
     function renderBoard() {
@@ -597,7 +657,6 @@
 
         processTurnState();
 
-        // --- NEW: Send a hard-sync network packet at the end of the turn ---
         if (isOnlineMode) {
             const syncData = {
                 activeIndex: activePlayerIndex,
