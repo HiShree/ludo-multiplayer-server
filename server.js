@@ -12,16 +12,21 @@ app.use(express.static(__dirname));
 let rooms = {};
 let roomCounter = 1;
 
+// Function to generate a random 6-character room code
+function generateRoomCode() {
+    return Math.random().toString(36).substring(2, 8).toUpperCase();
+}
+
 io.on('connection', (socket) => {
     console.log('A user connected:', socket.id);
 
-    // Handle a player joining the game
+    // --- PUBLIC MATCHMAKING ---
     socket.on('joinGame', (requestedSize) => {
         let joinedRoom = null;
         
         for (let roomId in rooms) {
             let room = rooms[roomId];
-            if (room.size === requestedSize && Object.keys(room.players).length < room.size) {
+            if (!room.isPrivate && room.size === requestedSize && Object.keys(room.players).length < room.size) {
                 joinedRoom = roomId;
                 break;
             }
@@ -32,7 +37,7 @@ io.on('connection', (socket) => {
             let ids = [0, 1, 2, 3];
             if (requestedSize === 2) ids = [0, 2]; 
             if (requestedSize === 3) ids = [0, 1, 2]; 
-            rooms[joinedRoom] = { size: requestedSize, players: {}, availableIds: ids };
+            rooms[joinedRoom] = { size: requestedSize, players: {}, availableIds: ids, isPrivate: false };
         }
 
         const room = rooms[joinedRoom];
@@ -44,7 +49,7 @@ io.on('connection', (socket) => {
         socket.colorId = assignedId;
 
         socket.emit('assignPlayer', assignedId);
-        io.to(joinedRoom).emit('systemMessage', `Waiting for players... (${Object.keys(room.players).length}/${room.size})`);
+        io.to(joinedRoom).emit('systemMessage', `Waiting for public players... (${Object.keys(room.players).length}/${room.size})`);
 
         if (Object.keys(room.players).length === room.size) {
             let activeIds = Object.values(room.players);
@@ -53,6 +58,60 @@ io.on('connection', (socket) => {
         }
     });
 
+    // --- PRIVATE ROOM: CREATE ---
+    socket.on('createPrivateGame', (requestedSize) => {
+        const roomCode = generateRoomCode();
+        let ids = [0, 1, 2, 3];
+        if (requestedSize === 2) ids = [0, 2]; 
+        if (requestedSize === 3) ids = [0, 1, 2]; 
+
+        rooms[roomCode] = { size: requestedSize, players: {}, availableIds: ids, isPrivate: true };
+
+        const assignedId = rooms[roomCode].availableIds.shift();
+        rooms[roomCode].players[socket.id] = assignedId;
+
+        socket.join(roomCode);
+        socket.roomId = roomCode;
+        socket.colorId = assignedId;
+
+        socket.emit('assignPlayer', assignedId);
+        socket.emit('privateRoomCreated', roomCode);
+        io.to(roomCode).emit('systemMessage', `Room Code: ${roomCode} (Waiting: ${Object.keys(rooms[roomCode].players).length}/${requestedSize})`);
+    });
+
+    // --- PRIVATE ROOM: JOIN ---
+    socket.on('joinPrivateGame', (roomCode) => {
+        roomCode = roomCode.toUpperCase();
+        const room = rooms[roomCode];
+
+        if (!room) {
+            socket.emit('roomError', 'Room not found! Check your code.');
+            return;
+        }
+        if (Object.keys(room.players).length >= room.size) {
+            socket.emit('roomError', 'This room is already full!');
+            return;
+        }
+
+        const assignedId = room.availableIds.shift();
+        room.players[socket.id] = assignedId;
+
+        socket.join(roomCode);
+        socket.roomId = roomCode;
+        socket.colorId = assignedId;
+
+        socket.emit('assignPlayer', assignedId);
+        io.to(roomCode).emit('systemMessage', `Room Code: ${roomCode} (Waiting: ${Object.keys(room.players).length}/${room.size})`);
+
+        if (Object.keys(room.players).length === room.size) {
+            let activeIds = Object.values(room.players);
+            io.to(roomCode).emit('gameStart', activeIds);
+            io.to(roomCode).emit('systemMessage', 'Game Started!');
+        }
+    });
+
+
+    // --- GAMEPLAY RELAYS ---
     socket.on('requestRoll', (data) => {
         if (socket.roomId) io.to(socket.roomId).emit('executeRoll', data);
     });
@@ -61,7 +120,6 @@ io.on('connection', (socket) => {
         if (socket.roomId) io.to(socket.roomId).emit('executeMove', data);
     });
 
-    // --- NEW: Relay the Auto-Correction Sync data to out-of-sync phones ---
     socket.on('syncState', (state) => {
         if (socket.roomId) socket.to(socket.roomId).emit('forceSync', state);
     });
