@@ -414,6 +414,10 @@
                 if (isValidMove) {
                   pawn.classList.add('clickable-pawn');
                   pawn.onclick = () => {
+                      if (isAnimating) return; // Prevent double-clicking
+                      isAnimating = true;      // Lock the board instantly
+                      updateUI();              // Turn off glowing effects immediately
+                      
                       if (isOnlineMode) requestMove(player.id, pawnIndex);
                       else handleIncomingMove(player.id, pawnIndex);
                   };
@@ -477,6 +481,9 @@
       let isMyTurnLocal = !isOnlineMode && !activePlayers[activePlayerIndex].isBot;
 
       if ((!isMyTurnOnline && !isMyTurnLocal) || playerId !== activePlayers[activePlayerIndex].id || isAnimating || !canRoll) return; 
+
+      canRoll = false; 
+      updateUI();      
 
       const allowedRolls = [1, 1, 2, 2, 3, 3, 4, 8];
       const roll = allowedRolls[Math.floor(Math.random() * allowedRolls.length)];
