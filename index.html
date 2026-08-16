@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Premium Mobile Board Game</title>
+  <style>
+    body { 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+      margin: 0;
+      padding: 10px; 
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+      color: white;
+      min-height: 100vh;
+    }
+    
+    .header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      max-width: 420px;
+      margin: 10px 0;
+    }
+    
+    h2 { margin: 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
+
+    .header-buttons {
+      display: flex;
+      gap: 8px;
+    }
+
+    /* Action Buttons (Help & Settings) */
+    .action-btn {
+      background: #f39c12;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 20px;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .action-btn:active { transform: scale(0.95); }
+    .settings-btn { background: #34495e; }
+
+    .setup-btn {
+      display: block;
+      width: 100%;
+      margin: 10px 0;
+      padding: 12px;
+      background: #1e90ff;
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+      transition: background 0.3s;
+    }
+    .setup-btn:hover { background: #3742fa; }
+
+    /* Modals */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.85);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+    }
+    
+    #help-screen, #settings-screen { display: none; }
+
+    .modal-box {
+      background: white;
+      color: #333;
+      padding: 25px;
+      border-radius: 15px;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      width: 80%;
+      max-width: 320px;
+    }
+    
+    .modal-box p { text-align: left; font-size: 14px; margin: 8px 0; }
+    .modal-box ul { text-align: left; font-size: 14px; padding-left: 20px; margin: 5px 0;}
+    .modal-box li { margin-bottom: 5px; }
+
+    /* Game Layout */
+    .game-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      width: 100%;
+      max-width: 420px; 
+      margin-top: 10px;
+      display: none; 
+    }
+
+    .board { 
+      grid-column: 1 / 3; 
+      display: grid; 
+      grid-template-columns: repeat(5, 1fr); 
+      grid-auto-rows: 1fr;
+      aspect-ratio: 1 / 1; 
+      gap: 4px; 
+      background-color: #2c3e50; 
+      padding: 6px;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+    }
+    
+    .cell { 
+      background-color: #ecf0f1;
+      border-radius: 6px;
+      display: flex; 
+      flex-wrap: wrap; 
+      justify-content: center; 
+      align-items: center; 
+      align-content: center;
+      gap: 4px;
+      position: relative;
+      box-shadow: inset 0 -3px 0 rgba(0,0,0,0.1);
+    }
+    
+    .start-blue { background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%); color: white; box-shadow: inset 0 -3px 0 rgba(0,0,0,0.2); }
+    .start-red { background: linear-gradient(135deg, #ff7675 0%, #d63031 100%); color: white; box-shadow: inset 0 -3px 0 rgba(0,0,0,0.2); }
+    .start-green { background: linear-gradient(135deg, #55efc4 0%, #00b894 100%); color: white; box-shadow: inset 0 -3px 0 rgba(0,0,0,0.2); }
+    .start-yellow { background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%); color: #d63031; box-shadow: inset 0 -3px 0 rgba(0,0,0,0.1); }
+
+    .home-zone {
+      background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+      color: white;
+      font-size: 14px;
+      font-weight: bold;
+      box-shadow: inset 0 -3px 0 rgba(0,0,0,0.2);
+    }
+
+    .board-arrow {
+      position: absolute;
+      font-size: 28px;
+      color: rgba(0, 0, 0, 0.25);
+      font-weight: bold;
+      z-index: 1; 
+      pointer-events: none; 
+    }
+    
+    .player-pawn { 
+      width: 16px; 
+      height: 16px; 
+      border-radius: 50%; 
+      box-shadow: 2px 3px 5px rgba(0,0,0,0.4), inset -2px -2px 4px rgba(0,0,0,0.3);
+      border: 1px solid rgba(255,255,255,0.8);
+      z-index: 10;
+      background-image: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.7), transparent 40%);
+    }
+
+    .clickable-pawn {
+      cursor: pointer;
+      box-shadow: 0 0 10px 4px rgba(255, 255, 255, 0.8);
+      animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.3); }
+      100% { transform: scale(1); }
+    }
+    
+    .player-panel {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      border-radius: 6px;
+      opacity: 0.6; 
+      transition: all 0.3s;
+      margin: 0 auto;
+      width: fit-content;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.4);
+      border: 3px solid transparent; 
+      position: relative;
+    }
+    
+    .active-turn {
+      opacity: 1;
+      border-color: #ffd700; 
+      box-shadow: 0 0 12px 2px rgba(255, 215, 0, 0.8), 0 4px 10px rgba(0,0,0,0.5);
+      transform: scale(1.1);
+      z-index: 5;
+    }
+
+    .active-turn::after {
+      content: '';
+      position: absolute;
+      right: -24px;
+      top: 50%;
+      margin-top: -8px;
+      border-top: 8px solid transparent;
+      border-bottom: 8px solid transparent;
+      border-right: 14px solid #ff9f43; 
+      animation: pointLeft 0.5s infinite alternate;
+      filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5));
+    }
+
+    @keyframes pointLeft {
+      from { transform: translateX(0); }
+      to { transform: translateX(-6px); }
+    }
+
+    .panel-pawn-side {
+      width: 44px;
+      height: 44px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 3px 0 0 3px;
+      border-right: 1px solid rgba(0,0,0,0.2);
+    }
+    #panel-1 .panel-pawn-side { background: linear-gradient(135deg, #ff7675, #d63031); } 
+    #panel-2 .panel-pawn-side { background: linear-gradient(135deg, #55efc4, #00b894); } 
+    #panel-0 .panel-pawn-side { background: linear-gradient(135deg, #74b9ff, #0984e3); } 
+    #panel-3 .panel-pawn-side { background: linear-gradient(135deg, #ffeaa7, #fdcb6e); } 
+
+    .panel-pawn-icon {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.9);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.6);
+      background-image: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.7), transparent 40%);
+    }
+    #panel-1 .panel-pawn-icon { background-color: #d63031; }
+    #panel-2 .panel-pawn-icon { background-color: #00b894; }
+    #panel-0 .panel-pawn-icon { background-color: #0984e3; }
+    #panel-3 .panel-pawn-icon { background-color: #ffa502; }
+
+    .ludo-dice {
+      width: 44px; 
+      height: 44px; 
+      background: linear-gradient(to bottom, #ffffff, #ffecec); 
+      border-radius: 0 3px 3px 0; 
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 28px; 
+      font-weight: 900;
+      color: #111; 
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.1s;
+    }
+
+    .ludo-dice:active {
+      background: #e0e0e0;
+    }
+
+    .dice-disabled {
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
+    .shake {
+      animation: snappyShake 0.3s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+    }
+    
+    @keyframes snappyShake {
+      0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+      20% { transform: translate3d(-3px, -3px, 0) rotate(-10deg); }
+      40% { transform: translate3d(3px, 0px, 0) rotate(10deg); }
+      60% { transform: translate3d(-3px, 3px, 0) rotate(-10deg); }
+      80% { transform: translate3d(3px, -3px, 0) rotate(10deg); }
+    }
+
+    #status {
+      font-size: 16px;
+      font-weight: bold;
+      margin: 10px 0;
+      text-align: center;
+      min-height: 24px;
+      background: rgba(255,255,255,0.9);
+      padding: 8px 15px;
+      border-radius: 20px;
+      color: #333;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+      display: none; 
+      width: 100%;
+      max-width: 390px;
+      box-sizing: border-box;
+    }
+  </style>
+</head>
+<body>
+  
+  <div id="setup-screen" class="modal-overlay">
+    <div class="modal-box">
+      <h1 style="margin-top: 0;">Ludo Twist</h1>
+      <p style="text-align: center; font-weight: bold;">Select Game Mode:</p>
+      <button class="setup-btn" onclick="startGame(1)">1 Player (vs Bot)</button>
+      <button class="setup-btn" onclick="startGame(2)">2 Players</button>
+      <button class="setup-btn" onclick="startGame(3)">3 Players</button>
+      <button class="setup-btn" onclick="startGame(4)">4 Players</button>
+    </div>
+  </div>
+
+  <div id="settings-screen" class="modal-overlay">
+    <div class="modal-box">
+      <h2 style="color: #333; margin-top: 0;">Settings</h2>
+      <button id="sound-toggle-btn" class="setup-btn" onclick="toggleSound()">🔊 Sound: ON</button>
+      <button class="setup-btn" style="background: #e74c3c; margin-top: 20px;" onclick="toggleSettings()">Close</button>
+    </div>
+  </div>
+
+  <div id="help-screen" class="modal-overlay">
+    <div class="modal-box">
+      <h2 style="color: #333; margin-top: 0;">How to Play</h2>
+      <p><b>Movement:</b> Follow the faint arrows on the board.</p>
+      <ul>
+        <li>Tap your glowing dice to roll a <b>1, 2, 3, 4, or 8</b>.</li>
+        <li>Roll a <b>4 or 8</b> to get an extra turn!</li>
+        <li><b>New:</b> You can bank extra turns and keep rolling before moving your pawns!</li>
+      </ul>
+      <p><b>Combat:</b> Land on an opponent to capture them.</p>
+      <ul>
+        <li>Colored start zones and the center cross (HOME) are safe.</li>
+        <li><b>Inner Shell:</b> You MUST capture at least one opponent before you can enter the Home stretch!</li>
+        <li><b>Winning:</b> The game continues until everyone finishes. Medals are awarded!</li>
+      </ul>
+      <button class="setup-btn" style="background: #e74c3c;" onclick="toggleHelp()">Close</button>
+    </div>
+  </div>
+
+  <div class="header-row">
+    <h2>Ludo Twist</h2>
+    <div class="header-buttons">
+      <button class="action-btn settings-btn" onclick="toggleSettings()">⚙️</button>
+      <button class="action-btn" onclick="toggleHelp()">❓</button>
+    </div>
+  </div>
+  
+  <div id="status">Waiting to start...</div>
+  
+  <div class="game-container" id="game-container">
+    <div class="player-panel" id="panel-1">
+      <div class="panel-pawn-side"><div class="panel-pawn-icon"></div></div>
+      <div class="ludo-dice dice-disabled" id="dice-1" onclick="rollDice(1)">🎲</div>
+    </div>
+    <div class="player-panel" id="panel-2">
+      <div class="panel-pawn-side"><div class="panel-pawn-icon"></div></div>
+      <div class="ludo-dice dice-disabled" id="dice-2" onclick="rollDice(2)">🎲</div>
+    </div>
+    <div class="board" id="board"></div>
+    <div class="player-panel active-turn" id="panel-0">
+      <div class="panel-pawn-side"><div class="panel-pawn-icon"></div></div>
+      <div class="ludo-dice dice-disabled" id="dice-0" onclick="rollDice(0)">🎲</div>
+    </div>
+    <div class="player-panel" id="panel-3">
+      <div class="panel-pawn-side"><div class="panel-pawn-icon"></div></div>
+      <div class="ludo-dice dice-disabled" id="dice-3" onclick="rollDice(3)">🎲</div>
+    </div>
+  </div>
+
+  <script>
+    const totalSpaces = 25;
+    const centerSpace = 12; 
+    let currentRank = 1; 
+    
+    let audioCtx; 
+    let isSoundEnabled = true; 
+
+    // GLOBAL TURN LOGIC STATE
+    let activeRolls = []; // The "Bank" of accumulated rolls
+    let canRoll = true;   // Tracks if the player is allowed to tap the dice
+    let displayRollValue = 0;
+
+    const boardArrows = {
+      10: '↓', 22: '→', 14: '↑', 2: '←',  
+      11: '→', 17: '↑', 13: '←', 7: '↓'   
+    };
+    
+    const allPlayers = [
+      { id: 0, name: "Blue", color: "#1e90ff", hasWon: false, winRank: 0, hasKilled: false, isBot: false, pawns: [0, 0, 0, 0], path: [10, 15, 20, 21, 22, 23, 24, 19, 14, 9, 4, 3, 2, 1, 0, 5, 6, 7, 8, 13, 18, 17, 16, 11, 12] },
+      { id: 1, name: "Red", color: "#ff4757", hasWon: false, winRank: 0, hasKilled: false, isBot: false, pawns: [0, 0, 0, 0], path: [2, 1, 0, 5, 10, 15, 20, 21, 22, 23, 24, 19, 14, 9, 4, 3, 8, 13, 18, 17, 16, 11, 6, 7, 12] },
+      { id: 2, name: "Green", color: "#2ed573", hasWon: false, winRank: 0, hasKilled: false, isBot: false, pawns: [0, 0, 0, 0], path: [14, 9, 4, 3, 2, 1, 0, 5, 10, 15, 20, 21, 22, 23, 24, 19, 18, 17, 16, 11, 6, 7, 8, 13, 12] },
+      { id: 3, name: "Yellow", color: "#ffa502", hasWon: false, winRank: 0, hasKilled: false, isBot: false, pawns: [0, 0, 0, 0], path: [22, 23, 24, 19, 14, 9, 4, 3, 2, 1, 0, 5, 10, 15, 20, 21, 16, 11, 6, 7, 8, 13, 18, 17, 12] }
+    ];
+    
+    let activePlayers = []; 
+    let activePlayerIndex = 0; 
+    let isAnimating = false; 
+
+    function playMoveSound() {
+      if (!isSoundEnabled || !audioCtx) return;
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      
+      const osc = audioCtx.createOscillator();
+      const gainNode = audioCtx.createGain();
+      
+      osc.type = 'triangle'; 
+      osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 0.05);
+      
+      gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+      
+      osc.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+      
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.1);
+    }
+
+    function toggleHelp() {
+      const helpScreen = document.getElementById('help-screen');
+      helpScreen.style.display = (helpScreen.style.display === 'flex') ? 'none' : 'flex';
+    }
+
+    function toggleSettings() {
+      const settingsScreen = document.getElementById('settings-screen');
+      settingsScreen.style.display = (settingsScreen.style.display === 'flex') ? 'none' : 'flex';
+    }
+
+    function toggleSound() {
+      isSoundEnabled = !isSoundEnabled;
+      const btn = document.getElementById('sound-toggle-btn');
+      if (isSoundEnabled) {
+        btn.innerText = '🔊 Sound: ON';
+        btn.style.background = '#1e90ff';
+      } else {
+        btn.innerText = '🔇 Sound: OFF';
+        btn.style.background = '#7f8c8d'; 
+      }
+    }
+
+    function startGame(numPlayers) {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+      document.getElementById('setup-screen').style.display = 'none';
+      document.getElementById('game-container').style.display = 'grid';
+      document.getElementById('status').style.display = 'block';
+      
+      currentRank = 1;
+      activeRolls = [];
+      canRoll = true;
+      displayRollValue = 0;
+
+      if (numPlayers === 1) {
+        activePlayers = [allPlayers[0], allPlayers[2]]; 
+        allPlayers[2].isBot = true; 
+        allPlayers[2].name = "Green (Bot)";
+      } 
+      else if (numPlayers === 2) activePlayers = [allPlayers[0], allPlayers[2]]; 
+      else if (numPlayers === 3) activePlayers = [allPlayers[0], allPlayers[1], allPlayers[2]]; 
+      else activePlayers = [...allPlayers]; 
+
+      for (let i = 0; i < 4; i++) {
+        if (!activePlayers.find(p => p.id === i)) {
+          document.getElementById(`panel-${i}`).style.visibility = 'hidden';
+        }
+      }
+
+      activePlayerIndex = 0; 
+      processTurnState(); 
+    }
+
+    function renderBoard() {
+      const boardDiv = document.getElementById('board');
+      boardDiv.innerHTML = ''; 
+      
+      for (let i = 0; i < totalSpaces; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+
+        if (i === centerSpace) {
+          cell.classList.add('home-zone');
+          cell.appendChild(document.createTextNode('HOME'));
+        } else if (i === 10) cell.classList.add('start-blue');
+        else if (i === 2) cell.classList.add('start-red');
+        else if (i === 14) cell.classList.add('start-green');
+        else if (i === 22) cell.classList.add('start-yellow');
+
+        if (boardArrows[i] && i !== centerSpace) {
+          const arrow = document.createElement('div');
+          arrow.className = 'board-arrow';
+          arrow.innerHTML = boardArrows[i];
+          cell.appendChild(arrow);
+        }
+
+        activePlayers.forEach(player => {
+          player.pawns.forEach((pawnStep, pawnIndex) => {
+            const currentGridCell = player.path[pawnStep]; 
+            
+            if (currentGridCell === i) {
+              const pawn = document.createElement('div');
+              pawn.className = 'player-pawn';
+              pawn.style.backgroundColor = player.color;
+              
+              const currentActivePlayerId = activePlayers[activePlayerIndex].id;
+              
+              // Only allow clicking if they have rolls banked AND it's their turn
+              if (player.id === currentActivePlayerId && activeRolls.length > 0 && !isAnimating) {
+                let futureStep = pawnStep + activeRolls[0]; // Evaluate based on the NEXT roll in queue
+                let isValidMove = false;
+                
+                if (player.hasKilled && futureStep <= 24) isValidMove = true;
+                if (!player.hasKilled && futureStep <= 15) isValidMove = true;
+
+                if (isValidMove) {
+                  pawn.classList.add('clickable-pawn');
+                  if (!player.isBot) {
+                    pawn.onclick = () => movePawn(player.id, pawnIndex);
+                  }
+                }
+              }
+              cell.appendChild(pawn);
+            }
+          });
+        });
+        
+        boardDiv.appendChild(cell);
+      }
+      updateUI();
+    }
+
+    function updateUI() {
+      const currentPlayer = activePlayers[activePlayerIndex];
+      const statusEl = document.getElementById('status');
+      
+      if (!isAnimating) {
+        statusEl.style.color = currentPlayer.color;
+      }
+
+      for (let i = 0; i < 4; i++) {
+        const diceEl = document.getElementById(`dice-${i}`);
+        const panel = document.getElementById(`panel-${i}`);
+        
+        const playerObj = activePlayers.find(p => p.id === i);
+        if (!playerObj) continue;
+
+        if (playerObj.hasWon) {
+          panel.classList.remove('active-turn');
+          panel.style.opacity = '1';
+          panel.style.borderColor = '#ffd700'; 
+          panel.style.boxShadow = '0 0 15px rgba(255, 215, 0, 0.6)';
+          diceEl.classList.add('dice-disabled');
+          
+          let rankMedal = '👑';
+          if (playerObj.winRank === 1) rankMedal = '🥇';
+          else if (playerObj.winRank === 2) rankMedal = '🥈';
+          else if (playerObj.winRank === 3) rankMedal = '🥉';
+          
+          diceEl.innerText = rankMedal;
+          continue;
+        }
+
+        if (currentPlayer.id === i) {
+          panel.classList.add('active-turn');
+          // Dice is clickable if canRoll is true, they aren't a bot, and no animation is running
+          if (isAnimating || currentPlayer.isBot || !canRoll) {
+            diceEl.classList.add('dice-disabled');
+          } else {
+            diceEl.classList.remove('dice-disabled');
+          }
+        } else {
+          panel.classList.remove('active-turn');
+          diceEl.classList.add('dice-disabled');
+          if (!isAnimating && activeRolls.length === 0) {
+            diceEl.innerText = '🎲'; 
+          }
+        }
+      }
+    }
+
+    function rollDice(playerId) {
+      if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+        
+      const currentPlayerId = activePlayers[activePlayerIndex].id;
+      if (playerId !== currentPlayerId || isAnimating || !canRoll) return; 
+
+      // Consume the roll permission
+      canRoll = false;
+
+      const diceBox = document.getElementById(`dice-${playerId}`);
+      diceBox.classList.remove('shake');
+      void diceBox.offsetWidth; 
+      diceBox.classList.add('shake');
+
+      const allowedRolls = [1, 1, 2, 2, 3, 3, 4, 8];
+      const randomIndex = Math.floor(Math.random() * allowedRolls.length);
+      const roll = allowedRolls[randomIndex];
+      displayRollValue = roll;
+      
+      diceBox.innerText = displayRollValue;
+
+      // Bank the roll
+      activeRolls.push(roll);
+
+      // Rule: Rolling a 4 or an 8 grants an extra turn immediately
+      if (roll === 4 || roll === 8) {
+          canRoll = true;
+      }
+
+      processTurnState();
+    }
+
+    // NEW: Central function to evaluate what the player can do
+    function processTurnState(customMessage = null) {
+        const playerObj = activePlayers[activePlayerIndex];
+
+        // 1. Clean out invalid rolls from the front of the queue
+        while (activeRolls.length > 0) {
+            let nextRoll = activeRolls[0];
+            let hasValidMove = false;
+            playerObj.pawns.forEach((pawnStep) => {
+                let futureStep = pawnStep + nextRoll;
+                if (playerObj.hasKilled && futureStep <= 24) hasValidMove = true;
+                if (!playerObj.hasKilled && futureStep <= 15) hasValidMove = true;
+            });
+            
+            if (hasValidMove) {
+                break; // Found a valid move for this roll
+            } else {
+                activeRolls.shift(); // Discard the invalid roll
+                customMessage = (customMessage ? customMessage + " " : "") + `${nextRoll} was blocked and forfeited.`;
+            }
+        }
+
+        // 2. Check if turn is completely dead
+        if (activeRolls.length === 0 && !canRoll) {
+            document.getElementById('status').innerText = customMessage ? customMessage : "No valid moves left. Turn over!";
+            isAnimating = true; // Lock UI
+            setTimeout(() => advanceToNextPlayer(), 1500);
+            updateUI();
+            return;
+        }
+
+        renderBoard(); // Updates pawns and UI states
+
+        // 3. Build status message
+        let statusMsg = customMessage ? customMessage + " " : "";
+        if (activeRolls.length > 0) {
+            statusMsg += `[Rolls: ${activeRolls.join(', ')}] `;
+            if (canRoll) {
+                statusMsg += "Roll again, or tap a pawn!";
+            } else {
+                statusMsg += `Tap a pawn to move ${activeRolls[0]}.`;
+            }
+        } else if (canRoll) {
+            statusMsg += `${playerObj.name}'s Turn! Roll the dice.`;
+        }
+        document.getElementById('status').innerText = statusMsg;
+
+        // 4. Handle Bot Actions
+        if (playerObj.isBot && !isAnimating) {
+            if (canRoll) {
+                setTimeout(() => { rollDice(playerObj.id); }, 1000);
+            } else if (activeRolls.length > 0) {
+                let validPawns = [];
+                let nextR = activeRolls[0];
+                playerObj.pawns.forEach((pawnStep, pawnIndex) => {
+                    let futureStep = pawnStep + nextR;
+                    if (playerObj.hasKilled && futureStep <= 24) validPawns.push(pawnIndex);
+                    if (!playerObj.hasKilled && futureStep <= 15) validPawns.push(pawnIndex);
+                });
+                if (validPawns.length > 0) {
+                    const chosenPawnIndex = validPawns[Math.floor(Math.random() * validPawns.length)];
+                    setTimeout(() => { movePawn(playerObj.id, chosenPawnIndex); }, 1000);
+                }
+            }
+        }
+    }
+
+    function advanceToNextPlayer() {
+        activeRolls = [];
+        canRoll = true;
+        displayRollValue = 0;
+        isAnimating = false;
+
+        do {
+            activePlayerIndex = (activePlayerIndex + 1) % activePlayers.length;
+        } while (activePlayers[activePlayerIndex].hasWon); 
+        
+        // Reset dice displays visually
+        for(let i=0; i<4; i++) {
+            let d = document.getElementById(`dice-${i}`);
+            let p = activePlayers.find(pl => pl.id === i);
+            if(d && p && !p.hasWon) d.innerText = '🎲';
+        }
+
+        processTurnState();
+    }
+
+    function movePawn(playerId, pawnIndex) {
+      if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+        
+      const currentPlayerId = activePlayers[activePlayerIndex].id;
+      if (playerId !== currentPlayerId || activeRolls.length === 0 || isAnimating) return;
+
+      isAnimating = true; 
+      updateUI(); // Locks out rolling
+      
+      const playerObj = activePlayers.find(p => p.id === playerId);
+      let stepsTaken = 0;
+      let targetSteps = activeRolls.shift(); // Consume the first roll in the queue
+      let customEndMessage = null;
+
+      document.getElementById('status').innerText = `${playerObj.name} is moving ${targetSteps}...`;
+      document.getElementById('status').style.color = '#333';
+
+      function hop() {
+        if (stepsTaken < targetSteps && playerObj.pawns[pawnIndex] < 24) {
+          playerObj.pawns[pawnIndex]++;
+          stepsTaken++;
+          playMoveSound(); 
+          renderBoard();
+          setTimeout(hop, 250); 
+        } else {
+          
+          const finalPathStep = playerObj.pawns[pawnIndex];
+          const finalGridCell = playerObj.path[finalPathStep];
+          
+          if (finalPathStep === 24) {
+            if (playerObj.pawns.every(p => p === 24)) {
+                playerObj.hasWon = true;
+                playerObj.winRank = currentRank++; 
+                
+                let rankStr = playerObj.winRank === 1 ? "1st" : playerObj.winRank === 2 ? "2nd" : "3rd";
+                customEndMessage = `🎉 ${playerObj.name} finishes in ${rankStr} Place! 🎉`;
+                
+                // Final Game Over check
+                const activePlayingCount = activePlayers.filter(p => !p.hasWon).length;
+                if (activePlayingCount <= 1 && activePlayers.length > 1) {
+                    const loser = activePlayers.find(p => !p.hasWon);
+                    if (loser) {
+                        loser.hasWon = true;
+                        loser.winRank = currentRank; 
+                    }
+                    document.getElementById('status').innerText = customEndMessage + " Game Over!";
+                    updateUI(); 
+                    return; // EXIT ENTIRELY
+                }
+                
+                setTimeout(advanceToNextPlayer, 2500);
+                return;
+            } else {
+                canRoll = true; // Rule: Reaching home grants extra roll
+                customEndMessage = `Awesome! ${playerObj.name}'s pawn reached HOME! Extra Turn!`;
+            }
+          }
+
+          let capturedOpponents = [];
+          
+          if (![2, 10, 14, 22, 12].includes(finalGridCell)) {
+            activePlayers.forEach(opponent => {
+              if (opponent.id !== playerId && !opponent.hasWon) {
+                opponent.pawns.forEach((oppPawnStep, oppIndex) => {
+                  const oppGridCell = opponent.path[oppPawnStep];
+                  if (finalGridCell === oppGridCell && oppPawnStep < 24) {
+                    capturedOpponents.push({ player: opponent, pawnIdx: oppIndex });
+                  }
+                });
+              }
+            });
+          }
+
+          if (capturedOpponents.length > 0) {
+              canRoll = true; // Rule: Capturing grants extra roll
+              
+              if (!playerObj.hasKilled) {
+                  playerObj.hasKilled = true;
+                  customEndMessage = `${playerObj.name} unlocked the Inner Shell!`;
+              } else {
+                  customEndMessage = `Ouch! ${playerObj.name} captured a pawn!`;
+              }
+
+              let capturesHandled = 0;
+              
+              function handleNextCapture() {
+                  if (capturesHandled < capturedOpponents.length) {
+                      let cap = capturedOpponents[capturesHandled];
+                      
+                      function stepBack() {
+                          if (cap.player.pawns[cap.pawnIdx] > 0) {
+                              cap.player.pawns[cap.pawnIdx]--; 
+                              playMoveSound(); 
+                              renderBoard();
+                              setTimeout(stepBack, 40); 
+                          } else {
+                              capturesHandled++;
+                              handleNextCapture(); 
+                          }
+                      }
+                      stepBack();
+                  } else {
+                      setTimeout(() => {
+                          isAnimating = false;
+                          processTurnState(customEndMessage);
+                      }, 500);
+                  }
+              }
+              
+              handleNextCapture();
+
+          } else {
+              isAnimating = false;
+              processTurnState(customEndMessage);
+          }
+        }
+      }
+
+      hop(); 
+    }
+  </script>
+</body>
+</html>
