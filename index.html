@@ -150,9 +150,7 @@
 </head>
 <body>
   
-  <!-- Setup Screen Menus -->
   <div id="setup-screen" class="modal-overlay">
-    
     <div class="modal-box" id="main-menu">
       <h1 style="margin-top: 0;">Ludo Twist</h1>
       <button class="setup-btn" onclick="showLocalMenu()">Play Local (Offline)</button>
@@ -175,7 +173,6 @@
       <button class="setup-btn secondary-btn" onclick="startOnlineGame(4)">Join 4-Player Room</button>
       <button class="setup-btn back-btn" onclick="backToMain()">Back</button>
     </div>
-
   </div>
 
   <div id="settings-screen" class="modal-overlay">
@@ -258,13 +255,10 @@
     });
 
     socket.on('gameStart', (ids) => {
-        // Only load the players who connected
         activePlayers = allPlayers.filter(p => ids.includes(p.id));
-        
         for (let i = 0; i < 4; i++) {
             document.getElementById(`panel-${i}`).style.visibility = activePlayers.find(p => p.id === i) ? 'visible' : 'hidden';
         }
-        
         activePlayerIndex = 0;
         currentRank = 1;
         activeRolls = [];
@@ -282,6 +276,23 @@
         if (isOnlineMode) handleIncomingMove(data.playerId, data.pawnIndex);
     });
 
+    // --- NEW: Force the game state to match the server if we drift out of sync ---
+    socket.on('forceSync', (state) => {
+        if (isOnlineMode) {
+            activePlayerIndex = state.activeIndex;
+            state.players.forEach(serverPlayer => {
+                let localPlayer = activePlayers.find(p => p.id === serverPlayer.id);
+                if (localPlayer) {
+                    localPlayer.pawns = serverPlayer.pawns;
+                    localPlayer.hasKilled = serverPlayer.hasKilled;
+                    localPlayer.hasWon = serverPlayer.hasWon;
+                }
+            });
+            isAnimating = false;
+            renderBoard();
+            processTurnState();
+        }
+    });
 
     // --- GAME ENGINE ---
     const totalSpaces = 25;
@@ -296,7 +307,6 @@
 
     const boardArrows = { 10: '↓', 22: '→', 14: '↑', 2: '←', 11: '→', 17: '↑', 13: '←', 7: '↓' };
     
-    // Base Player Reference
     const allPlayers = [
       { id: 0, name: "Blue", color: "#1e90ff", hasWon: false, winRank: 0, hasKilled: false, isBot: false, pawns: [0, 0, 0, 0], path: [10, 15, 20, 21, 22, 23, 24, 19, 14, 9, 4, 3, 2, 1, 0, 5, 6, 7, 8, 13, 18, 17, 16, 11, 12] },
       { id: 1, name: "Red", color: "#ff4757", hasWon: false, winRank: 0, hasKilled: false, isBot: false, pawns: [0, 0, 0, 0], path: [2, 1, 0, 5, 10, 15, 20, 21, 22, 23, 24, 19, 14, 9, 4, 3, 8, 13, 18, 17, 16, 11, 6, 7, 12] },
@@ -341,9 +351,7 @@
       
       currentRank = 1; activeRolls = []; canRoll = true;
 
-      // Deep copy to reset bots
       let playersCopy = JSON.parse(JSON.stringify(allPlayers));
-
       if (numPlayers === 1) {
         activePlayers = [playersCopy[0], playersCopy[2]]; 
         activePlayers[1].isBot = true; activePlayers[1].name = "Green (Bot)";
@@ -414,9 +422,9 @@
                 if (isValidMove) {
                   pawn.classList.add('clickable-pawn');
                   pawn.onclick = () => {
-                      if (isAnimating) return; // Prevent double-clicking
-                      isAnimating = true;      // Lock the board instantly
-                      updateUI();              // Turn off glowing effects immediately
+                      if (isAnimating) return; 
+                      isAnimating = true;      
+                      updateUI();              
                       
                       if (isOnlineMode) requestMove(player.id, pawnIndex);
                       else handleIncomingMove(player.id, pawnIndex);
@@ -552,7 +560,6 @@
         }
         document.getElementById('status').innerText = statusMsg;
 
-        // --- BOT LOGIC FOR LOCAL MODE ---
         if (!isOnlineMode && playerObj.isBot && !isAnimating) {
             if (canRoll) {
                 setTimeout(() => { 
@@ -589,6 +596,15 @@
         }
 
         processTurnState();
+
+        // --- NEW: Send a hard-sync network packet at the end of the turn ---
+        if (isOnlineMode) {
+            const syncData = {
+                activeIndex: activePlayerIndex,
+                players: activePlayers.map(p => ({ id: p.id, pawns: p.pawns, hasKilled: p.hasKilled, hasWon: p.hasWon }))
+            };
+            socket.emit('syncState', syncData);
+        }
     }
 
     function requestMove(playerId, pawnIndex) {
