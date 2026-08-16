@@ -644,6 +644,8 @@
     }
 
     function advanceToNextPlayer() {
+        const justPlayedId = activePlayers[activePlayerIndex].id;
+        
         activeRolls = []; canRoll = true; isAnimating = false;
 
         do { activePlayerIndex = (activePlayerIndex + 1) % activePlayers.length; } 
@@ -657,7 +659,7 @@
 
         processTurnState();
 
-        if (isOnlineMode) {
+        if (isOnlineMode && justPlayedId === myPlayerId) {
             const syncData = {
                 activeIndex: activePlayerIndex,
                 players: activePlayers.map(p => ({ id: p.id, pawns: p.pawns, hasKilled: p.hasKilled, hasWon: p.hasWon }))
