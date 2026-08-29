@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ludo Twist - Optimized & Chat</title>
+  <title>Ludo Twist - Lag Free</title>
   <script src="/socket.io/socket.io.js"></script>
   <style>
     body { 
@@ -68,8 +68,7 @@
       grid-column: 1 / 3; display: grid; grid-template-columns: repeat(5, 1fr); 
       grid-auto-rows: 1fr; aspect-ratio: 1 / 1; gap: 4px; 
       background-color: #2c3e50; padding: 6px; border-radius: 12px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.4);
-      will-change: transform; /* Performance optimization */
+      box-shadow: 0 10px 25px rgba(0,0,0,0.4); position: relative;
     }
     
     .cell { 
@@ -87,10 +86,18 @@
     .home-zone { background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%); color: white; font-size: 14px; font-weight: bold; }
     .board-arrow { position: absolute; font-size: 28px; color: rgba(0, 0, 0, 0.25); font-weight: bold; z-index: 1; pointer-events: none; }
     
+    /* Smooth absolute pawn container layer */
+    .pawn-layer {
+      position: absolute; top: 6px; left: 6px; right: 6px; bottom: 6px;
+      display: grid; grid-template-columns: repeat(5, 1fr); grid-template-rows: repeat(5, 1fr);
+      pointer-events: none; z-index: 20;
+    }
+    .pawn-slot { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 3px; pointer-events: auto; }
+
     .player-pawn { 
-      width: 16px; height: 16px; border-radius: 50%; 
+      width: 15px; height: 15px; border-radius: 50%; 
       box-shadow: 2px 3px 5px rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.8); 
-      z-index: 10; will-change: transform;
+      transition: all 0.15s ease-in-out;
     }
 
     .clickable-pawn { cursor: pointer; box-shadow: 0 0 10px 4px rgba(255, 255, 255, 0.8); animation: pulse 1s infinite; }
@@ -129,7 +136,6 @@
       border-radius: 20px; color: #333; display: none; width: 100%; max-width: 390px; box-sizing: border-box;
     }
 
-    /* --- CHAT & MIC PANEL --- */
     .comm-dock {
       display: none; width: 100%; max-width: 420px; margin-top: 10px;
       background: rgba(0,0,0,0.3); border-radius: 10px; padding: 8px; box-sizing: border-box;
@@ -216,12 +222,13 @@
   <div class="game-container" id="game-container">
     <div class="player-panel" id="panel-1"><div class="panel-pawn-side"><div class="panel-pawn-icon"></div></div><div class="ludo-dice dice-disabled" id="dice-1" onclick="requestRoll(1)">🎲</div></div>
     <div class="player-panel" id="panel-2"><div class="panel-pawn-side"><div class="panel-pawn-icon"></div></div><div class="ludo-dice dice-disabled" id="dice-2" onclick="requestRoll(2)">🎲</div></div>
-    <div class="board" id="board"></div>
+    <div class="board" id="board">
+      <div class="pawn-layer" id="pawn-layer"></div>
+    </div>
     <div class="player-panel active-turn" id="panel-0"><div class="panel-pawn-side"><div class="panel-pawn-icon"></div></div><div class="ludo-dice dice-disabled" id="dice-0" onclick="requestRoll(0)">🎲</div></div>
     <div class="player-panel" id="panel-3"><div class="panel-pawn-side"><div class="panel-pawn-icon"></div></div><div class="ludo-dice dice-disabled" id="dice-3" onclick="requestRoll(3)">🎲</div></div>
   </div>
 
-  <!-- Chat & Voice Dock -->
   <div class="comm-dock" id="comm-dock">
     <div class="chat-box" id="chat-messages"></div>
     <div class="chat-input-row">
@@ -236,7 +243,6 @@
     let isOnlineMode = false;
     let myPlayerId = null;
     let mediaRecorder = null;
-    let audioChunks = [];
     let isMicActive = false;
 
     function showLocalMenu() { document.getElementById('main-menu').style.display = 'none'; document.getElementById('local-menu').style.display = 'block'; }
@@ -266,6 +272,7 @@
         activePlayerIndex = 0; currentRank = 1; activeRolls = []; canRoll = true;
         document.getElementById('game-container').style.display = 'grid';
         if(isOnlineMode) document.getElementById('comm-dock').style.display = 'block';
+        initBoardStaticStructure();
         renderBoard(); processTurnState();
     });
 
@@ -282,7 +289,6 @@
         }
     });
 
-    // --- CHAT & VOICE LOGIC ---
     function sendChatMessage() {
         const input = document.getElementById('chat-input');
         const text = input.value.trim();
@@ -317,11 +323,11 @@
                 mediaRecorder.ondataavailable = e => {
                     if(e.data.size > 0 && isOnlineMode) {
                         const reader = new FileReader();
-                        reader.readdataurl ? reader.readAsDataURL(e.data) : null;
                         reader.onloadend = () => { socket.emit('voiceSignal', reader.result); }
+                        reader.readAsDataURL(e.data);
                     }
                 };
-                mediaRecorder.start(1000); // chunk every 1 second
+                mediaRecorder.start(1000);
                 isMicActive = true;
                 micBtn.classList.add('mic-btn-active');
                 micBtn.innerText = '🔴 Live';
@@ -341,7 +347,6 @@
         audio.play().catch(e => console.log("Audio play error", e));
     });
 
-    // --- GAME ENGINE (Performance Optimized) ---
     const totalSpaces = 25, centerSpace = 12; 
     let currentRank = 1, audioCtx, isSoundEnabled = true; 
     let activeRolls = [], canRoll = true, isAnimating = false;
@@ -386,7 +391,10 @@
       for (let i = 0; i < 4; i++) {
         document.getElementById(`panel-${i}`).style.visibility = activePlayers.find(p => p.id === i) ? 'visible' : 'hidden';
       }
-      activePlayerIndex = 0; renderBoard(); processTurnState(); 
+      activePlayerIndex = 0; 
+      initBoardStaticStructure();
+      renderBoard(); 
+      processTurnState(); 
     }
 
     function startOnlineGame(numPlayers) {
@@ -415,11 +423,13 @@
       socket.emit('joinPrivateGame', codeInput);
     }
 
-    // Optimized Board Rendering via DocumentFragment to eliminate layout thrashing/lag
-    function renderBoard() {
+    // Build the static cells once to prevent any DOM recreation lag
+    function initBoardStaticStructure() {
       const boardDiv = document.getElementById('board');
-      const fragment = document.createDocumentFragment();
-      
+      // Clear old cells except pawn layer
+      const existingCells = boardDiv.querySelectorAll('.cell');
+      existingCells.forEach(c => c.remove());
+
       for (let i = 0; i < totalSpaces; i++) {
         const cell = document.createElement('div');
         cell.className = 'cell';
@@ -435,39 +445,62 @@
           arrow.className = 'board-arrow'; arrow.innerHTML = boardArrows[i];
           cell.appendChild(arrow);
         }
-
-        activePlayers.forEach(player => {
-          player.pawns.forEach((pawnStep, pawnIndex) => {
-            if (player.path[pawnStep] === i) {
-              const pawn = document.createElement('div');
-              pawn.className = 'player-pawn';
-              pawn.style.backgroundColor = player.color;
-              
-              const currentActivePlayerId = activePlayers[activePlayerIndex].id;
-              let isMyTurn = (isOnlineMode && player.id === currentActivePlayerId && myPlayerId === currentActivePlayerId) || 
-                             (!isOnlineMode && player.id === currentActivePlayerId && !player.isBot);
-              
-              if (isMyTurn && activeRolls.length > 0 && !isAnimating) {
-                let futureStep = pawnStep + activeRolls[0]; 
-                if ((player.hasKilled && futureStep <= 24) || (!player.hasKilled && futureStep <= 15)) {
-                  pawn.classList.add('clickable-pawn');
-                  pawn.onclick = () => {
-                      if (isAnimating) return; 
-                      isAnimating = true;      
-                      updateUI();              
-                      if (isOnlineMode) requestMove(player.id, pawnIndex);
-                      else handleIncomingMove(player.id, pawnIndex);
-                  };
-                }
-              }
-              cell.appendChild(pawn);
-            }
-          });
-        });
-        fragment.appendChild(cell);
+        boardDiv.insertBefore(cell, document.getElementById('pawn-layer'));
       }
-      boardDiv.innerHTML = '';
-      boardDiv.appendChild(fragment);
+
+      // Build static grid slots for the overlay layer
+      const layer = document.getElementById('pawn-layer');
+      layer.innerHTML = '';
+      for (let i = 0; i < totalSpaces; i++) {
+        const slot = document.createElement('div');
+        slot.className = 'pawn-slot';
+        slot.id = `pawn-slot-${i}`;
+        layer.appendChild(slot);
+      }
+    }
+
+    // Ultra-fast rendering: only updates pawn slots rather than wiping out the entire board grid
+    function renderBoard() {
+      if(!document.getElementById(`pawn-slot-0`)) {
+          initBoardStaticStructure();
+      }
+
+      // Clear slots
+      for (let i = 0; i < totalSpaces; i++) {
+        const slot = document.getElementById(`pawn-slot-${i}`);
+        if(slot) slot.innerHTML = '';
+      }
+
+      activePlayers.forEach(player => {
+        player.pawns.forEach((pawnStep, pawnIndex) => {
+          const gridIdx = player.path[pawnStep];
+          const slot = document.getElementById(`pawn-slot-${gridIdx}`);
+          if (slot) {
+            const pawn = document.createElement('div');
+            pawn.className = 'player-pawn';
+            pawn.style.backgroundColor = player.color;
+            
+            const currentActivePlayerId = activePlayers[activePlayerIndex].id;
+            let isMyTurn = (isOnlineMode && player.id === currentActivePlayerId && myPlayerId === currentActivePlayerId) || 
+                           (!isOnlineMode && player.id === currentActivePlayerId && !player.isBot);
+            
+            if (isMyTurn && activeRolls.length > 0 && !isAnimating) {
+              let futureStep = pawnStep + activeRolls[0]; 
+              if ((player.hasKilled && futureStep <= 24) || (!player.hasKilled && futureStep <= 15)) {
+                pawn.classList.add('clickable-pawn');
+                pawn.onclick = () => {
+                    if (isAnimating) return; 
+                    isAnimating = true;      
+                    updateUI();              
+                    if (isOnlineMode) requestMove(player.id, pawnIndex);
+                    else handleIncomingMove(player.id, pawnIndex);
+                };
+              }
+            }
+            slot.appendChild(pawn);
+          }
+        });
+      });
       updateUI();
     }
 
@@ -538,7 +571,7 @@
         if (activeRolls.length === 0 && !canRoll) {
             document.getElementById('status').innerText = customMessage || "No moves left. Turn over!";
             isAnimating = true; 
-            setTimeout(() => advanceToNextPlayer(), 1200);
+            setTimeout(() => advanceToNextPlayer(), 1000);
             updateUI();
             return;
         }
@@ -556,14 +589,14 @@
 
         if (!isOnlineMode && playerObj.isBot && !isAnimating) {
             if (canRoll) {
-                setTimeout(() => handleIncomingRoll(playerObj.id, [1,1,2,2,3,3,4,8][Math.floor(Math.random()*8)]), 800);
+                setTimeout(() => handleIncomingRoll(playerObj.id, [1,1,2,2,3,3,4,8][Math.floor(Math.random()*8)]), 600);
             } else if (activeRolls.length > 0) {
                 let validPawns = [];
                 playerObj.pawns.forEach((p, idx) => {
                     if ((playerObj.hasKilled && p + activeRolls[0] <= 24) || (!playerObj.hasKilled && p + activeRolls[0] <= 15)) validPawns.push(idx);
                 });
                 if (validPawns.length > 0) {
-                    setTimeout(() => handleIncomingMove(playerObj.id, validPawns[Math.floor(Math.random() * validPawns.length)]), 800);
+                    setTimeout(() => handleIncomingMove(playerObj.id, validPawns[Math.floor(Math.random() * validPawns.length)]), 600);
                 }
             }
         }
@@ -601,14 +634,14 @@
           stepsTaken++;
           playMoveSound(); 
           renderBoard();
-          setTimeout(hop, 180); // Speeded up animation interval to eliminate perceived lag
+          setTimeout(hop, 120); // Faster, lag-free stepping interval
         } else {
           const finalGridCell = playerObj.path[playerObj.pawns[pawnIndex]];
           
           if (playerObj.pawns[pawnIndex] === 24) {
             if (playerObj.pawns.every(p => p === 24)) {
                 playerObj.hasWon = true; playerObj.winRank = currentRank++;
-                setTimeout(advanceToNextPlayer, 1500); return;
+                setTimeout(advanceToNextPlayer, 1200); return;
             } else { canRoll = true; customEndMessage = `Pawn Home! Extra Turn!`; }
           }
 
@@ -629,9 +662,9 @@
               function stepBack() {
                   if (capIdx < captured.length) {
                       let c = captured[capIdx];
-                      if (c.player.pawns[c.pawnIdx] > 0) { c.player.pawns[c.pawnIdx]--; playMoveSound(); renderBoard(); setTimeout(stepBack, 30); }
+                      if (c.player.pawns[c.pawnIdx] > 0) { c.player.pawns[c.pawnIdx]--; playMoveSound(); renderBoard(); setTimeout(stepBack, 25); }
                       else { capIdx++; stepBack(); }
-                  } else { setTimeout(() => { isAnimating = false; processTurnState("Captured!"); }, 300); }
+                  } else { setTimeout(() => { isAnimating = false; processTurnState("Captured!"); }, 200); }
               }
               stepBack();
           } else {
