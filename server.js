@@ -61,15 +61,14 @@ io.on('connection', (socket) => {
         }
     });
 
-    // In-game communication features
     socket.on('sendChatMessage', (data) => {
         let roomId = getSocketRoom(socket);
         if (roomId) io.to(roomId).emit('receiveChatMessage', data);
     });
 
-    socket.on('voiceSignal', (data) => {
+    socket.on('voiceData', (arrayBuffer) => {
         let roomId = getSocketRoom(socket);
-        if (roomId) socket.to(roomId).emit('voiceSignal', data);
+        if (roomId) socket.to(roomId).emit('voiceData', arrayBuffer);
     });
 
     socket.on('requestRoll', (data) => {
