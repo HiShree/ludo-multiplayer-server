@@ -66,9 +66,9 @@ io.on('connection', (socket) => {
         if (roomId) io.to(roomId).emit('receiveChatMessage', data);
     });
 
-    socket.on('voiceData', (arrayBuffer) => {
+    socket.on('voiceData', (audioData) => {
         let roomId = getSocketRoom(socket);
-        if (roomId) socket.to(roomId).emit('voiceData', arrayBuffer);
+        if (roomId) socket.to(roomId).emit('voiceData', audioData);
     });
 
     socket.on('requestRoll', (data) => {
