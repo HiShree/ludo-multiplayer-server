@@ -1,9 +1,13 @@
 {
-  "name": "ludo-server",
+  "name": "ludo-twist",
   "version": "1.0.0",
+  "description": "Ludo Twist Multiplayer",
   "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
   "dependencies": {
-    "express": "^4.18.2",
-    "socket.io": "^4.7.2"
+    "express": "^4.21.2",
+    "socket.io": "^4.8.1"
   }
 }
