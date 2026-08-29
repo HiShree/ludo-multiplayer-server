@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ludo Twist - Authoritative State Sync</title>
+  <title>Ludo Twist - Final Fixed Code</title>
   <script src="/socket.io/socket.io.js"></script>
   <style>
     body { 
@@ -174,7 +174,7 @@
       <button class="setup-btn secondary-btn" onclick="startOnlineGame(4)">Public 4-Player</button>
       <hr style="border-color: #eee; margin: 15px 0;">
       <button class="setup-btn purple-btn" onclick="showPrivateMenu()">Private Room (Code)</button>
-      <button class="setup-btn back-btn" onclick="showOnlineMenu()">Back</button>
+      <button class="setup-btn back-btn" onclick="backToMain()">Back</button>
     </div>
 
     <div class="modal-box" id="private-menu">
@@ -243,6 +243,7 @@
     let myPlayerId = null;
     let mediaRecorder = null;
     let isMicActive = false;
+    let voiceAudioCtx = null;
 
     function showLocalMenu() { document.getElementById('main-menu').style.display = 'none'; document.getElementById('local-menu').style.display = 'block'; }
     function showOnlineMenu() { document.getElementById('main-menu').style.display = 'none'; document.getElementById('private-menu').style.display = 'none'; document.getElementById('online-menu').style.display = 'block'; }
@@ -327,21 +328,24 @@
         chatBox.scrollTop = chatBox.scrollHeight;
     }
 
-    // Voice Chat Transmission using standard chunks
+    // Fixed Audio Context Decoding Pipeline for Voice Chat
     async function toggleMicrophone() {
         const micBtn = document.getElementById('mic-btn');
         if(!isMicActive) {
             try {
+                if (!voiceAudioCtx) voiceAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (voiceAudioCtx.state === 'suspended') await voiceAudioCtx.resume();
+
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 mediaRecorder = new MediaRecorder(stream);
-                mediaRecorder.ondataavailable = e => {
+                
+                mediaRecorder.ondataavailable = async e => {
                     if(e.data.size > 0 && isOnlineMode) {
-                        const reader = new FileReader();
-                        reader.onloadend = () => { socket.emit('voiceData', reader.result); };
-                        reader.readAsDataURL(e.data);
+                        const buffer = await e.data.arrayBuffer();
+                        socket.emit('voiceData', buffer);
                     }
                 };
-                mediaRecorder.start(250);
+                mediaRecorder.start(200); // Package audio chunks every 200ms
                 isMicActive = true;
                 micBtn.classList.add('mic-btn-active');
                 micBtn.innerText = '🔴 Live';
@@ -356,12 +360,18 @@
         }
     }
 
-    socket.on('voiceData', (base64Audio) => {
+    socket.on('voiceData', async (arrayBuffer) => {
         try {
-            const audio = new Audio(base64Audio);
-            audio.play().catch(e => console.log("Audio play error", e));
+            if (!voiceAudioCtx) voiceAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (voiceAudioCtx.state === 'suspended') await voiceAudioCtx.resume();
+
+            const audioBuffer = await voiceAudioCtx.decodeAudioData(arrayBuffer);
+            const source = voiceAudioCtx.createBufferSource();
+            source.buffer = audioBuffer;
+            source.connect(voiceAudioCtx.destination);
+            source.start(0);
         } catch(e) {
-            console.log("Voice playback error", e);
+            console.log("Voice buffer decode error", e);
         }
     });
 
@@ -570,7 +580,6 @@
       diceBox.innerText = rollValue;
       activeRolls.push(rollValue);
       
-      // Strict rule: Extra turn ONLY on 4 or 8. Otherwise lock rolling.
       if (rollValue === 4 || rollValue === 8) {
           canRoll = true; 
       } else {
@@ -596,6 +605,7 @@
             document.getElementById('status').innerText = customMessage || "No moves left. Turn over!";
             isAnimating = true; 
             setTimeout(() => {
+                // Strictly authoritative turn transition lock
                 if (!isOnlineMode || activePlayers[activePlayerIndex].id === myPlayerId) {
                     advanceToNextPlayer();
                 }
