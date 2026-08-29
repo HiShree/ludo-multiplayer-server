@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ludo Twist - Lag Free</title>
+  <title>Ludo Twist - Lag Free & Targeted Capture</title>
   <script src="/socket.io/socket.io.js"></script>
   <style>
     body { 
@@ -86,7 +86,6 @@
     .home-zone { background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%); color: white; font-size: 14px; font-weight: bold; }
     .board-arrow { position: absolute; font-size: 28px; color: rgba(0, 0, 0, 0.25); font-weight: bold; z-index: 1; pointer-events: none; }
     
-    /* Smooth absolute pawn container layer */
     .pawn-layer {
       position: absolute; top: 6px; left: 6px; right: 6px; bottom: 6px;
       display: grid; grid-template-columns: repeat(5, 1fr); grid-template-rows: repeat(5, 1fr);
@@ -423,10 +422,8 @@
       socket.emit('joinPrivateGame', codeInput);
     }
 
-    // Build the static cells once to prevent any DOM recreation lag
     function initBoardStaticStructure() {
       const boardDiv = document.getElementById('board');
-      // Clear old cells except pawn layer
       const existingCells = boardDiv.querySelectorAll('.cell');
       existingCells.forEach(c => c.remove());
 
@@ -448,7 +445,6 @@
         boardDiv.insertBefore(cell, document.getElementById('pawn-layer'));
       }
 
-      // Build static grid slots for the overlay layer
       const layer = document.getElementById('pawn-layer');
       layer.innerHTML = '';
       for (let i = 0; i < totalSpaces; i++) {
@@ -459,13 +455,11 @@
       }
     }
 
-    // Ultra-fast rendering: only updates pawn slots rather than wiping out the entire board grid
     function renderBoard() {
       if(!document.getElementById(`pawn-slot-0`)) {
           initBoardStaticStructure();
       }
 
-      // Clear slots
       for (let i = 0; i < totalSpaces; i++) {
         const slot = document.getElementById(`pawn-slot-${i}`);
         if(slot) slot.innerHTML = '';
@@ -634,7 +628,7 @@
           stepsTaken++;
           playMoveSound(); 
           renderBoard();
-          setTimeout(hop, 120); // Faster, lag-free stepping interval
+          setTimeout(hop, 120); 
         } else {
           const finalGridCell = playerObj.path[playerObj.pawns[pawnIndex]];
           
@@ -650,25 +644,34 @@
             activePlayers.forEach(opp => {
               if (opp.id !== playerId && !opp.hasWon) {
                 opp.pawns.forEach((step, idx) => {
-                  if (opp.path[step] === finalGridCell && step < 24) captured.push({ player: opp, pawnIdx: idx });
+                  if (opp.path[step] === finalGridCell && step < 24) {
+                    captured.push({ player: opp, pawnIdx: idx });
+                  }
                 });
               }
             });
           }
 
           if (captured.length > 0) {
-              canRoll = true; playerObj.hasKilled = true;
-              let capIdx = 0;
+              canRoll = true; 
+              playerObj.hasKilled = true;
+              
+              let targetCapture = captured[0]; 
+              
               function stepBack() {
-                  if (capIdx < captured.length) {
-                      let c = captured[capIdx];
-                      if (c.player.pawns[c.pawnIdx] > 0) { c.player.pawns[c.pawnIdx]--; playMoveSound(); renderBoard(); setTimeout(stepBack, 25); }
-                      else { capIdx++; stepBack(); }
-                  } else { setTimeout(() => { isAnimating = false; processTurnState("Captured!"); }, 200); }
+                  if (targetCapture.player.pawns[targetCapture.pawnIdx] > 0) {
+                      targetCapture.player.pawns[targetCapture.pawnIdx]--; 
+                      playMoveSound(); 
+                      renderBoard(); 
+                      setTimeout(stepBack, 25); 
+                  } else { 
+                      setTimeout(() => { isAnimating = false; processTurnState("Captured!"); }, 200); 
+                  }
               }
               stepBack();
           } else {
-              isAnimating = false; processTurnState(customEndMessage);
+              isAnimating = false; 
+              processTurnState(customEndMessage);
           }
         }
       }
