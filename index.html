@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ludo Twist - Final Fixes</title>
+  <title>Ludo Twist - Authoritative State Sync</title>
   <script src="/socket.io/socket.io.js"></script>
   <style>
     body { 
@@ -174,7 +174,7 @@
       <button class="setup-btn secondary-btn" onclick="startOnlineGame(4)">Public 4-Player</button>
       <hr style="border-color: #eee; margin: 15px 0;">
       <button class="setup-btn purple-btn" onclick="showPrivateMenu()">Private Room (Code)</button>
-      <button class="setup-btn back-btn" onclick="backToMain()">Back</button>
+      <button class="setup-btn back-btn" onclick="showOnlineMenu()">Back</button>
     </div>
 
     <div class="modal-box" id="private-menu">
@@ -243,7 +243,6 @@
     let myPlayerId = null;
     let mediaRecorder = null;
     let isMicActive = false;
-    let micAudioContext = null;
 
     function showLocalMenu() { document.getElementById('main-menu').style.display = 'none'; document.getElementById('local-menu').style.display = 'block'; }
     function showOnlineMenu() { document.getElementById('main-menu').style.display = 'none'; document.getElementById('private-menu').style.display = 'none'; document.getElementById('online-menu').style.display = 'block'; }
@@ -276,16 +275,30 @@
         renderBoard(); processTurnState();
     });
 
-    socket.on('executeRoll', (data) => { if (isOnlineMode) handleIncomingRoll(data.playerId, data.rollValue); });
-    socket.on('executeMove', (data) => { if (isOnlineMode) handleIncomingMove(data.playerId, data.pawnIndex); });
+    socket.on('executeRoll', (data) => { 
+        if (isOnlineMode) handleIncomingRoll(data.playerId, data.rollValue); 
+    });
+
+    socket.on('executeMove', (data) => { 
+        if (isOnlineMode) handleIncomingMove(data.playerId, data.pawnIndex); 
+    });
+
     socket.on('forceSync', (state) => {
         if (isOnlineMode) {
             activePlayerIndex = state.activeIndex;
+            activeRolls = state.activeRolls || [];
+            canRoll = state.canRoll;
             state.players.forEach(serverPlayer => {
                 let localPlayer = activePlayers.find(p => p.id === serverPlayer.id);
-                if (localPlayer) { localPlayer.pawns = serverPlayer.pawns; localPlayer.hasKilled = serverPlayer.hasKilled; localPlayer.hasWon = serverPlayer.hasWon; }
+                if (localPlayer) { 
+                    localPlayer.pawns = serverPlayer.pawns; 
+                    localPlayer.hasKilled = serverPlayer.hasKilled; 
+                    localPlayer.hasWon = serverPlayer.hasWon; 
+                }
             });
-            isAnimating = false; renderBoard(); processTurnState();
+            isAnimating = false; 
+            renderBoard(); 
+            processTurnState();
         }
     });
 
@@ -314,7 +327,7 @@
         chatBox.scrollTop = chatBox.scrollHeight;
     }
 
-    // Robust Voice Chat implementation using Base64 encoding over Socket.io to bypass blob container issues
+    // Voice Chat Transmission using standard chunks
     async function toggleMicrophone() {
         const micBtn = document.getElementById('mic-btn');
         if(!isMicActive) {
@@ -324,13 +337,11 @@
                 mediaRecorder.ondataavailable = e => {
                     if(e.data.size > 0 && isOnlineMode) {
                         const reader = new FileReader();
-                        reader.onloadend = () => {
-                            socket.emit('voiceData', reader.result);
-                        };
+                        reader.onloadend = () => { socket.emit('voiceData', reader.result); };
                         reader.readAsDataURL(e.data);
                     }
                 };
-                mediaRecorder.start(300); // Send audio chunks every 300ms
+                mediaRecorder.start(250);
                 isMicActive = true;
                 micBtn.classList.add('mic-btn-active');
                 micBtn.innerText = '🔴 Live';
@@ -348,7 +359,7 @@
     socket.on('voiceData', (base64Audio) => {
         try {
             const audio = new Audio(base64Audio);
-            audio.play().catch(e => console.log("Audio play blocked/errored", e));
+            audio.play().catch(e => console.log("Audio play error", e));
         } catch(e) {
             console.log("Voice playback error", e);
         }
@@ -540,23 +551,26 @@
       let isMyTurn = (isOnlineMode && playerId === myPlayerId) || (!isOnlineMode && !activePlayers[activePlayerIndex].isBot);
       if (!isMyTurn || playerId !== activePlayers[activePlayerIndex].id || isAnimating || !canRoll) return; 
 
-      canRoll = false; updateUI();      
+      canRoll = false; 
+      updateUI();      
       const roll = [1, 1, 2, 2, 3, 3, 4, 8][Math.floor(Math.random() * 8)];
       
-      if (isOnlineMode) socket.emit('requestRoll', { playerId, rollValue: roll });
-      else handleIncomingRoll(playerId, roll);
+      if (isOnlineMode) {
+          socket.emit('requestRoll', { playerId, rollValue: roll });
+      } else {
+          handleIncomingRoll(playerId, roll);
+      }
     }
 
     function handleIncomingRoll(playerId, rollValue) {
       if (playerId !== activePlayers[activePlayerIndex].id) return;
       if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-      canRoll = false; 
       
       const diceBox = document.getElementById(`dice-${playerId}`);
       diceBox.innerText = rollValue;
       activeRolls.push(rollValue);
       
-      // Extra turn allowed strictly if roll is 4 or 8
+      // Strict rule: Extra turn ONLY on 4 or 8. Otherwise lock rolling.
       if (rollValue === 4 || rollValue === 8) {
           canRoll = true; 
       } else {
@@ -564,6 +578,7 @@
       }
 
       processTurnState();
+      broadcastSyncState();
     }
 
     function processTurnState(customMessage = null) {
@@ -580,7 +595,11 @@
         if (activeRolls.length === 0 && !canRoll) {
             document.getElementById('status').innerText = customMessage || "No moves left. Turn over!";
             isAnimating = true; 
-            setTimeout(() => advanceToNextPlayer(), 1000);
+            setTimeout(() => {
+                if (!isOnlineMode || activePlayers[activePlayerIndex].id === myPlayerId) {
+                    advanceToNextPlayer();
+                }
+            }, 1000);
             updateUI();
             return;
         }
@@ -612,7 +631,6 @@
     }
 
     function advanceToNextPlayer() {
-        const justPlayedId = activePlayers[activePlayerIndex].id;
         activeRolls = []; 
         canRoll = true; 
         isAnimating = false;
@@ -621,21 +639,35 @@
             activePlayerIndex = (activePlayerIndex + 1) % activePlayers.length; 
         } while (activePlayers[activePlayerIndex].hasWon); 
         
-        processTurnState();
+        for(let i=0; i<4; i++) {
+            let d = document.getElementById(`dice-${i}`);
+            let p = activePlayers.find(pl => pl.id === i);
+            if(d && p && !p.hasWon) d.innerText = '🎲';
+        }
 
-        if (isOnlineMode && justPlayedId === myPlayerId) {
+        processTurnState();
+        broadcastSyncState();
+    }
+
+    function broadcastSyncState() {
+        if (isOnlineMode) {
             socket.emit('syncState', {
                 activeIndex: activePlayerIndex,
+                activeRolls: activeRolls,
+                canRoll: canRoll,
                 players: activePlayers.map(p => ({ id: p.id, pawns: p.pawns, hasKilled: p.hasKilled, hasWon: p.hasWon }))
             });
         }
     }
 
-    function requestMove(playerId, pawnIndex) { socket.emit('requestMove', { playerId, pawnIndex }); }
+    function requestMove(playerId, pawnIndex) { 
+        socket.emit('requestMove', { playerId, pawnIndex }); 
+    }
 
     function handleIncomingMove(playerId, pawnIndex) {
       if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-      isAnimating = true; updateUI(); 
+      isAnimating = true; 
+      updateUI(); 
       
       const playerObj = activePlayers.find(p => p.id === playerId);
       let targetSteps = activeRolls.shift(); 
@@ -653,8 +685,12 @@
           
           if (playerObj.pawns[pawnIndex] === 24) {
             if (playerObj.pawns.every(p => p === 24)) {
-                playerObj.hasWon = true; playerObj.winRank = currentRank++;
-                setTimeout(advanceToNextPlayer, 1200); return;
+                playerObj.hasWon = true; 
+                playerObj.winRank = currentRank++;
+                setTimeout(() => {
+                    if (!isOnlineMode || activePlayers[activePlayerIndex].id === myPlayerId) advanceToNextPlayer();
+                }, 1200); 
+                return;
             } else { 
                 canRoll = true; 
                 customEndMessage = `Pawn Home! Extra Turn!`; 
@@ -686,13 +722,18 @@
                       renderBoard(); 
                       setTimeout(stepBack, 25); 
                   } else { 
-                      setTimeout(() => { isAnimating = false; processTurnState("Captured! Extra Turn!"); }, 200); 
+                      setTimeout(() => { 
+                          isAnimating = false; 
+                          processTurnState("Captured! Extra Turn!"); 
+                          broadcastSyncState();
+                      }, 200); 
                   }
               }
               stepBack();
           } else {
               isAnimating = false; 
               processTurnState(customEndMessage);
+              broadcastSyncState();
           }
         }
       }
