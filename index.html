@@ -2,2964 +2,2463 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-
-<meta
-  name="viewport"
-  content="width=device-width,
-  initial-scale=1,
-  maximum-scale=1,
-  user-scalable=no"
->
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0,
+               maximum-scale=1.0,user-scalable=no">
 
 <title>Ludo Twist</title>
 
 <script src="/socket.io/socket.io.js"></script>
 
 <style>
-*{
-  box-sizing:border-box;
+
+* {
+    box-sizing: border-box;
 }
 
-body{
-  margin:0;
-  padding:10px;
-  font-family:
-    Segoe UI,
-    Tahoma,
-    sans-serif;
-  color:white;
-  background:
-    linear-gradient(
-      135deg,
-      #1e3c72,
-      #2a5298
-    );
-  min-height:100vh;
+body {
+    margin: 0;
+    padding: 10px;
+    min-height: 100vh;
+    font-family: Arial, sans-serif;
+    color: white;
+    background:
+        linear-gradient(135deg,#1e3c72,#2a5298);
+    overflow-x: hidden;
 }
 
-button,input{
-  font:inherit;
+button {
+    font-family: inherit;
 }
 
-.header{
-  max-width:430px;
-  margin:8px auto;
-  display:flex;
-  align-items:center;
-  gap:7px;
+.header {
+    width: 100%;
+    max-width: 460px;
+    margin: 8px auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
-.header h2{
-  margin:0;
-  font-size:25px;
-  flex:1;
-  text-shadow:2px 2px 4px #0008;
+.logo {
+    font-size: 27px;
+    font-weight: 900;
+    flex: 1;
 }
 
-.badge{
-  display:none;
-  background:#2ecc71;
-  padding:8px 12px;
-  border-radius:18px;
-  font-weight:bold;
-  white-space:nowrap;
+.header button {
+    width: 50px;
+    height: 45px;
+    border: 0;
+    border-radius: 50%;
+    font-size: 22px;
+    background: #34495e;
+    color: white;
+    box-shadow: 0 4px 8px #0005;
 }
 
-.icon{
-  border:0;
-  border-radius:20px;
-  background:#34495e;
-  color:white;
-  padding:9px 12px;
-  box-shadow:0 3px 7px #0005;
+#identity {
+    background: #2ecc71;
+    padding: 10px 15px;
+    border-radius: 25px;
+    font-weight: bold;
+    display: none;
+    white-space: nowrap;
 }
 
-.status{
-  display:none;
-  max-width:430px;
-  margin:8px auto;
-  padding:9px 12px;
-  border-radius:22px;
-  background:white;
-  color:#222;
-  text-align:center;
-  font-weight:bold;
-  min-height:40px;
+#status {
+    width: 100%;
+    max-width: 460px;
+    margin: 8px auto;
+    padding: 9px;
+    border-radius: 22px;
+    background: white;
+    color: #333;
+    text-align: center;
+    font-weight: bold;
+    min-height: 38px;
 }
 
-.modal{
-  position:fixed;
-  inset:0;
-  background:#000d;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  z-index:100;
+#game {
+    width: 100%;
+    max-width: 460px;
+    margin: auto;
+    display: none;
 }
 
-.modal.hide{
-  display:none;
+.players {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 8px;
 }
 
-.box{
-  width:min(88%,340px);
-  background:white;
-  color:#222;
-  border-radius:16px;
-  padding:22px;
-  text-align:center;
-  box-shadow:0 15px 40px #0008;
+.player {
+    display: flex;
+    align-items: center;
+    border: 3px solid transparent;
+    border-radius: 9px;
+    opacity: .55;
+    transition: .2s;
 }
 
-.btn{
-  width:100%;
-  border:0;
-  border-radius:9px;
-  padding:12px;
-  margin:6px 0;
-  background:#1e90ff;
-  color:white;
-  font-weight:bold;
+.player.active {
+    opacity: 1;
+    border-color: #ffd700;
+    transform: scale(1.05);
+    box-shadow: 0 0 15px #ffd700;
 }
 
-.green{
-  background:#2ecc71;
+.player-name {
+    padding: 8px;
+    font-weight: bold;
 }
 
-.purple{
-  background:#9b59b6;
+.dice {
+    width: 52px;
+    height: 52px;
+    border: 0;
+    background: white;
+    color: #111;
+    font-size: 25px;
+    font-weight: bold;
+    cursor: pointer;
 }
 
-.gray{
-  background:#7f8c8d;
+.dice:disabled {
+    opacity: .5;
+    cursor: not-allowed;
 }
 
-.red{
-  background:#e74c3c;
+.board {
+    width: 100%;
+    aspect-ratio: 1;
+    position: relative;
+    padding: 6px;
+    display: grid;
+    grid-template-columns: repeat(5,1fr);
+    grid-template-rows: repeat(5,1fr);
+    gap: 4px;
+    background: #263746;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px #0007;
 }
 
-.game{
-  display:none;
-  max-width:430px;
-  margin:auto;
+.cell {
+    background: #ecf0f1;
+    border-radius: 7px;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #555;
+    font-size: 24px;
 }
 
-.panels{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:8px;
-  margin:8px 0;
+.blue {
+    background: linear-gradient(135deg,#74b9ff,#0984e3);
 }
 
-.panel{
-  display:flex;
-  align-items:center;
-  opacity:.45;
-  border:3px solid transparent;
-  border-radius:8px;
-  overflow:hidden;
-  transition:.2s;
+.red {
+    background: linear-gradient(135deg,#ff7675,#d63031);
 }
 
-.panel.active{
-  opacity:1;
-  border-color:#ffd700;
-  transform:scale(1.03);
+.green {
+    background: linear-gradient(135deg,#55efc4,#00b894);
 }
 
-.panel.hidden{
-  visibility:hidden;
+.yellow {
+    background: linear-gradient(135deg,#ffeaa7,#fdcb6e);
 }
 
-.name{
-  padding:9px 7px;
-  font-weight:bold;
-  flex:1;
+.home {
+    background: linear-gradient(135deg,#9b59b6,#8e44ad);
+    color: white;
+    font-size: 15px;
+    font-weight: bold;
 }
 
-.dice{
-  width:58px;
-  height:54px;
-  border:0;
-  background:white;
-  color:#111;
-  font-size:27px;
-  font-weight:900;
-  cursor:pointer;
+.arrow {
+    opacity: .35;
 }
 
-.dice.disabled{
-  opacity:.55;
-  pointer-events:none;
+.pawn-layer {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    right: 6px;
+    bottom: 6px;
+
+    display: grid;
+    grid-template-columns: repeat(5,1fr);
+    grid-template-rows: repeat(5,1fr);
+
+    gap: 4px;
+    pointer-events: none;
+    z-index: 10;
 }
 
-.board{
-  position:relative;
-  display:grid;
-  grid-template-columns:repeat(5,1fr);
-  gap:4px;
-  background:#2c3e50;
-  padding:6px;
-  border-radius:13px;
-  aspect-ratio:1;
-  box-shadow:0 10px 25px #0006;
+.pawn-slot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    align-content: center;
+    gap: 3px;
+    pointer-events: none;
 }
 
-.cell{
-  background:#ecf0f1;
-  border-radius:7px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  color:#555;
-  font-weight:bold;
-  position:relative;
+.pawn {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid white;
+    box-shadow:
+        0 3px 7px #0009,
+        inset 0 2px 2px #fff8;
+    pointer-events: auto;
+    transition:
+        transform .12s,
+        box-shadow .12s;
 }
 
-.blue{
-  background:
-    linear-gradient(
-      135deg,
-      #74b9ff,
-      #0984e3
-    );
+.pawn.movable {
+    animation: glow .8s infinite;
+    cursor: pointer;
 }
 
-.redc{
-  background:
-    linear-gradient(
-      135deg,
-      #ff7675,
-      #d63031
-    );
+@keyframes glow {
+
+    0%,100% {
+        transform: scale(1);
+        box-shadow: 0 0 4px white;
+    }
+
+    50% {
+        transform: scale(1.25);
+        box-shadow:
+            0 0 13px 5px white;
+    }
 }
 
-.greenc{
-  background:
-    linear-gradient(
-      135deg,
-      #55efc4,
-      #00b894
-    );
+.moving {
+    animation: hop .18s ease;
 }
 
-.yellow{
-  background:
-    linear-gradient(
-      135deg,
-      #ffeaa7,
-      #fdcb6e
-    );
+@keyframes hop {
+
+    0% {
+        transform: scale(.7);
+    }
+
+    50% {
+        transform: scale(1.3);
+    }
+
+    100% {
+        transform: scale(1);
+    }
 }
 
-.home{
-  background:
-    linear-gradient(
-      135deg,
-      #9b59b6,
-      #8e44ad
-    );
-  color:white;
+.communication {
+    width: 100%;
+    margin-top: 12px;
+    padding: 10px;
+    background: #203d69;
+    border-radius: 13px;
+    box-shadow: 0 5px 15px #0004;
 }
 
-.arrow{
-  font-size:26px;
-  opacity:.35;
+.chat {
+    height: 100px;
+    overflow-y: auto;
+    padding: 7px;
+    background: #ffffff12;
+    border-radius: 8px;
+    font-size: 13px;
+    margin-bottom: 8px;
 }
 
-.pawns{
-  position:absolute;
-  inset:6px;
-  display:grid;
-  grid-template-columns:repeat(5,1fr);
-  grid-template-rows:repeat(5,1fr);
-  pointer-events:none;
-  z-index:5;
+.chat div {
+    margin: 4px 0;
 }
 
-.slot{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  flex-wrap:wrap;
-  gap:3px;
-  pointer-events:auto;
+.chat-row {
+    display: flex;
+    gap: 5px;
 }
 
-.pawn{
-  width:18px;
-  height:18px;
-  border-radius:50%;
-  border:2px solid white;
-  box-shadow:
-    1px 2px 5px #0008;
-  transition:
-    transform .12s;
+.chat-row input {
+    flex: 1;
+    min-width: 0;
+    padding: 11px;
+    border: 0;
+    border-radius: 7px;
+    font-size: 14px;
 }
 
-.pawn.movable{
-  cursor:pointer;
-  animation:pulse .75s infinite;
-  box-shadow:
-    0 0 0 3px #fff8,
-    0 0 12px white;
+.chat-row button {
+    border: 0;
+    border-radius: 7px;
+    padding: 0 13px;
+    background: #e67e22;
+    color: white;
+    font-weight: bold;
 }
 
-@keyframes pulse{
-  50%{
-    transform:scale(1.3);
-  }
+.mic-on {
+    background: #c0392b !important;
+    animation: glow .8s infinite;
 }
 
-.chat{
-  display:none;
-  background:#0003;
-  border-radius:12px;
-  padding:10px;
-  margin-top:10px;
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: #000d;
+    z-index: 100;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
-.messages{
-  height:74px;
-  overflow:auto;
-  background:#ffffff12;
-  border-radius:7px;
-  padding:6px;
-  font-size:12px;
+.menu {
+    width: 88%;
+    max-width: 360px;
+    background: white;
+    color: #333;
+    padding: 22px;
+    border-radius: 16px;
+    text-align: center;
 }
 
-.chatrow{
-  display:flex;
-  gap:6px;
-  margin-top:6px;
+.menu h1,
+.menu h2 {
+    margin-top: 0;
 }
 
-.chatrow input{
-  flex:1;
-  border:0;
-  border-radius:6px;
-  padding:9px;
+.menu button {
+    width: 100%;
+    padding: 13px;
+    margin: 6px 0;
+    border: 0;
+    border-radius: 9px;
+    background: #1e90ff;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
 }
 
-.chatrow button{
-  border:0;
-  border-radius:6px;
-  padding:8px 11px;
-  background:#e67e22;
-  color:white;
-  font-weight:bold;
+.menu .greenBtn {
+    background: #2ecc71;
 }
 
-#mic.live{
-  background:#c0392b;
-  animation:pulse .8s infinite;
+.menu .purple {
+    background: #9b59b6;
 }
+
+.menu .gray {
+    background: #7f8c8d;
+}
+
+.menu input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 7px;
+    text-align: center;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.hidden {
+    display: none !important;
+}
+
+#roomCode {
+    font-size: 22px;
+    font-weight: bold;
+    margin: 10px;
+    letter-spacing: 3px;
+}
+
 </style>
 </head>
 
 <body>
 
-<!-- ================= SETUP ================= -->
+<!-- MAIN MENU -->
 
-<div id="setup" class="modal">
+<div id="menuOverlay" class="overlay">
 
-  <div id="main" class="box">
-    <h1>🎲 Ludo Twist</h1>
+    <div id="mainMenu" class="menu">
 
-    <button
-      class="btn"
-      onclick="showMenu('local')">
-      Play Local (Offline)
-    </button>
+        <h1>🎲 Ludo Twist</h1>
 
-    <button
-      class="btn green"
-      onclick="showMenu('online')">
-      Play Online Multiplayer
-    </button>
-  </div>
+        <button onclick="showLocal()">
+            Play Local
+        </button>
 
-  <div
-    id="local"
-    class="box"
-    style="display:none">
+        <button class="greenBtn" onclick="showOnline()">
+            Play Online
+        </button>
 
-    <h2>Local Mode</h2>
+    </div>
 
-    <button
-      class="btn"
-      onclick="startLocal(1)">
-      1 Player vs Bot
-    </button>
+    <div id="localMenu" class="menu hidden">
 
-    <button
-      class="btn"
-      onclick="startLocal(2)">
-      2 Players
-    </button>
+        <h2>Local Game</h2>
 
-    <button
-      class="btn"
-      onclick="startLocal(3)">
-      3 Players
-    </button>
+        <button onclick="startLocal(1)">
+            1 Player vs Bot
+        </button>
 
-    <button
-      class="btn"
-      onclick="startLocal(4)">
-      4 Players
-    </button>
+        <button onclick="startLocal(2)">
+            2 Players
+        </button>
 
-    <button
-      class="btn gray"
-      onclick="showMenu('main')">
-      Back
-    </button>
-  </div>
+        <button onclick="startLocal(3)">
+            3 Players
+        </button>
 
-  <div
-    id="online"
-    class="box"
-    style="display:none">
+        <button onclick="startLocal(4)">
+            4 Players
+        </button>
 
-    <h2>Online Match</h2>
+        <button class="gray" onclick="backMain()">
+            Back
+        </button>
 
-    <button
-      class="btn green"
-      onclick="startOnline(2)">
-      Public 2 Player
-    </button>
+    </div>
 
-    <button
-      class="btn green"
-      onclick="startOnline(3)">
-      Public 3 Player
-    </button>
+    <div id="onlineMenu" class="menu hidden">
 
-    <button
-      class="btn green"
-      onclick="startOnline(4)">
-      Public 4 Player
-    </button>
+        <h2>Online Game</h2>
 
-    <button
-      class="btn purple"
-      onclick="showMenu('private')">
-      Private Room
-    </button>
+        <button class="greenBtn"
+                onclick="startOnline(2)">
+            Public 2 Player
+        </button>
 
-    <button
-      class="btn gray"
-      onclick="showMenu('main')">
-      Back
-    </button>
-  </div>
+        <button class="greenBtn"
+                onclick="startOnline(3)">
+            Public 3 Player
+        </button>
 
-  <div
-    id="private"
-    class="box"
-    style="display:none">
+        <button class="greenBtn"
+                onclick="startOnline(4)">
+            Public 4 Player
+        </button>
 
-    <h2>Private Room</h2>
+        <button class="purple"
+                onclick="showPrivate()">
+            Private Room
+        </button>
 
-    <button
-      class="btn green"
-      onclick="createPrivate(2)">
-      Create 2P
-    </button>
+        <button class="gray"
+                onclick="backMain()">
+            Back
+        </button>
 
-    <button
-      class="btn green"
-      onclick="createPrivate(3)">
-      Create 3P
-    </button>
+    </div>
 
-    <button
-      class="btn green"
-      onclick="createPrivate(4)">
-      Create 4P
-    </button>
+    <div id="privateMenu" class="menu hidden">
 
-    <p>— OR —</p>
+        <h2>Private Room</h2>
 
-    <input
-      id="roomCode"
-      placeholder="ROOM CODE"
-      style="
-        width:100%;
-        padding:10px;
-        text-align:center;
-        text-transform:uppercase;
-      "
-    >
+        <button class="greenBtn"
+                onclick="createPrivate(2)">
+            Create 2 Player
+        </button>
 
-    <button
-      class="btn purple"
-      onclick="joinPrivate()">
-      Join Room
-    </button>
+        <button class="greenBtn"
+                onclick="createPrivate(3)">
+            Create 3 Player
+        </button>
 
-    <button
-      class="btn gray"
-      onclick="showMenu('online')">
-      Back
-    </button>
+        <button class="greenBtn"
+                onclick="createPrivate(4)">
+            Create 4 Player
+        </button>
 
-  </div>
+        <hr>
+
+        <input id="roomInput"
+               placeholder="ROOM CODE">
+
+        <button class="purple"
+                onclick="joinPrivate()">
+            Join Room
+        </button>
+
+        <button class="gray"
+                onclick="showOnline()">
+            Back
+        </button>
+
+    </div>
 
 </div>
 
-<!-- ================= SETTINGS ================= -->
 
-<div
-  id="settings"
-  class="modal hide">
-
-  <div class="box">
-
-    <h2>Settings</h2>
-
-    <button
-      id="soundButton"
-      class="btn"
-      onclick="toggleSound()">
-      🔊 Sound: ON
-    </button>
-
-    <button
-      class="btn red"
-      onclick="toggleModal('settings')">
-      Close
-    </button>
-
-  </div>
-</div>
-
-<!-- ================= HELP ================= -->
-
-<div
-  id="help"
-  class="modal hide">
-
-  <div class="box">
-
-    <h2>How to Play</h2>
-
-    <p>
-      Roll the dice on your turn.
-      A 4 or 8 gives an extra roll.
-      Tap a glowing pawn to move it.
-    </p>
-
-    <p>
-      Pawns move one square at a time
-      with a sound effect.
-    </p>
-
-    <button
-      class="btn red"
-      onclick="toggleModal('help')">
-      Close
-    </button>
-
-  </div>
-</div>
-
-<!-- ================= HEADER ================= -->
+<!-- HEADER -->
 
 <div class="header">
 
-  <h2>🎲 Ludo Twist</h2>
+    <div class="logo">
+        🎲 Ludo Twist
+    </div>
 
-  <span
-    id="badge"
-    class="badge">
-  </span>
+    <div id="identity"></div>
 
-  <button
-    class="icon"
-    onclick="toggleModal('settings')">
-    ⚙️
-  </button>
+    <button onclick="toggleSettings()">
+        ⚙️
+    </button>
 
-  <button
-    class="icon"
-    onclick="toggleModal('help')">
-    ❓
-  </button>
+    <button onclick="toggleHelp()">
+        ❓
+    </button>
 
 </div>
 
-<div
-  id="status"
-  class="status">
+<div id="status">
+    Choose a game mode.
 </div>
 
-<!-- ================= GAME ================= -->
 
-<div
-  id="game"
-  class="game">
+<!-- GAME -->
 
-  <div
-    id="panels"
-    class="panels">
-  </div>
+<div id="game">
 
-  <div
-    id="board"
-    class="board">
+    <div id="players" class="players"></div>
 
-    <div
-      id="pawns"
-      class="pawns">
-    </div>
+    <div id="board" class="board">
 
-  </div>
+        <!-- cells generated by JS -->
 
-  <!-- ================= CHAT ================= -->
-
-  <div
-    id="chat"
-    class="chat">
-
-    <div
-      id="messages"
-      class="messages">
-    </div>
-
-    <div class="chatrow">
-
-      <input
-        id="chatInput"
-        placeholder="Type message..."
-        onkeydown="
-          if(event.key==='Enter')sendChat()
-        "
-      >
-
-      <button
-        onclick="sendChat()">
-        Send
-      </button>
-
-      <button
-        id="mic"
-        onclick="toggleMic()">
-        🎤
-      </button>
+        <div id="pawnLayer"
+             class="pawn-layer"></div>
 
     </div>
 
-  </div>
+    <div id="communication"
+         class="communication">
+
+        <div id="chat"
+             class="chat"></div>
+
+        <div class="chat-row">
+
+            <input id="chatInput"
+                   placeholder="Type message..."
+                   onkeydown="
+                   if(event.key==='Enter')
+                   sendChat()
+                   ">
+
+            <button onclick="sendChat()">
+                Send
+            </button>
+
+            <button id="micButton"
+                    onclick="toggleMic()">
+                🎤
+            </button>
+
+        </div>
+
+    </div>
 
 </div>
+
+
+<!-- SETTINGS -->
+
+<div id="settingsOverlay"
+     class="overlay hidden">
+
+    <div class="menu">
+
+        <h2>Settings</h2>
+
+        <button onclick="toggleSound()"
+                id="soundButton">
+            🔊 Sound ON
+        </button>
+
+        <button class="gray"
+                onclick="toggleSettings()">
+            Close
+        </button>
+
+    </div>
+
+</div>
+
+
+<!-- HELP -->
+
+<div id="helpOverlay"
+     class="overlay hidden">
+
+    <div class="menu">
+
+        <h2>How to Play</h2>
+
+        <p>
+            Roll the dice when it is your turn.
+        </p>
+
+        <p>
+            Select a glowing pawn to move it.
+        </p>
+
+        <p>
+            A roll of 4 or 8 gives an extra turn.
+        </p>
+
+        <p>
+            Capturing an opponent also gives
+            an extra turn.
+        </p>
+
+        <button class="gray"
+                onclick="toggleHelp()">
+            Close
+        </button>
+
+    </div>
+
+</div>
+
 
 <script>
-"use strict";
 
 const socket = io();
 
-/* =====================================================
-   GAME DATA
-===================================================== */
+/* -----------------------------
+   CONSTANTS
+----------------------------- */
 
 const PATHS = [
 
-  [
-    10,15,20,21,22,
-    23,24,19,14,9,
-    4,3,2,1,0,
-    5,6,7,8,13,
-    18,17,16,11,12
-  ],
+[10,15,20,21,22,23,24,19,14,9,4,3,2,1,0,5,6,7,8,13,18,17,16,11,12],
 
-  [
-    2,1,0,5,10,
-    15,20,21,22,23,
-    24,19,14,9,4,
-    3,8,13,18,17,
-    16,11,6,7,12
-  ],
+[2,1,0,5,10,15,20,21,22,23,24,19,14,9,4,3,8,13,18,17,16,11,6,7,12],
 
-  [
-    14,9,4,3,2,
-    1,0,5,10,15,
-    20,21,22,23,24,
-    19,18,17,16,11,
-    6,7,8,13,12
-  ],
+[14,9,4,3,2,1,0,5,10,15,20,21,22,23,24,19,18,17,16,11,6,7,8,13,12],
 
-  [
-    22,23,24,19,14,
-    9,4,3,2,1,
-    0,5,10,15,20,
-    21,16,11,6,7,
-    8,13,18,17,12
-  ]
+[22,23,24,19,14,9,4,3,2,1,0,5,10,15,20,21,16,11,6,7,8,13,18,17,12]
 
 ];
 
 const COLORS = [
-  "#1e90ff",
-  "#ff4757",
-  "#2ed573",
-  "#ffa502"
+    "#1e90ff",
+    "#ff4757",
+    "#2ed573",
+    "#ffa502"
 ];
 
 const NAMES = [
-  "Blue",
-  "Red",
-  "Green",
-  "Yellow"
+    "Blue",
+    "Red",
+    "Green",
+    "Yellow"
 ];
 
 const SAFE = [
-  2,
-  10,
-  12,
-  14,
-  22
+    2,10,14,22,12
 ];
-
-const DICE_VALUES = [
-  1,1,
-  2,2,
-  3,3,
-  4,8
-];
-
-/* =====================================================
-   GAME VARIABLES
-===================================================== */
-
-let players = [];
-
-let activePlayer = 0;
-
-let rolls = [];
-
-let canRoll = true;
-
-let animating = false;
 
 let online = false;
+let myId = null;
 
-let myPlayerId = null;
+let players = [];
+let activeIndex = 0;
+
+let currentRoll = null;
+let canRoll = false;
+let moving = false;
 
 let soundEnabled = true;
-
 let audioContext = null;
 
 let botTimer = null;
+let gameToken = 0;
 
-let gameVersion = 0;
 
-let winRank = 1;
-
-/* =====================================================
-   PLAYER
-===================================================== */
-
-function createPlayer(id, bot=false){
-
-  return {
-    id:id,
-    name:NAMES[id],
-    color:COLORS[id],
-    bot:bot,
-
-    pawns:[
-      0,0,0,0
-    ],
-
-    hasWon:false,
-    rank:0
-  };
-}
-
-/* =====================================================
+/* -----------------------------
    MENU
-===================================================== */
+----------------------------- */
 
-function showMenu(id){
+function hideMenus() {
 
-  [
-    "main",
-    "local",
-    "online",
-    "private"
-  ].forEach(x => {
-
-    document.getElementById(x).style.display =
-      x === id ? "block" : "none";
-
-  });
+    document
+        .querySelectorAll(".menu")
+        .forEach(x => x.classList.add("hidden"));
 }
 
-function toggleModal(id){
+function showLocal() {
 
-  document
-    .getElementById(id)
-    .classList.toggle("hide");
+    hideMenus();
+
+    document
+        .getElementById("localMenu")
+        .classList.remove("hidden");
 }
 
-function toggleSound(){
+function showOnline() {
 
-  soundEnabled = !soundEnabled;
+    hideMenus();
 
-  document.getElementById(
-    "soundButton"
-  ).textContent =
-    soundEnabled
-      ? "🔊 Sound: ON"
-      : "🔇 Sound: OFF";
+    document
+        .getElementById("onlineMenu")
+        .classList.remove("hidden");
 }
 
-/* =====================================================
+function showPrivate() {
+
+    hideMenus();
+
+    document
+        .getElementById("privateMenu")
+        .classList.remove("hidden");
+}
+
+function backMain() {
+
+    hideMenus();
+
+    document
+        .getElementById("mainMenu")
+        .classList.remove("hidden");
+}
+
+
+/* -----------------------------
    AUDIO
-===================================================== */
+----------------------------- */
 
-function initAudio(){
+function initAudio() {
 
-  try{
+    if (!audioContext) {
 
-    if(!audioContext){
-
-      audioContext =
-        new (
-          window.AudioContext ||
-          window.webkitAudioContext
-        )();
+        audioContext =
+            new (window.AudioContext ||
+                 window.webkitAudioContext)();
 
     }
 
-    if(audioContext.state === "suspended"){
-      audioContext.resume();
+    if (audioContext.state === "suspended") {
+        audioContext.resume();
     }
-
-  }catch(e){
-
-    console.log("Audio unavailable");
-
-  }
 }
 
-function sound(
-  frequency,
-  duration=.07,
-  type="square",
-  volume=.06
-){
+function playStepSound() {
 
-  if(!soundEnabled)return;
-
-  try{
+    if (!soundEnabled) return;
 
     initAudio();
 
-    if(!audioContext)return;
-
-    const oscillator =
-      audioContext.createOscillator();
+    const osc =
+        audioContext.createOscillator();
 
     const gain =
-      audioContext.createGain();
+        audioContext.createGain();
 
-    oscillator.type = type;
+    osc.type = "triangle";
 
-    oscillator.frequency.value =
-      frequency;
-
-    gain.gain.value = volume;
-
-    oscillator.connect(gain);
-
-    gain.connect(
-      audioContext.destination
+    osc.frequency.setValueAtTime(
+        220,
+        audioContext.currentTime
     );
 
-    oscillator.start();
+    osc.frequency.exponentialRampToValueAtTime(
+        520,
+        audioContext.currentTime + .07
+    );
+
+    gain.gain.setValueAtTime(
+        .18,
+        audioContext.currentTime
+    );
 
     gain.gain.exponentialRampToValueAtTime(
-      .001,
-      audioContext.currentTime + duration
+        .001,
+        audioContext.currentTime + .12
     );
 
-    oscillator.stop(
-      audioContext.currentTime + duration
+    osc.connect(gain);
+    gain.connect(audioContext.destination);
+
+    osc.start();
+
+    osc.stop(
+        audioContext.currentTime + .13
     );
-
-  }catch(e){}
 }
 
-function diceSound(){
+function playDiceSound() {
 
-  sound(
-    650,
-    .08,
-    "triangle",
-    .06
-  );
+    if (!soundEnabled) return;
 
-  setTimeout(
-    () =>
-      sound(
-        430,
-        .07,
-        "triangle",
-        .05
-      ),
-    70
-  );
+    initAudio();
+
+    const osc =
+        audioContext.createOscillator();
+
+    const gain =
+        audioContext.createGain();
+
+    osc.type = "square";
+
+    osc.frequency.value = 500;
+
+    gain.gain.value = .08;
+
+    osc.connect(gain);
+    gain.connect(audioContext.destination);
+
+    osc.start();
+
+    setTimeout(() => {
+
+        osc.frequency.value = 800;
+
+    }, 70);
+
+    osc.stop(
+        audioContext.currentTime + .14
+    );
 }
 
-function pawnSound(step){
+function toggleSound() {
 
-  sound(
-    280 + step * 20,
-    .065,
-    "square",
-    .065
-  );
+    soundEnabled = !soundEnabled;
+
+    document.getElementById("soundButton").innerText =
+        soundEnabled
+        ? "🔊 Sound ON"
+        : "🔇 Sound OFF";
 }
 
-function captureSound(){
 
-  sound(
-    760,
-    .12,
-    "sawtooth",
-    .07
-  );
-}
-
-function winSound(){
-
-  sound(
-    700,
-    .12,
-    "triangle",
-    .07
-  );
-
-  setTimeout(
-    () =>
-      sound(
-        950,
-        .2,
-        "triangle",
-        .08
-      ),
-    120
-  );
-}
-
-/* =====================================================
-   STATUS
-===================================================== */
-
-function setStatus(text,color){
-
-  const element =
-    document.getElementById("status");
-
-  element.style.display = "block";
-
-  element.textContent = text;
-
-  if(color){
-    element.style.color = color;
-  }
-}
-
-/* =====================================================
+/* -----------------------------
    START LOCAL
-===================================================== */
+----------------------------- */
 
-function startLocal(number){
+function startLocal(count) {
 
-  online = false;
+    initAudio();
 
-  myPlayerId = 0;
+    online = false;
 
-  const list =
-    number === 1
-
-      ? [
-          createPlayer(0,false),
-          createPlayer(2,true)
-        ]
-
-      : Array.from(
-          {length:number},
-          (_,i) => createPlayer(i,false)
-        );
-
-  startGame(list);
-
-  document.getElementById(
-    "badge"
-  ).textContent =
-    "You are Blue";
-
-  document.getElementById(
-    "chat"
-  ).style.display = "none";
-}
-
-/* =====================================================
-   START ONLINE
-===================================================== */
-
-function startOnline(number){
-
-  online = true;
-
-  initAudio();
-
-  document
-    .getElementById("setup")
-    .classList.add("hide");
-
-  setStatus(
-    "Searching for players..."
-  );
-
-  socket.emit(
-    "joinGame",
-    number
-  );
-}
-
-/* =====================================================
-   PRIVATE
-===================================================== */
-
-function createPrivate(number){
-
-  online = true;
-
-  initAudio();
-
-  document
-    .getElementById("setup")
-    .classList.add("hide");
-
-  setStatus(
-    "Creating private room..."
-  );
-
-  socket.emit(
-    "createPrivateGame",
-    number
-  );
-}
-
-function joinPrivate(){
-
-  const code =
     document
-      .getElementById("roomCode")
-      .value
-      .trim()
-      .toUpperCase();
+        .getElementById("menuOverlay")
+        .classList.add("hidden");
 
-  if(!code){
+    document
+        .getElementById("game")
+        .style.display = "block";
 
-    alert("Enter room code!");
+    document
+        .getElementById("communication")
+        .style.display = "block";
 
-    return;
-  }
+    players = [];
 
-  online = true;
+    for (let i = 0; i < count; i++) {
 
-  initAudio();
-
-  document
-    .getElementById("setup")
-    .classList.add("hide");
-
-  setStatus(
-    "Joining room..."
-  );
-
-  socket.emit(
-    "joinPrivateGame",
-    code
-  );
-}
-
-/* =====================================================
-   START GAME
-===================================================== */
-
-function startGame(list){
-
-  gameVersion++;
-
-  clearTimeout(botTimer);
-
-  players = list;
-
-  activePlayer = 0;
-
-  rolls = [];
-
-  canRoll = true;
-
-  animating = false;
-
-  winRank = 1;
-
-  document
-    .getElementById("setup")
-    .classList.add("hide");
-
-  document
-    .getElementById("game")
-    .style.display = "block";
-
-  document
-    .getElementById("badge")
-    .style.display = "inline-block";
-
-  setupPanels();
-
-  setupBoard();
-
-  render();
-
-  updateStatus();
-
-  initAudio();
-
-  if(!online){
-
-    botThink();
-
-  }
-
-}
-
-/* =====================================================
-   PANELS
-===================================================== */
-
-function setupPanels(){
-
-  const container =
-    document.getElementById(
-      "panels"
-    );
-
-  container.innerHTML = "";
-
-  for(let i=0;i<4;i++){
-
-    const player =
-      players.find(
-        p => p.id === i
-      );
-
-    const panel =
-      document.createElement("div");
-
-    panel.className =
-      "panel " +
-      (player ? "" : "hidden");
-
-    panel.id =
-      "panel-" + i;
-
-    if(player){
-
-      panel.innerHTML = `
-        <div class="name">
-          ${player.name}
-          ${player.bot ? " 🤖" : ""}
-        </div>
-
-        <button
-          id="dice-${i}"
-          class="dice disabled"
-          onclick="rollDice(${i})">
-          🎲
-        </button>
-      `;
+        players.push({
+            id: i,
+            name: NAMES[i] +
+                (count === 1 && i === 1
+                    ? " (Bot)"
+                    : ""),
+            color: COLORS[i],
+            pawns: [0,0,0,0],
+            hasWon: false,
+            winRank: 0,
+            isBot:
+                count === 1 && i === 1
+        });
 
     }
 
-    container.appendChild(panel);
+    myId = 0;
 
-  }
-}
-
-/* =====================================================
-   BOARD
-===================================================== */
-
-function setupBoard(){
-
-  const board =
-    document.getElementById(
-      "board"
-    );
-
-  board
-    .querySelectorAll(".cell")
-    .forEach(
-      x => x.remove()
-    );
-
-  const arrows = {
-    10:"↓",
-    22:"→",
-    14:"↑",
-    2:"←",
-    11:"→",
-    17:"↑",
-    13:"←",
-    7:"↓"
-  };
-
-  for(let i=0;i<25;i++){
-
-    const cell =
-      document.createElement("div");
-
-    cell.className = "cell";
-
-    if(i === 12){
-
-      cell.classList.add("home");
-
-      cell.textContent = "HOME";
-
-    }
-
-    else if(i === 10){
-
-      cell.classList.add("blue");
-
-    }
-
-    else if(i === 2){
-
-      cell.classList.add("redc");
-
-    }
-
-    else if(i === 14){
-
-      cell.classList.add("greenc");
-
-    }
-
-    else if(i === 22){
-
-      cell.classList.add("yellow");
-
-    }
-
-    if(
-      arrows[i] &&
-      i !== 12
-    ){
-
-      const arrow =
-        document.createElement("span");
-
-      arrow.className = "arrow";
-
-      arrow.textContent =
-        arrows[i];
-
-      cell.appendChild(arrow);
-
-    }
-
-    board.insertBefore(
-      cell,
-      document.getElementById("pawns")
-    );
-
-  }
-
-  const layer =
-    document.getElementById(
-      "pawns"
-    );
-
-  layer.innerHTML = "";
-
-  for(let i=0;i<25;i++){
-
-    const slot =
-      document.createElement("div");
-
-    slot.className = "slot";
-
-    slot.id =
-      "slot-" + i;
-
-    layer.appendChild(slot);
-
-  }
-}
-
-/* =====================================================
-   VALID MOVE
-===================================================== */
-
-function validMove(
-  player,
-  pawnIndex,
-  dice
-){
-
-  if(
-    !player ||
-    player.hasWon
-  ){
-    return false;
-  }
-
-  const current =
-    player.pawns[pawnIndex];
-
-  return (
-    Number.isInteger(current) &&
-    current + dice <= 24
-  );
-}
-
-/* =====================================================
-   RENDER
-===================================================== */
-
-function render(){
-
-  for(let i=0;i<25;i++){
-
-    const slot =
-      document.getElementById(
-        "slot-" + i
-      );
-
-    if(slot){
-      slot.innerHTML = "";
-    }
-
-  }
-
-  const current =
-    players[activePlayer];
-
-  players.forEach(player => {
-
-    player.pawns.forEach(
-      (step,pawnIndex) => {
-
-        const cell =
-          player.path[step];
-
-        const slot =
-          document.getElementById(
-            "slot-" + cell
-          );
-
-        if(!slot)return;
-
-        const pawn =
-          document.createElement("div");
-
-        pawn.className = "pawn";
-
-        pawn.style.background =
-          player.color;
-
-        const myTurn =
-          current &&
-          current.id === player.id &&
-          (
-            (
-              online &&
-              myPlayerId === player.id
-            ) ||
-            (
-              !online &&
-              !player.bot
-            )
-          );
-
-        const movable =
-          myTurn &&
-          !animating &&
-          rolls.length > 0 &&
-          validMove(
-            player,
-            pawnIndex,
-            rolls[0]
-          );
-
-        if(movable){
-
-          pawn.classList.add(
-            "movable"
-          );
-
-          pawn.onclick = () =>
-            requestMove(
-              player.id,
-              pawnIndex
-            );
-
-        }
-
-        slot.appendChild(
-          pawn
-        );
-
-      }
-    );
-
-  });
-
-  updateDiceUI();
-}
-
-/* =====================================================
-   DICE UI
-===================================================== */
-
-function updateDiceUI(){
-
-  const current =
-    players[activePlayer];
-
-  for(let i=0;i<4;i++){
-
-    const player =
-      players.find(
-        p => p.id === i
-      );
-
-    if(!player)continue;
-
-    const panel =
-      document.getElementById(
-        "panel-" + i
-      );
-
-    const dice =
-      document.getElementById(
-        "dice-" + i
-      );
-
-    if(!panel || !dice)continue;
-
-    panel.classList.toggle(
-      "active",
-      current &&
-      current.id === i &&
-      !player.hasWon
-    );
-
-    if(player.hasWon){
-
-      dice.textContent =
-        player.rank === 1
-          ? "🥇"
-          : "👑";
-
-      dice.classList.add(
-        "disabled"
-      );
-
-      continue;
-    }
-
-    dice.textContent = "🎲";
-
-    dice.classList.add(
-      "disabled"
-    );
-
-    const isMine =
-      online
-        ? current &&
-          current.id === myPlayerId
-        : current &&
-          !current.bot;
-
-    if(
-      current &&
-      current.id === i &&
-      isMine &&
-      canRoll &&
-      !animating
-    ){
-
-      dice.classList.remove(
-        "disabled"
-      );
-
-    }
-
-  }
-}
-
-/* =====================================================
-   STATUS
-===================================================== */
-
-function updateStatus(){
-
-  const player =
-    players[activePlayer];
-
-  if(!player)return;
-
-  if(animating)return;
-
-  if(rolls.length){
-
-    setStatus(
-      `${player.name}${
-        player.bot ? " 🤖" : ""
-      }: ${rolls.join(", ")} — ${
-        canRoll
-          ? "roll again or move"
-          : "tap a glowing pawn"
-      }`,
-      player.color
-    );
-
-  }else{
-
-    const mine =
-      online
-        ? player.id === myPlayerId
-        : !player.bot;
-
-    setStatus(
-      mine
-        ? "Your turn — roll the dice"
-        : `${player.name}${
-            player.bot ? " 🤖" : ""
-          } is thinking...`,
-      player.color
-    );
-
-  }
-}
-
-/* =====================================================
-   ROLL
-===================================================== */
-
-function rollDice(playerId){
-
-  const player =
-    players[activePlayer];
-
-  if(!player)return;
-
-  if(
-    player.id !== playerId ||
-    player.hasWon ||
-    animating ||
-    !canRoll
-  ){
-    return;
-  }
-
-  if(
-    online &&
-    playerId !== myPlayerId
-  ){
-    return;
-  }
-
-  if(
-    !online &&
-    !player.bot
-  ){
-    // Human offline player is allowed.
-  }
-
-  canRoll = false;
-
-  render();
-
-  if(online){
-
-    socket.emit(
-      "requestRoll"
-    );
-
-    return;
-  }
-
-  const value =
-    DICE_VALUES[
-      Math.floor(
-        Math.random() *
-        DICE_VALUES.length
-      )
-    ];
-
-  diceSound();
-
-  applyRoll(
-    playerId,
-    value
-  );
-}
-
-/* =====================================================
-   APPLY ROLL
-===================================================== */
-
-function applyRoll(
-  playerId,
-  value
-){
-
-  const player =
-    players[activePlayer];
-
-  if(
-    !player ||
-    player.id !== playerId ||
-    animating
-  ){
-    return;
-  }
-
-  rolls.push(value);
-
-  canRoll =
-    value === 4 ||
-    value === 8;
-
-  render();
-
-  /*
-   * Check whether ANY pawn can use
-   * the current roll.
-   */
-
-  const hasMove =
-    rolls.some(
-      r =>
-        player.pawns.some(
-          (_,index) =>
-            validMove(
-              player,
-              index,
-              r
-            )
-        )
-    );
-
-  if(!hasMove){
-
-    const blocked =
-      rolls.shift();
-
-    if(canRoll){
-
-      setStatus(
-        `${player.name}: ${blocked} blocked — extra roll!`,
-        player.color
-      );
-
-      render();
-
-      if(
-        !online &&
-        player.bot
-      ){
-
-        botTimer =
-          setTimeout(
-            botThink,
-            600
-          );
-
-      }else{
-
-        updateStatus();
-
-      }
-
-    }else{
-
-      setStatus(
-        `${player.name}: ${blocked} blocked — turn over`,
-        player.color
-      );
-
-      render();
-
-      setTimeout(
-        () => finishTurn(player),
-        700
-      );
-
-    }
-
-    return;
-  }
-
-  render();
-
-  updateStatus();
-
-  if(!online){
-
-    botThink();
-
-  }
-
-}
-
-/* =====================================================
-   REQUEST MOVE
-===================================================== */
-
-function requestMove(
-  playerId,
-  pawnIndex
-){
-
-  const player =
-    players[activePlayer];
-
-  if(!player)return;
-
-  if(
-    player.id !== playerId ||
-    animating ||
-    rolls.length === 0
-  ){
-    return;
-  }
-
-  if(
-    !validMove(
-      player,
-      pawnIndex,
-      rolls[0]
-    )
-  ){
-    return;
-  }
-
-  if(
-    online &&
-    playerId !== myPlayerId
-  ){
-    return;
-  }
-
-  if(online){
-
-    socket.emit(
-      "requestMove",
-      {
-        pawnIndex
-      }
-    );
-
-  }else{
-
-    movePawn(
-      playerId,
-      pawnIndex
-    );
-
-  }
-}
-
-/* =====================================================
-   MOVE PAWN
-===================================================== */
-
-function movePawn(
-  playerId,
-  pawnIndex
-){
-
-  const player =
-    players[activePlayer];
-
-  if(
-    !player ||
-    player.id !== playerId ||
-    animating ||
-    rolls.length === 0
-  ){
-    return;
-  }
-
-  const dice =
-    rolls.shift();
-
-  if(
-    !validMove(
-      player,
-      pawnIndex,
-      dice
-    )
-  ){
-
-    rolls.unshift(dice);
-
-    return;
-  }
-
-  animating = true;
-
-  canRoll = false;
-
-  const version =
-    gameVersion;
-
-  let moved = 0;
-
-  setStatus(
-    `${player.name} is moving...`,
-    player.color
-  );
-
-  function step(){
-
-    if(
-      version !== gameVersion
-    ){
-      return;
-    }
-
-    if(moved < dice){
-
-      player.pawns[pawnIndex]++;
-
-      moved++;
-
-      pawnSound(moved);
-
-      render();
-
-      setTimeout(
-        step,
-        160
-      );
-
-      return;
-    }
-
-    finishMovement(
-      player
-    );
-  }
-
-  step();
-}
-
-/* =====================================================
-   FINISH MOVEMENT
-===================================================== */
-
-function finishMovement(player){
-
-  const pawnIndex =
-    findMovedPawn(player);
-
-  /*
-   * Find capture based on all pawns.
-   */
-
-  let captured = false;
-
-  player.pawns.forEach(
-    step => {
-
-      const target =
-        player.path[step];
-
-      if(
-        step < 24 &&
-        !SAFE.includes(target)
-      ){
-
-        players.forEach(
-          opponent => {
-
-            if(
-              opponent.id === player.id ||
-              opponent.hasWon
-            ){
-              return;
-            }
-
-            opponent.pawns.forEach(
-              (otherStep,index) => {
-
-                if(
-                  otherStep < 24 &&
-                  opponent.path[otherStep] === target
-                ){
-
-                  opponent.pawns[index] = 0;
-
-                  captured = true;
-
-                }
-
-              }
-            );
-
-          }
-        );
-
-      }
-
-    }
-  );
-
-  if(captured){
-
-    captureSound();
-
+    activeIndex = 0;
+    currentRoll = null;
     canRoll = true;
+    moving = false;
 
-  }
+    document.getElementById("identity").style.display =
+        "block";
 
-  /*
-   * Check player completed all pawns.
-   */
+    document.getElementById("identity").innerText =
+        "You are Blue";
 
-  if(
-    player.pawns.every(
-      x => x === 24
-    ) &&
-    !player.hasWon
-  ){
+    createBoard();
 
-    player.hasWon = true;
+    renderPlayers();
 
-    player.rank = winRank++;
+    renderPawns();
 
-    winSound();
+    updateGameUI();
 
-  }
+    startGameMessage();
 
-  animating = false;
+    gameToken++;
 
-  render();
+    scheduleBot();
 
-  /*
-   * IMPORTANT TURN LOGIC
-   */
-
-  if(
-    player.hasWon
-  ){
-
-    setTimeout(
-      () => finishTurn(player),
-      700
-    );
-
-    return;
-  }
-
-  /*
-   * If another roll is already
-   * waiting, keep the same turn.
-   */
-
-  if(rolls.length > 0){
-
-    updateStatus();
-
-    if(!online){
-      botThink();
-    }
-
-    return;
-  }
-
-  /*
-   * Capture or HOME gives extra turn.
-   */
-
-  if(captured){
-
-    canRoll = true;
-
-    updateStatus();
-
-    if(!online){
-      botThink();
-    }
-
-    return;
-  }
-
-  /*
-   * Normal move ends turn.
-   */
-
-  finishTurn(player);
 }
 
-/* =====================================================
-   FINISH TURN
-===================================================== */
 
-function finishTurn(player){
+/* -----------------------------
+   ONLINE
+----------------------------- */
 
-  if(animating)return;
+function startOnline(count) {
 
-  clearTimeout(botTimer);
-
-  rolls = [];
-
-  canRoll = true;
-
-  animating = false;
-
-  const remaining =
-    players.filter(
-      p => !p.hasWon
-    );
-
-  if(
-    remaining.length <= 1
-  ){
-
-    render();
-
-    setStatus(
-      "🏆 Game finished!"
-    );
-
-    syncState();
-
-    return;
-  }
-
-  /*
-   * Move to next player.
-   */
-
-  let safety = 0;
-
-  do{
-
-    activePlayer =
-      (activePlayer + 1) %
-      players.length;
-
-    safety++;
-
-  }while(
-    players[activePlayer].hasWon &&
-    safety < players.length + 2
-  );
-
-  render();
-
-  updateStatus();
-
-  syncState();
-
-  /*
-   * Start bot automatically.
-   */
-
-  botThink();
-}
-
-/* =====================================================
-   BOT
-===================================================== */
-
-function botThink(){
-
-  if(online)return;
-
-  clearTimeout(botTimer);
-
-  const player =
-    players[activePlayer];
-
-  if(
-    !player ||
-    !player.bot ||
-    player.hasWon ||
-    animating
-  ){
-    return;
-  }
-
-  const version =
-    gameVersion;
-
-  botTimer =
-    setTimeout(
-      () => {
-
-        if(
-          version !== gameVersion ||
-          players[activePlayer] !== player ||
-          animating
-        ){
-          return;
-        }
-
-        /*
-         * MOST IMPORTANT BOT FIX:
-         *
-         * If the bot already has a dice result,
-         * it MUST try to move a pawn first.
-         */
-
-        if(rolls.length > 0){
-
-          const dice =
-            rolls[0];
-
-          const possible = [];
-
-          player.pawns.forEach(
-            (_,index) => {
-
-              if(
-                validMove(
-                  player,
-                  index,
-                  dice
-                )
-              ){
-
-                possible.push(index);
-
-              }
-
-            }
-          );
-
-          if(possible.length > 0){
-
-            const index =
-              possible[
-                Math.floor(
-                  Math.random() *
-                  possible.length
-                )
-              ];
-
-            movePawn(
-              player.id,
-              index
-            );
-
-            return;
-          }
-
-          /*
-           * No pawn can use this roll.
-           */
-
-          rolls.shift();
-
-          if(canRoll){
-
-            canRoll = true;
-
-            render();
-
-            botThink();
-
-          }else{
-
-            finishTurn(player);
-
-          }
-
-          return;
-        }
-
-        /*
-         * No roll waiting.
-         * Bot rolls.
-         */
-
-        if(canRoll){
-
-          rollDice(
-            player.id
-          );
-
-        }
-
-      },
-      650
-    );
-}
-
-/* =====================================================
-   STATE
-===================================================== */
-
-function snapshot(){
-
-  return {
-
-    activeIndex:
-      activePlayer,
-
-    rolls:
-      [...rolls],
-
-    canRoll:
-      canRoll,
-
-    players:
-      players.map(
-        p => ({
-          id:p.id,
-          pawns:[...p.pawns],
-          hasWon:p.hasWon,
-          rank:p.rank
-        })
-      )
-
-  };
-}
-
-function syncState(){
-
-  if(!online)return;
-
-  socket.emit(
-    "syncState",
-    snapshot()
-  );
-}
-
-/* =====================================================
-   ONLINE SOCKET EVENTS
-===================================================== */
-
-socket.on(
-  "assignPlayer",
-  id => {
-
-    myPlayerId = id;
-
-    document.getElementById(
-      "badge"
-    ).textContent =
-      "You are " + NAMES[id];
-
-    document.getElementById(
-      "chat"
-    ).style.display =
-      "block";
-  }
-);
-
-socket.on(
-  "gameStart",
-  ids => {
-
-    const list =
-      ids.map(
-        id => createPlayer(
-          id,
-          false
-        )
-      );
+    initAudio();
 
     online = true;
 
-    startGame(list);
-
-    document.getElementById(
-      "chat"
-    ).style.display =
-      "block";
-
-    document.getElementById(
-      "badge"
-    ).textContent =
-      "You are " +
-      NAMES[myPlayerId];
-
-    setStatus(
-      "Match started! Blue goes first.",
-      COLORS[0]
-    );
-
-  }
-);
-
-socket.on(
-  "systemMessage",
-  message => {
-
-    setStatus(message);
-
-  }
-);
-
-socket.on(
-  "privateRoomCreated",
-  code => {
-
-    setStatus(
-      "Room Code: " +
-      code +
-      " — share it with your friends"
-    );
-
-  }
-);
-
-socket.on(
-  "roomError",
-  message => {
-
-    alert(message);
+    document
+        .getElementById("menuOverlay")
+        .classList.add("hidden");
 
     document
-      .getElementById("setup")
-      .classList.remove("hide");
+        .getElementById("game")
+        .style.display = "block";
 
-    showMenu("main");
+    document.getElementById("communication")
+        .style.display = "block";
 
-  }
-);
+    socket.emit("joinGame", count);
 
-/* =====================================================
-   ONLINE ROLL
-===================================================== */
+    setStatus("Searching for players...");
+}
 
-socket.on(
-  "executeRoll",
-  data => {
+function createPrivate(count) {
 
-    if(!online)return;
+    initAudio();
 
-    const player =
-      players[activePlayer];
+    online = true;
 
-    if(
-      !player ||
-      player.id !== data.playerId
-    ){
-      return;
-    }
+    document
+        .getElementById("menuOverlay")
+        .classList.add("hidden");
 
-    diceSound();
+    document
+        .getElementById("game")
+        .style.display = "block";
 
-    applyRoll(
-      data.playerId,
-      data.rollValue
+    socket.emit(
+        "createPrivateGame",
+        count
     );
 
-  }
-);
+    setStatus("Creating private room...");
+}
 
-/* =====================================================
-   ONLINE MOVE
-===================================================== */
+function joinPrivate() {
 
-socket.on(
-  "executeMove",
-  data => {
+    const code =
+        document
+        .getElementById("roomInput")
+        .value
+        .trim()
+        .toUpperCase();
 
-    if(!online)return;
+    if (!code) {
 
-    const player =
-      players[activePlayer];
+        alert("Enter room code.");
 
-    if(
-      !player ||
-      player.id !== data.playerId
-    ){
-      return;
+        return;
     }
 
-    movePawn(
-      data.playerId,
-      data.pawnIndex
+    initAudio();
+
+    online = true;
+
+    document
+        .getElementById("menuOverlay")
+        .classList.add("hidden");
+
+    document
+        .getElementById("game")
+        .style.display = "block";
+
+    socket.emit(
+        "joinPrivateGame",
+        code
     );
 
-  }
-);
+    setStatus("Joining room...");
+}
 
-/* =====================================================
-   FORCE SYNC
-===================================================== */
 
-socket.on(
-  "forceSync",
-  state => {
+/* -----------------------------
+   SERVER EVENTS
+----------------------------- */
 
-    if(!online)return;
+socket.on("assignPlayer", id => {
 
-    if(
-      !state ||
-      !Array.isArray(
-        state.players
-      )
-    ){
-      return;
-    }
+    myId = id;
 
-    activePlayer =
-      state.activeIndex;
+    document
+        .getElementById("identity")
+        .style.display = "block";
 
-    rolls =
-      state.rolls || [];
+    document
+        .getElementById("identity")
+        .innerText =
+        "You are " + NAMES[id];
 
-    canRoll =
-      Boolean(
-        state.canRoll
-      );
+});
 
-    state.players.forEach(
-      serverPlayer => {
+socket.on("gameStart", ids => {
 
-        const local =
-          players.find(
-            p =>
-              p.id ===
-              serverPlayer.id
-          );
+    players = ids.map(id => ({
+        id,
+        name: NAMES[id],
+        color: COLORS[id],
+        pawns: [0,0,0,0],
+        hasWon: false,
+        winRank: 0,
+        isBot: false
+    }));
 
-        if(local){
+    createBoard();
 
-          local.pawns =
-            serverPlayer.pawns;
+    renderPlayers();
 
-          local.hasWon =
-            serverPlayer.hasWon;
+    renderPawns();
 
-          local.rank =
-            serverPlayer.rank;
+    setStatus("Match started! Blue goes first.");
+
+});
+
+socket.on("gameState", state => {
+
+    if (!online) return;
+
+    activeIndex = state.activeIndex;
+
+    currentRoll = state.roll;
+
+    canRoll = state.canRoll;
+
+    moving = state.moving;
+
+    players = state.players;
+
+    renderPlayers();
+
+    renderPawns();
+
+    updateGameUI();
+
+});
+
+socket.on("diceRolled", data => {
+
+    currentRoll = data.value;
+
+    playDiceSound();
+
+    updateGameUI();
+
+});
+
+socket.on("systemMessage", msg => {
+
+    setStatus(msg);
+
+});
+
+socket.on("privateRoomCreated", code => {
+
+    setStatus("Room created.");
+
+    document.getElementById("status").innerHTML =
+        `Room Code: <b>${code}</b>`;
+
+});
+
+
+socket.on("roomError", msg => {
+
+    alert(msg);
+
+    document
+        .getElementById("menuOverlay")
+        .classList.remove("hidden");
+
+    backMain();
+
+});
+
+
+/* -----------------------------
+   BOARD
+----------------------------- */
+
+function createBoard() {
+
+    const board =
+        document.getElementById("board");
+
+    board.innerHTML = "";
+
+    const arrows = {
+        10:"↓",
+        22:"→",
+        14:"↑",
+        2:"←",
+        11:"→",
+        17:"↑",
+        13:"←",
+        7:"↓"
+    };
+
+    for (let i = 0; i < 25; i++) {
+
+        const cell =
+            document.createElement("div");
+
+        cell.className = "cell";
+
+        if (i === 12) {
+
+            cell.classList.add("home");
+
+            cell.innerText = "HOME";
 
         }
 
-      }
-    );
+        else if (i === 10) {
 
-    animating = false;
+            cell.classList.add("blue");
 
-    render();
-
-    updateStatus();
-
-  }
-);
-
-/* =====================================================
-   CHAT
-===================================================== */
-
-function sendChat(){
-
-  const input =
-    document.getElementById(
-      "chatInput"
-    );
-
-  const text =
-    input.value.trim();
-
-  if(!text)return;
-
-  socket.emit(
-    "sendChatMessage",
-    {
-      name:
-        NAMES[myPlayerId] ||
-        "Player",
-
-      text:text
-    }
-  );
-
-  input.value = "";
-}
-
-socket.on(
-  "receiveChatMessage",
-  data => {
-
-    const box =
-      document.getElementById(
-        "messages"
-      );
-
-    const message =
-      document.createElement(
-        "div"
-      );
-
-    message.textContent =
-      data.name +
-      ": " +
-      data.text;
-
-    box.appendChild(
-      message
-    );
-
-    box.scrollTop =
-      box.scrollHeight;
-
-  }
-);
-
-/* =====================================================
-   MICROPHONE / WEBRTC
-===================================================== */
-
-let microphoneStream = null;
-
-const voicePeers = {};
-
-async function toggleMic(){
-
-  const button =
-    document.getElementById(
-      "mic"
-    );
-
-  /*
-   * TURN OFF
-   */
-
-  if(microphoneStream){
-
-    microphoneStream
-      .getTracks()
-      .forEach(
-        track =>
-          track.stop()
-      );
-
-    microphoneStream = null;
-
-    Object
-      .values(voicePeers)
-      .forEach(
-        pc =>
-          pc.close()
-      );
-
-    Object
-      .keys(voicePeers)
-      .forEach(
-        id =>
-          delete voicePeers[id]
-      );
-
-    button.classList.remove(
-      "live"
-    );
-
-    button.textContent =
-      "🎤";
-
-    return;
-  }
-
-  /*
-   * TURN ON
-   */
-
-  try{
-
-    microphoneStream =
-      await navigator.mediaDevices
-        .getUserMedia({
-
-          audio:{
-            echoCancellation:true,
-            noiseSuppression:true,
-            autoGainControl:true
-          }
-
-        });
-
-    button.classList.add(
-      "live"
-    );
-
-    button.textContent =
-      "🔴";
-
-    if(online){
-
-      socket.emit(
-        "voiceJoin"
-      );
-
-    }
-
-  }catch(error){
-
-    alert(
-      "Microphone permission was denied. " +
-      "Use the HTTPS Render address and allow microphone permission."
-    );
-
-    console.log(error);
-
-  }
-}
-
-/* =====================================================
-   CREATE WEBRTC PEER
-===================================================== */
-
-async function createVoicePeer(
-  peerId,
-  makeOffer
-){
-
-  const pc =
-    new RTCPeerConnection({
-
-      iceServers:[
-        {
-          urls:
-            "stun:stun.l.google.com:19302"
         }
-      ]
+
+        else if (i === 2) {
+
+            cell.classList.add("red");
+
+        }
+
+        else if (i === 14) {
+
+            cell.classList.add("green");
+
+        }
+
+        else if (i === 22) {
+
+            cell.classList.add("yellow");
+
+        }
+
+        if (arrows[i] && i !== 12) {
+
+            cell.innerText =
+                arrows[i];
+
+            cell.classList.add("arrow");
+
+        }
+
+        board.appendChild(cell);
+
+    }
+
+    const layer =
+        document.createElement("div");
+
+    layer.id = "pawnLayer";
+
+    layer.className = "pawn-layer";
+
+    board.appendChild(layer);
+
+}
+
+
+/* -----------------------------
+   PLAYERS
+----------------------------- */
+
+function renderPlayers() {
+
+    const container =
+        document.getElementById("players");
+
+    container.innerHTML = "";
+
+    players.forEach((p,index) => {
+
+        const box =
+            document.createElement("div");
+
+        box.className = "player";
+
+        if (index === activeIndex) {
+            box.classList.add("active");
+        }
+
+        box.style.background =
+            p.color;
+
+        const name =
+            document.createElement("div");
+
+        name.className = "player-name";
+
+        name.innerText =
+            p.name +
+            (p.hasWon ? " 🏆" : "");
+
+        const dice =
+            document.createElement("button");
+
+        dice.className = "dice";
+
+        dice.id =
+            "dice-" + p.id;
+
+        dice.innerText =
+            currentRoll &&
+            index === activeIndex
+                ? currentRoll
+                : "🎲";
+
+        dice.disabled =
+            online
+            ? !(
+                p.id === myId &&
+                index === activeIndex &&
+                canRoll &&
+                !moving
+              )
+            : !(
+                index === activeIndex &&
+                canRoll &&
+                !moving &&
+                !p.isBot
+              );
+
+        dice.onclick = () =>
+            rollDice();
+
+        box.appendChild(name);
+
+        box.appendChild(dice);
+
+        container.appendChild(box);
 
     });
 
-  voicePeers[peerId] =
-    pc;
+}
 
-  /*
-   * Add microphone track.
-   */
 
-  if(microphoneStream){
+/* -----------------------------
+   PAWNS
+----------------------------- */
 
-    microphoneStream
-      .getTracks()
-      .forEach(
-        track =>
-          pc.addTrack(
-            track,
-            microphoneStream
-          )
-      );
+function renderPawns() {
 
-  }
+    const layer =
+        document.getElementById("pawnLayer");
 
-  /*
-   * ICE candidates.
-   */
+    if (!layer) return;
 
-  pc.onicecandidate =
-    event => {
+    layer.innerHTML = "";
 
-      if(
-        event.candidate
-      ){
+    for (let i = 0; i < 25; i++) {
+
+        const slot =
+            document.createElement("div");
+
+        slot.className = "pawn-slot";
+
+        slot.id =
+            "slot-" + i;
+
+        layer.appendChild(slot);
+
+    }
+
+    players.forEach(player => {
+
+        player.pawns.forEach(
+            (step,pawnIndex) => {
+
+                const cell =
+                    PATHS[player.id][step];
+
+                const slot =
+                    document.getElementById(
+                        "slot-" + cell
+                    );
+
+                if (!slot) return;
+
+                const pawn =
+                    document.createElement("div");
+
+                pawn.className = "pawn";
+
+                pawn.style.background =
+                    player.color;
+
+                const isCurrent =
+                    players[activeIndex] &&
+                    players[activeIndex].id ===
+                    player.id;
+
+                let movable = false;
+
+                if (
+                    isCurrent &&
+                    currentRoll &&
+                    !moving
+                ) {
+
+                    if (
+                        step + currentRoll <= 24
+                    ) {
+
+                        if (
+                            online
+                            ? player.id === myId
+                            : !player.isBot
+                        ) {
+
+                            movable = true;
+
+                        }
+
+                    }
+
+                }
+
+                if (movable) {
+
+                    pawn.classList.add("movable");
+
+                    pawn.onclick = e => {
+
+                        e.stopPropagation();
+
+                        movePawn(
+                            player.id,
+                            pawnIndex
+                        );
+
+                    };
+
+                }
+
+                slot.appendChild(pawn);
+
+            }
+        );
+
+    });
+
+}
+
+
+/* -----------------------------
+   ROLL
+----------------------------- */
+
+function rollDice() {
+
+    if (moving) return;
+
+    const player =
+        players[activeIndex];
+
+    if (!player) return;
+
+    if (online) {
+
+        if (
+            player.id !== myId ||
+            !canRoll
+        ) return;
+
+        canRoll = false;
+
+        updateGameUI();
+
+        socket.emit("requestRoll");
+
+        return;
+    }
+
+    if (player.isBot) return;
+
+    if (!canRoll) return;
+
+    canRoll = false;
+
+    const roll =
+        [1,1,2,2,3,3,4,8]
+        [Math.floor(Math.random()*8)];
+
+    handleLocalRoll(
+        player.id,
+        roll
+    );
+
+}
+
+
+/* -----------------------------
+   LOCAL ROLL
+----------------------------- */
+
+function handleLocalRoll(
+    playerId,
+    roll
+) {
+
+    currentRoll = roll;
+
+    playDiceSound();
+
+    const player =
+        players[activeIndex];
+
+    if (
+        player.id !== playerId
+    ) return;
+
+    const valid =
+        player.pawns.some(
+            p => p + roll <= 24
+        );
+
+    renderPlayers();
+
+    renderPawns();
+
+    if (!valid) {
+
+        setStatus(
+            `${player.name} rolled ${roll}, but cannot move.`
+        );
+
+        if (
+            roll === 4 ||
+            roll === 8
+        ) {
+
+            currentRoll = null;
+
+            canRoll = true;
+
+            setStatus(
+                `${player.name} gets another roll!`
+            );
+
+            updateGameUI();
+
+            scheduleBot();
+
+        } else {
+
+            setTimeout(
+                nextLocalPlayer,
+                900
+            );
+
+        }
+
+        return;
+    }
+
+    canRoll = false;
+
+    setStatus(
+        `${player.name} rolled ${roll}.`
+    );
+
+    updateGameUI();
+
+    scheduleBot();
+
+}
+
+
+/* -----------------------------
+   MOVE
+----------------------------- */
+
+function movePawn(
+    playerId,
+    pawnIndex
+) {
+
+    if (moving) return;
+
+    const player =
+        players[activeIndex];
+
+    if (!player) return;
+
+    if (player.id !== playerId) return;
+
+    if (!currentRoll) return;
+
+    if (
+        player.pawns[pawnIndex] +
+        currentRoll > 24
+    ) return;
+
+    moving = true;
+
+    updateGameUI();
+
+    if (online) {
 
         socket.emit(
-          "voiceSignal",
-          {
-            to:peerId,
-
-            data:{
-              candidate:
-                event.candidate
-            }
-          }
-        );
-
-      }
-
-    };
-
-  /*
-   * Incoming audio.
-   */
-
-  pc.ontrack =
-    event => {
-
-      let audio =
-        document.getElementById(
-          "audio-" + peerId
-        );
-
-      if(!audio){
-
-        audio =
-          document.createElement(
-            "audio"
-          );
-
-        audio.id =
-          "audio-" + peerId;
-
-        audio.autoplay = true;
-
-        audio.playsInline = true;
-
-        document.body.appendChild(
-          audio
-        );
-
-      }
-
-      audio.srcObject =
-        event.streams[0];
-
-      audio.play().catch(
-        () => {}
-      );
-
-    };
-
-  pc.onconnectionstatechange =
-    () => {
-
-      if(
-        [
-          "failed",
-          "closed",
-          "disconnected"
-        ].includes(
-          pc.connectionState
-        )
-      ){
-
-        pc.close();
-
-        delete voicePeers[
-          peerId
-        ];
-
-      }
-
-    };
-
-  /*
-   * Create offer.
-   */
-
-  if(makeOffer){
-
-    const offer =
-      await pc.createOffer();
-
-    await pc.setLocalDescription(
-      offer
-    );
-
-    socket.emit(
-      "voiceSignal",
-      {
-        to:peerId,
-
-        data:{
-          description:
-            pc.localDescription
-        }
-      }
-    );
-
-  }
-
-}
-
-/* =====================================================
-   VOICE PEERS
-===================================================== */
-
-socket.on(
-  "voicePeers",
-  async ids => {
-
-    if(!microphoneStream)return;
-
-    for(
-      const id of ids
-    ){
-
-      if(
-        id === socket.id ||
-        voicePeers[id]
-      ){
-        continue;
-      }
-
-      await createVoicePeer(
-        id,
-        true
-      );
-
-    }
-
-  }
-);
-
-/* =====================================================
-   VOICE SIGNAL
-===================================================== */
-
-socket.on(
-  "voiceSignal",
-  async message => {
-
-    let pc =
-      voicePeers[
-        message.from
-      ];
-
-    if(!pc){
-
-      await createVoicePeer(
-        message.from,
-        false
-      );
-
-      pc =
-        voicePeers[
-          message.from
-        ];
-
-    }
-
-    try{
-
-      const data =
-        message.data;
-
-      if(
-        data.description
-      ){
-
-        if(
-          data.description.type ===
-          "offer"
-        ){
-
-          await pc.setRemoteDescription(
-            data.description
-          );
-
-          const answer =
-            await pc.createAnswer();
-
-          await pc.setLocalDescription(
-            answer
-          );
-
-          socket.emit(
-            "voiceSignal",
+            "requestMove",
             {
-              to:message.from,
-
-              data:{
-                description:
-                  pc.localDescription
-              }
+                playerId,
+                pawnIndex
             }
-          );
-
-        }
-
-        else if(
-          data.description.type ===
-          "answer"
-        ){
-
-          await pc.setRemoteDescription(
-            data.description
-          );
-
-        }
-
-      }
-
-      if(
-        data.candidate
-      ){
-
-        await pc.addIceCandidate(
-          data.candidate
         );
 
-      }
+    } else {
 
-    }catch(error){
-
-      console.log(
-        "Voice error:",
-        error
-      );
+        animateLocalPawn(
+            playerId,
+            pawnIndex,
+            currentRoll
+        );
 
     }
 
-  }
-);
-
-/* =====================================================
-   FIND MOVED PAWN
-===================================================== */
-
-function findMovedPawn(player){
-
-  /*
-   * Kept for compatibility.
-   * Movement/capture is checked
-   * against the player's positions.
-   */
-
-  return 0;
 }
 
-/* =====================================================
-   START
-===================================================== */
 
-window.addEventListener(
-  "beforeunload",
-  () => {
+/* -----------------------------
+   LOCAL ANIMATION
+----------------------------- */
 
-    if(
-      microphoneStream
-    ){
+function animateLocalPawn(
+    playerId,
+    pawnIndex,
+    steps
+) {
 
-      microphoneStream
-        .getTracks()
-        .forEach(
-          track =>
-            track.stop()
+    const token =
+        ++gameToken;
+
+    let done = 0;
+
+    const player =
+        players.find(
+            p => p.id === playerId
+        );
+
+    if (!player) return;
+
+    function stepMove() {
+
+        if (token !== gameToken) return;
+
+        if (done >= steps) {
+
+            finishLocalMove(
+                playerId,
+                pawnIndex
+            );
+
+            return;
+        }
+
+        player.pawns[pawnIndex]++;
+
+        done++;
+
+        playStepSound();
+
+        renderPawns();
+
+        updateGameUI();
+
+        setTimeout(
+            stepMove,
+            180
         );
 
     }
 
-  }
+    stepMove();
+
+}
+
+
+/* -----------------------------
+   ONLINE PAWN STEP
+----------------------------- */
+
+socket.on("pawnStep", data => {
+
+    const player =
+        players.find(
+            p => p.id === data.playerId
+        );
+
+    if (!player) return;
+
+    player.pawns[data.pawnIndex] =
+        data.step;
+
+    playStepSound();
+
+    renderPawns();
+
+});
+
+
+socket.on("pawnCaptured", data => {
+
+    const victim =
+        players.find(
+            p => p.id === data.victimId
+        );
+
+    if (!victim) return;
+
+    victim.pawns[data.victimPawn] = 0;
+
+    renderPawns();
+
+});
+
+
+/* -----------------------------
+   LOCAL MOVE FINISH
+----------------------------- */
+
+function finishLocalMove(
+    playerId,
+    pawnIndex
+) {
+
+    const player =
+        players.find(
+            p => p.id === playerId
+        );
+
+    if (!player) return;
+
+    const finalStep =
+        player.pawns[pawnIndex];
+
+    const finalCell =
+        PATHS[player.id][finalStep];
+
+    let extra = false;
+
+    // HOME
+    if (finalStep === 24) {
+
+        extra = true;
+
+        setStatus(
+            `${player.name} reached HOME! Extra turn!`
+        );
+
+    }
+
+    // CAPTURE
+    if (
+        !SAFE.includes(finalCell) &&
+        finalStep < 24
+    ) {
+
+        players.forEach(opponent => {
+
+            if (
+                opponent.id === player.id ||
+                opponent.hasWon
+            ) return;
+
+            opponent.pawns.forEach(
+                (oppStep,oppIndex) => {
+
+                    if (
+                        oppStep < 24 &&
+                        PATHS[opponent.id][oppStep]
+                        === finalCell
+                    ) {
+
+                        opponent.pawns[oppIndex] = 0;
+
+                        player.hasKilled = true;
+
+                        extra = true;
+
+                        setStatus(
+                            `${player.name} captured ${opponent.name}! Extra turn!`
+                        );
+
+                    }
+
+                }
+            );
+
+        });
+
+    }
+
+    // WIN
+    if (
+        player.pawns.every(
+            p => p === 24
+        )
+    ) {
+
+        player.hasWon = true;
+
+        player.winRank =
+            players.filter(
+                p => p.hasWon
+            ).length + 1;
+
+        extra = false;
+
+        setStatus(
+            `${player.name} finished all pawns! 🏆`
+        );
+
+    }
+
+    currentRoll = null;
+
+    moving = false;
+
+    if (player.hasWon) {
+
+        setTimeout(
+            nextLocalPlayer,
+            1000
+        );
+
+        return;
+
+    }
+
+    if (extra) {
+
+        canRoll = true;
+
+        updateGameUI();
+
+        scheduleBot();
+
+    } else {
+
+        setTimeout(
+            nextLocalPlayer,
+            700
+        );
+
+    }
+
+}
+
+
+/* -----------------------------
+   NEXT LOCAL PLAYER
+----------------------------- */
+
+function nextLocalPlayer() {
+
+    gameToken++;
+
+    currentRoll = null;
+
+    canRoll = true;
+
+    moving = false;
+
+    let attempts = 0;
+
+    do {
+
+        activeIndex =
+            (activeIndex + 1)
+            % players.length;
+
+        attempts++;
+
+    } while (
+        players[activeIndex].hasWon &&
+        attempts < players.length + 1
+    );
+
+    if (
+        players.every(
+            p => p.hasWon
+        )
+    ) {
+
+        setStatus("Game finished!");
+
+        canRoll = false;
+
+        updateGameUI();
+
+        return;
+
+    }
+
+    const player =
+        players[activeIndex];
+
+    setStatus(
+        `${player.name}'s turn.`
+    );
+
+    updateGameUI();
+
+    scheduleBot();
+
+}
+
+
+/* -----------------------------
+   BOT
+----------------------------- */
+
+function scheduleBot() {
+
+    if (online) return;
+
+    clearTimeout(botTimer);
+
+    const player =
+        players[activeIndex];
+
+    if (!player || !player.isBot) return;
+
+    const token =
+        gameToken;
+
+    botTimer =
+        setTimeout(() => {
+
+            if (token !== gameToken) return;
+
+            if (
+                activeIndex >= players.length
+            ) return;
+
+            if (
+                players[activeIndex].id !==
+                player.id
+            ) return;
+
+            if (moving) {
+
+                scheduleBot();
+
+                return;
+            }
+
+            if (canRoll) {
+
+                const roll =
+                    [1,1,2,2,3,3,4,8]
+                    [Math.floor(Math.random()*8)];
+
+                canRoll = false;
+
+                handleLocalRoll(
+                    player.id,
+                    roll
+                );
+
+                return;
+
+            }
+
+            if (currentRoll) {
+
+                const valid = [];
+
+                player.pawns.forEach(
+                    (step,index) => {
+
+                        if (
+                            step +
+                            currentRoll <= 24
+                        ) {
+
+                            valid.push(index);
+
+                        }
+
+                    }
+                );
+
+                if (valid.length === 0) {
+
+                    nextLocalPlayer();
+
+                    return;
+
+                }
+
+                const pawn =
+                    valid[
+                        Math.floor(
+                            Math.random() *
+                            valid.length
+                        )
+                    ];
+
+                movePawn(
+                    player.id,
+                    pawn
+                );
+
+            }
+
+        }, 700);
+
+}
+
+
+/* -----------------------------
+   UI
+----------------------------- */
+
+function updateGameUI() {
+
+    renderPlayers();
+
+    renderPawns();
+
+    const current =
+        players[activeIndex];
+
+    if (!current) return;
+
+    if (current.id === myId && online) {
+
+        if (canRoll) {
+
+            setStatus(
+                "Your turn! Roll the dice."
+            );
+
+        }
+
+    }
+
+    if (!online && !current.isBot) {
+
+        if (canRoll) {
+
+            setStatus(
+                `${current.name}'s turn. Roll the dice.`
+            );
+
+        }
+
+    }
+
+}
+
+function setStatus(text) {
+
+    document.getElementById(
+        "status"
+    ).innerText = text;
+
+}
+
+function startGameMessage() {
+
+    setStatus(
+        "Blue goes first."
+    );
+
+}
+
+
+/* -----------------------------
+   CHAT
+----------------------------- */
+
+function sendChat() {
+
+    const input =
+        document.getElementById(
+            "chatInput"
+        );
+
+    const text =
+        input.value.trim();
+
+    if (!text) return;
+
+    if (online) {
+
+        socket.emit(
+            "sendChatMessage",
+            { text }
+        );
+
+    } else {
+
+        addChat(
+            "You",
+            text
+        );
+
+    }
+
+    input.value = "";
+
+}
+
+socket.on(
+    "receiveChatMessage",
+    data => {
+
+        addChat(
+            data.name,
+            data.text
+        );
+
+    }
 );
+
+function addChat(
+    name,
+    text
+) {
+
+    const box =
+        document.getElementById(
+            "chat"
+        );
+
+    const row =
+        document.createElement("div");
+
+    const bold =
+        document.createElement("b");
+
+    bold.innerText =
+        name + ": ";
+
+    row.appendChild(bold);
+
+    row.appendChild(
+        document.createTextNode(text)
+    );
+
+    box.appendChild(row);
+
+    box.scrollTop =
+        box.scrollHeight;
+
+}
+
+
+/* -----------------------------
+   WEBRTC MICROPHONE
+----------------------------- */
+
+let localStream = null;
+
+const voicePeers = {};
+
+async function toggleMic() {
+
+    if (localStream) {
+
+        stopMic();
+
+        return;
+
+    }
+
+    try {
+
+        initAudio();
+
+        localStream =
+            await navigator.mediaDevices
+            .getUserMedia({
+                audio: true,
+                video: false
+            });
+
+        document
+            .getElementById("micButton")
+            .classList.add("mic-on");
+
+        document
+            .getElementById("micButton")
+            .innerText =
+            "🔴";
+
+        if (online) {
+
+            await startVoiceConnections();
+
+        } else {
+
+            addChat(
+                "System",
+                "Microphone works only in online multiplayer."
+            );
+
+        }
+
+    }
+
+    catch (error) {
+
+        console.error(error);
+
+        alert(
+            "Microphone permission was denied or unavailable. Allow microphone access for this site and try again."
+        );
+
+    }
+
+}
+
+function stopMic() {
+
+    if (localStream) {
+
+        localStream
+            .getTracks()
+            .forEach(
+                track => track.stop()
+            );
+
+    }
+
+    localStream = null;
+
+    Object.keys(voicePeers)
+        .forEach(id => {
+
+            try {
+                voicePeers[id].close();
+            } catch(e) {}
+
+            delete voicePeers[id];
+
+        });
+
+    document
+        .getElementById("micButton")
+        .classList.remove("mic-on");
+
+    document
+        .getElementById("micButton")
+        .innerText =
+        "🎤";
+
+    if (online) {
+
+        socket.emit(
+            "voiceStop"
+        );
+
+    }
+
+}
+
+async function startVoiceConnections() {
+
+    // Ask the other players to create connections
+    socket.emit(
+        "voiceOffer",
+        {
+            offer: null
+        }
+    );
+
+}
+
+
+/*
+   Receiver of voice offer.
+*/
+
+socket.on(
+    "voiceOffer",
+    async data => {
+
+        if (!localStream) return;
+
+        const pc =
+            new RTCPeerConnection({
+                iceServers: [
+                    {
+                        urls:
+                        "stun:stun.l.google.com:19302"
+                    }
+                ]
+            });
+
+        voicePeers[data.from] = pc;
+
+        localStream
+            .getTracks()
+            .forEach(
+                track =>
+                    pc.addTrack(
+                        track,
+                        localStream
+                    )
+            );
+
+        pc.ontrack = event => {
+
+            playRemoteAudio(
+                event.streams[0]
+            );
+
+        };
+
+        pc.onicecandidate =
+            event => {
+
+                if (
+                    event.candidate
+                ) {
+
+                    socket.emit(
+                        "voiceCandidate",
+                        {
+                            to: data.from,
+                            candidate:
+                                event.candidate
+                        }
+                    );
+
+                }
+
+            };
+
+        const offer =
+            await pc.createOffer();
+
+        await pc.setLocalDescription(
+            offer
+        );
+
+        socket.emit(
+            "voiceAnswer",
+            {
+                to: data.from,
+                answer: pc.localDescription
+            }
+        );
+
+    }
+);
+
+
+/*
+   Answer receiver.
+*/
+
+socket.on(
+    "voiceAnswer",
+    async data => {
+
+        // This simple mesh connection
+        // is created when another peer
+        // sends an offer.
+        //
+        // If no peer exists yet,
+        // create one.
+
+        if (!localStream) return;
+
+        let pc =
+            voicePeers[data.from];
+
+        if (!pc) {
+
+            pc =
+                new RTCPeerConnection({
+                    iceServers: [
+                        {
+                            urls:
+                            "stun:stun.l.google.com:19302"
+                        }
+                    ]
+                });
+
+            voicePeers[data.from] = pc;
+
+            localStream
+                .getTracks()
+                .forEach(
+                    track =>
+                        pc.addTrack(
+                            track,
+                            localStream
+                        )
+                );
+
+            pc.ontrack = event => {
+
+                playRemoteAudio(
+                    event.streams[0]
+                );
+
+            };
+
+            pc.onicecandidate =
+                event => {
+
+                    if (
+                        event.candidate
+                    ) {
+
+                        socket.emit(
+                            "voiceCandidate",
+                            {
+                                to: data.from,
+                                candidate:
+                                    event.candidate
+                            }
+                        );
+
+                    }
+
+                };
+
+        }
+
+        try {
+
+            await pc.setRemoteDescription(
+                data.answer
+            );
+
+        } catch(e) {
+
+            console.log(e);
+
+        }
+
+    }
+);
+
+
+/*
+   ICE candidate.
+*/
+
+socket.on(
+    "voiceCandidate",
+    async data => {
+
+        const pc =
+            voicePeers[data.from];
+
+        if (!pc) return;
+
+        try {
+
+            await pc.addIceCandidate(
+                data.candidate
+            );
+
+        } catch(e) {
+
+            console.log(e);
+
+        }
+
+    }
+);
+
+
+socket.on(
+    "voiceStop",
+    data => {
+
+        if (
+            voicePeers[data.from]
+        ) {
+
+            voicePeers[data.from].close();
+
+            delete voicePeers[data.from];
+
+        }
+
+    }
+);
+
+
+function playRemoteAudio(
+    stream
+) {
+
+    const audio =
+        document.createElement("audio");
+
+    audio.autoplay = true;
+
+    audio.srcObject = stream;
+
+    document.body.appendChild(
+        audio
+    );
+
+}
+
+
+/* -----------------------------
+   HELP / SETTINGS
+----------------------------- */
+
+function toggleSettings() {
+
+    document
+        .getElementById(
+            "settingsOverlay"
+        )
+        .classList.toggle("hidden");
+
+}
+
+function toggleHelp() {
+
+    document
+        .getElementById(
+            "helpOverlay"
+        )
+        .classList.toggle("hidden");
+
+}
 
 </script>
 
