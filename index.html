@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ludo Twist - Fixed Turn & Mic</title>
+  <title>Ludo Twist - Final Fixes</title>
   <script src="/socket.io/socket.io.js"></script>
   <style>
     body { 
@@ -314,20 +314,23 @@
         chatBox.scrollTop = chatBox.scrollHeight;
     }
 
-    // Upgraded Microphone Stream using ArrayBuffers for reliable mobile voice chat relay
+    // Robust Voice Chat implementation using Base64 encoding over Socket.io to bypass blob container issues
     async function toggleMicrophone() {
         const micBtn = document.getElementById('mic-btn');
         if(!isMicActive) {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
-                mediaRecorder.ondataavailable = async e => {
+                mediaRecorder = new MediaRecorder(stream);
+                mediaRecorder.ondataavailable = e => {
                     if(e.data.size > 0 && isOnlineMode) {
-                        const buffer = await e.data.arrayBuffer();
-                        socket.emit('voiceData', buffer);
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                            socket.emit('voiceData', reader.result);
+                        };
+                        reader.readAsDataURL(e.data);
                     }
                 };
-                mediaRecorder.start(250); // Send small packets frequently for real-time speech
+                mediaRecorder.start(300); // Send audio chunks every 300ms
                 isMicActive = true;
                 micBtn.classList.add('mic-btn-active');
                 micBtn.innerText = '🔴 Live';
@@ -342,16 +345,10 @@
         }
     }
 
-    socket.on('voiceData', async (arrayBuffer) => {
+    socket.on('voiceData', (base64Audio) => {
         try {
-            if (!micAudioContext) micAudioContext = new (window.AudioContext || window.webkitAudioContext)();
-            if (micAudioContext.state === 'suspended') await micAudioContext.resume();
-            
-            const decodedAudio = await micAudioContext.decodeAudioData(arrayBuffer);
-            const source = micAudioContext.createBufferSource();
-            source.buffer = decodedAudio;
-            source.connect(micAudioContext.destination);
-            source.start(0);
+            const audio = new Audio(base64Audio);
+            audio.play().catch(e => console.log("Audio play blocked/errored", e));
         } catch(e) {
             console.log("Voice playback error", e);
         }
@@ -559,7 +556,7 @@
       diceBox.innerText = rollValue;
       activeRolls.push(rollValue);
       
-      // Strict rule enforcement: Extra turn ONLY on a 4 or an 8. Otherwise, canRoll remains false.
+      // Extra turn allowed strictly if roll is 4 or 8
       if (rollValue === 4 || rollValue === 8) {
           canRoll = true; 
       } else {
@@ -616,9 +613,13 @@
 
     function advanceToNextPlayer() {
         const justPlayedId = activePlayers[activePlayerIndex].id;
-        activeRolls = []; canRoll = true; isAnimating = false;
-        do { activePlayerIndex = (activePlayerIndex + 1) % activePlayers.length; } 
-        while (activePlayers[activePlayerIndex].hasWon); 
+        activeRolls = []; 
+        canRoll = true; 
+        isAnimating = false;
+
+        do { 
+            activePlayerIndex = (activePlayerIndex + 1) % activePlayers.length; 
+        } while (activePlayers[activePlayerIndex].hasWon); 
         
         processTurnState();
 
@@ -655,7 +656,6 @@
                 playerObj.hasWon = true; playerObj.winRank = currentRank++;
                 setTimeout(advanceToNextPlayer, 1200); return;
             } else { 
-                // Reached home gets an extra turn explicitly
                 canRoll = true; 
                 customEndMessage = `Pawn Home! Extra Turn!`; 
             }
@@ -675,10 +675,8 @@
           }
 
           if (captured.length > 0) {
-              // Capture grants an extra turn explicitly
               canRoll = true; 
               playerObj.hasKilled = true;
-              
               let targetCapture = captured[0]; 
               
               function stepBack() {
