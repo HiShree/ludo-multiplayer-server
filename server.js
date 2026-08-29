@@ -66,9 +66,10 @@ io.on('connection', (socket) => {
         if (roomId) io.to(roomId).emit('receiveChatMessage', data);
     });
 
-    socket.on('voiceData', (audioData) => {
+    // Relay raw audio buffers directly to other players in the room
+    socket.on('voiceData', (arrayBuffer) => {
         let roomId = getSocketRoom(socket);
-        if (roomId) socket.to(roomId).emit('voiceData', audioData);
+        if (roomId) socket.to(roomId).emit('voiceData', arrayBuffer);
     });
 
     socket.on('requestRoll', (data) => {
