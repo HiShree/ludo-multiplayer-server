@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ludo Twist - Final Fixed Code</title>
+  <title>Ludo Twist - Final Fixed Build</title>
   <script src="/socket.io/socket.io.js"></script>
   <style>
     body { 
@@ -243,7 +243,7 @@
     let myPlayerId = null;
     let mediaRecorder = null;
     let isMicActive = false;
-    let voiceAudioCtx = null;
+    let micAudioCtx = null;
 
     function showLocalMenu() { document.getElementById('main-menu').style.display = 'none'; document.getElementById('local-menu').style.display = 'block'; }
     function showOnlineMenu() { document.getElementById('main-menu').style.display = 'none'; document.getElementById('private-menu').style.display = 'none'; document.getElementById('online-menu').style.display = 'block'; }
@@ -328,16 +328,16 @@
         chatBox.scrollTop = chatBox.scrollHeight;
     }
 
-    // Fixed Audio Context Decoding Pipeline for Voice Chat
+    // Fully rewritten Web Audio API Mic Streaming Fix
     async function toggleMicrophone() {
         const micBtn = document.getElementById('mic-btn');
         if(!isMicActive) {
             try {
-                if (!voiceAudioCtx) voiceAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                if (voiceAudioCtx.state === 'suspended') await voiceAudioCtx.resume();
+                if (!micAudioCtx) micAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (micAudioCtx.state === 'suspended') await micAudioCtx.resume();
 
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                mediaRecorder = new MediaRecorder(stream);
+                mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
                 
                 mediaRecorder.ondataavailable = async e => {
                     if(e.data.size > 0 && isOnlineMode) {
@@ -345,12 +345,12 @@
                         socket.emit('voiceData', buffer);
                     }
                 };
-                mediaRecorder.start(200); // Package audio chunks every 200ms
+                mediaRecorder.start(100); // 100ms interval for smooth live audio packets
                 isMicActive = true;
                 micBtn.classList.add('mic-btn-active');
                 micBtn.innerText = '🔴 Live';
             } catch(err) {
-                alert("Microphone permission denied or unavailable.");
+                alert("Microphone access blocked or unavailable on this browser.");
             }
         } else {
             if(mediaRecorder) mediaRecorder.stop();
@@ -362,16 +362,16 @@
 
     socket.on('voiceData', async (arrayBuffer) => {
         try {
-            if (!voiceAudioCtx) voiceAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            if (voiceAudioCtx.state === 'suspended') await voiceAudioCtx.resume();
+            if (!micAudioCtx) micAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (micAudioCtx.state === 'suspended') await micAudioCtx.resume();
 
-            const audioBuffer = await voiceAudioCtx.decodeAudioData(arrayBuffer);
-            const source = voiceAudioCtx.createBufferSource();
-            source.buffer = audioBuffer;
-            source.connect(voiceAudioCtx.destination);
+            const decoded = await micAudioCtx.decodeAudioData(arrayBuffer);
+            const source = micAudioCtx.createBufferSource();
+            source.buffer = decoded;
+            source.connect(micAudioCtx.destination);
             source.start(0);
         } catch(e) {
-            console.log("Voice buffer decode error", e);
+            console.log("Voice audio decode fallback/error", e);
         }
     });
 
@@ -580,6 +580,7 @@
       diceBox.innerText = rollValue;
       activeRolls.push(rollValue);
       
+      // Strict rule: Extra turn ONLY on 4 or 8. Otherwise lock rolling for this turn.
       if (rollValue === 4 || rollValue === 8) {
           canRoll = true; 
       } else {
@@ -605,7 +606,6 @@
             document.getElementById('status').innerText = customMessage || "No moves left. Turn over!";
             isAnimating = true; 
             setTimeout(() => {
-                // Strictly authoritative turn transition lock
                 if (!isOnlineMode || activePlayers[activePlayerIndex].id === myPlayerId) {
                     advanceToNextPlayer();
                 }
@@ -693,6 +693,8 @@
         } else {
           const finalGridCell = playerObj.path[playerObj.pawns[pawnIndex]];
           
+          let earnedExtraTurn = false;
+
           if (playerObj.pawns[pawnIndex] === 24) {
             if (playerObj.pawns.every(p => p === 24)) {
                 playerObj.hasWon = true; 
@@ -702,7 +704,7 @@
                 }, 1200); 
                 return;
             } else { 
-                canRoll = true; 
+                earnedExtraTurn = true; 
                 customEndMessage = `Pawn Home! Extra Turn!`; 
             }
           }
@@ -721,7 +723,7 @@
           }
 
           if (captured.length > 0) {
-              canRoll = true; 
+              earnedExtraTurn = true;
               playerObj.hasKilled = true;
               let targetCapture = captured[0]; 
               
@@ -734,6 +736,9 @@
                   } else { 
                       setTimeout(() => { 
                           isAnimating = false; 
+                          if (earnedExtraTurn && activeRolls.length === 0) {
+                              canRoll = true; // explicitly grant a roll chance if all rolls are spent and an event occurred
+                          }
                           processTurnState("Captured! Extra Turn!"); 
                           broadcastSyncState();
                       }, 200); 
@@ -742,6 +747,9 @@
               stepBack();
           } else {
               isAnimating = false; 
+              if (earnedExtraTurn && activeRolls.length === 0) {
+                  canRoll = true;
+              }
               processTurnState(customEndMessage);
               broadcastSyncState();
           }
