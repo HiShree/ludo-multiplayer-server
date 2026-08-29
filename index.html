@@ -2,14 +2,14 @@
 <html>
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Online & Offline Board Game</title>
+  <title>Ludo Twist - Optimized & Chat</title>
   <script src="/socket.io/socket.io.js"></script>
   <style>
     body { 
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
       margin: 0; padding: 10px; display: flex; flex-direction: column;
       align-items: center; background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-      color: white; min-height: 100vh;
+      color: white; min-height: 100vh; overflow-x: hidden;
     }
     
     .header-row { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 420px; margin: 10px 0; }
@@ -69,6 +69,7 @@
       grid-auto-rows: 1fr; aspect-ratio: 1 / 1; gap: 4px; 
       background-color: #2c3e50; padding: 6px; border-radius: 12px;
       box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+      will-change: transform; /* Performance optimization */
     }
     
     .cell { 
@@ -78,20 +79,18 @@
       box-shadow: inset 0 -3px 0 rgba(0,0,0,0.1);
     }
     
-    .start-blue { background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%); color: white; box-shadow: inset 0 -3px 0 rgba(0,0,0,0.2); }
-    .start-red { background: linear-gradient(135deg, #ff7675 0%, #d63031 100%); color: white; box-shadow: inset 0 -3px 0 rgba(0,0,0,0.2); }
-    .start-green { background: linear-gradient(135deg, #55efc4 0%, #00b894 100%); color: white; box-shadow: inset 0 -3px 0 rgba(0,0,0,0.2); }
-    .start-yellow { background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%); color: #d63031; box-shadow: inset 0 -3px 0 rgba(0,0,0,0.1); }
+    .start-blue { background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%); color: white; }
+    .start-red { background: linear-gradient(135deg, #ff7675 0%, #d63031 100%); color: white; }
+    .start-green { background: linear-gradient(135deg, #55efc4 0%, #00b894 100%); color: white; }
+    .start-yellow { background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%); color: #d63031; }
 
-    .home-zone { background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%); color: white; font-size: 14px; font-weight: bold; box-shadow: inset 0 -3px 0 rgba(0,0,0,0.2); }
-
+    .home-zone { background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%); color: white; font-size: 14px; font-weight: bold; }
     .board-arrow { position: absolute; font-size: 28px; color: rgba(0, 0, 0, 0.25); font-weight: bold; z-index: 1; pointer-events: none; }
     
     .player-pawn { 
       width: 16px; height: 16px; border-radius: 50%; 
-      box-shadow: 2px 3px 5px rgba(0,0,0,0.4), inset -2px -2px 4px rgba(0,0,0,0.3);
-      border: 1px solid rgba(255,255,255,0.8); z-index: 10;
-      background-image: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.7), transparent 40%);
+      box-shadow: 2px 3px 5px rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.8); 
+      z-index: 10; will-change: transform;
     }
 
     .clickable-pawn { cursor: pointer; box-shadow: 0 0 10px 4px rgba(255, 255, 255, 0.8); animation: pulse 1s infinite; }
@@ -99,55 +98,50 @@
     
     .player-panel {
       display: flex; flex-direction: row; align-items: center; border-radius: 6px;
-      opacity: 0.6; transition: all 0.3s; margin: 0 auto; width: fit-content;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.4); border: 3px solid transparent; position: relative;
+      opacity: 0.6; transition: opacity 0.2s, transform 0.2s; margin: 0 auto; width: fit-content;
+      border: 3px solid transparent; position: relative;
     }
     
-    .active-turn { opacity: 1; border-color: #ffd700; box-shadow: 0 0 12px 2px rgba(255, 215, 0, 0.8), 0 4px 10px rgba(0,0,0,0.5); transform: scale(1.1); z-index: 5; }
-
-    .active-turn::after {
-      content: ''; position: absolute; right: -24px; top: 50%; margin-top: -8px;
-      border-top: 8px solid transparent; border-bottom: 8px solid transparent;
-      border-right: 14px solid #ff9f43; animation: pointLeft 0.5s infinite alternate;
-      filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5));
-    }
-    @keyframes pointLeft { from { transform: translateX(0); } to { transform: translateX(-6px); } }
+    .active-turn { opacity: 1; border-color: #ffd700; transform: scale(1.05); z-index: 5; }
 
     .panel-pawn-side { width: 44px; height: 44px; display: flex; justify-content: center; align-items: center; border-radius: 3px 0 0 3px; border-right: 1px solid rgba(0,0,0,0.2); }
-    #panel-1 .panel-pawn-side { background: linear-gradient(135deg, #ff7675, #d63031); } 
-    #panel-2 .panel-pawn-side { background: linear-gradient(135deg, #55efc4, #00b894); } 
-    #panel-0 .panel-pawn-side { background: linear-gradient(135deg, #74b9ff, #0984e3); } 
-    #panel-3 .panel-pawn-side { background: linear-gradient(135deg, #ffeaa7, #fdcb6e); } 
+    #panel-1 .panel-pawn-side { background: #d63031; } 
+    #panel-2 .panel-pawn-side { background: #00b894; } 
+    #panel-0 .panel-pawn-side { background: #0984e3; } 
+    #panel-3 .panel-pawn-side { background: #fdcb6e; } 
 
-    .panel-pawn-icon { width: 24px; height: 24px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.9); box-shadow: 0 2px 5px rgba(0,0,0,0.6); background-image: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.7), transparent 40%); }
+    .panel-pawn-icon { width: 24px; height: 24px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.9); }
     #panel-1 .panel-pawn-icon { background-color: #d63031; }
     #panel-2 .panel-pawn-icon { background-color: #00b894; }
     #panel-0 .panel-pawn-icon { background-color: #0984e3; }
     #panel-3 .panel-pawn-icon { background-color: #ffa502; }
 
     .ludo-dice {
-      width: 44px; height: 44px; background: linear-gradient(to bottom, #ffffff, #ffecec); 
+      width: 44px; height: 44px; background: #fff; 
       border-radius: 0 3px 3px 0; display: flex; justify-content: center; align-items: center;
-      font-size: 28px; font-weight: 900; color: #111; cursor: pointer; user-select: none; transition: background 0.1s;
+      font-size: 28px; font-weight: 900; color: #111; cursor: pointer; user-select: none;
     }
-    .ludo-dice:active { background: #e0e0e0; }
-    .dice-disabled { cursor: not-allowed; pointer-events: none; }
-
-    .shake { animation: snappyShake 0.3s cubic-bezier(0.36, 0.07, 0.19, 0.97) both; }
-    @keyframes snappyShake {
-      0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
-      20% { transform: translate3d(-3px, -3px, 0) rotate(-10deg); }
-      40% { transform: translate3d(3px, 0px, 0) rotate(10deg); }
-      60% { transform: translate3d(-3px, 3px, 0) rotate(-10deg); }
-      80% { transform: translate3d(3px, -3px, 0) rotate(10deg); }
-    }
+    .dice-disabled { cursor: not-allowed; pointer-events: none; opacity: 0.7; }
 
     #status {
-      font-size: 16px; font-weight: bold; margin: 10px 0; text-align: center;
-      min-height: 24px; background: rgba(255,255,255,0.9); padding: 8px 15px;
-      border-radius: 20px; color: #333; box-shadow: 0 4px 6px rgba(0,0,0,0.2);
-      display: none; width: 100%; max-width: 390px; box-sizing: border-box;
+      font-size: 15px; font-weight: bold; margin: 8px 0; text-align: center;
+      min-height: 22px; background: rgba(255,255,255,0.9); padding: 6px 12px;
+      border-radius: 20px; color: #333; display: none; width: 100%; max-width: 390px; box-sizing: border-box;
     }
+
+    /* --- CHAT & MIC PANEL --- */
+    .comm-dock {
+      display: none; width: 100%; max-width: 420px; margin-top: 10px;
+      background: rgba(0,0,0,0.3); border-radius: 10px; padding: 8px; box-sizing: border-box;
+    }
+    .chat-box {
+      height: 70px; overflow-y: auto; background: rgba(255,255,255,0.1);
+      border-radius: 6px; padding: 5px; font-size: 12px; margin-bottom: 6px; display: flex; flex-direction: column; gap: 3px;
+    }
+    .chat-input-row { display: flex; gap: 5px; }
+    .chat-input-row input { flex: 1; padding: 6px; border-radius: 4px; border: none; font-size: 12px; }
+    .chat-input-row button { padding: 6px 10px; border: none; background: #e67e22; color: white; border-radius: 4px; font-weight: bold; cursor: pointer; }
+    .mic-btn-active { background: #c0392b !important; animation: pulse 1s infinite; }
   </style>
 </head>
 <body>
@@ -180,18 +174,13 @@
 
     <div class="modal-box" id="private-menu">
       <h2 style="margin-top: 0;">Private Room</h2>
-      <p style="text-align: center;">Create a room or join a friend's room.</p>
-      
       <div style="display:flex; gap: 5px; margin-bottom: 10px;">
           <button class="setup-btn secondary-btn" onclick="createPrivateGame(2)" style="margin:0; font-size:12px;">Create 2P</button>
           <button class="setup-btn secondary-btn" onclick="createPrivateGame(3)" style="margin:0; font-size:12px;">Create 3P</button>
           <button class="setup-btn secondary-btn" onclick="createPrivateGame(4)" style="margin:0; font-size:12px;">Create 4P</button>
       </div>
-      
-      <p style="text-align: center; margin: 15px 0; font-weight: bold; color: #777;">— OR —</p>
-
-      <input type="text" id="room-code-input" placeholder="Enter Room Code" style="width: 100%; padding: 12px; box-sizing: border-box; border-radius: 5px; border: 1px solid #ccc; font-size: 18px; text-transform: uppercase; text-align: center; font-weight: bold; margin-bottom: 10px;">
-      
+      <p style="text-align: center; margin: 10px 0; font-weight: bold; color: #777;">— OR —</p>
+      <input type="text" id="room-code-input" placeholder="Enter Room Code" style="width: 100%; padding: 10px; box-sizing: border-box; border-radius: 5px; border: 1px solid #ccc; font-size: 16px; text-transform: uppercase; text-align: center; font-weight: bold; margin-bottom: 10px;">
       <button class="setup-btn purple-btn" onclick="joinPrivateGame()">Join Room</button>
       <button class="setup-btn back-btn" onclick="showOnlineMenu()">Back</button>
     </div>
@@ -208,17 +197,7 @@
   <div id="help-screen" class="modal-overlay">
     <div class="modal-box">
       <h2 style="color: #333; margin-top: 0;">How to Play</h2>
-      <p><b>Movement:</b> Follow the faint arrows on the board.</p>
-      <ul>
-        <li>Tap your glowing dice to roll a <b>1, 2, 3, 4, or 8</b>.</li>
-        <li>Roll a <b>4 or 8</b> to get an extra turn!</li>
-        <li>You can bank extra turns and keep rolling before moving your pawns!</li>
-      </ul>
-      <p><b>Combat:</b> Land on an opponent to capture them.</p>
-      <ul>
-        <li>Colored start zones and the center cross (HOME) are safe.</li>
-        <li><b>Inner Shell:</b> You MUST capture at least one opponent before entering Home!</li>
-      </ul>
+      <p>Tap your glowing dice to roll a <b>1, 2, 3, 4, or 8</b>. Roll a 4 or 8 for an extra turn!</p>
       <button class="setup-btn" style="background: #e74c3c;" onclick="toggleHelp()">Close</button>
     </div>
   </div>
@@ -242,33 +221,29 @@
     <div class="player-panel" id="panel-3"><div class="panel-pawn-side"><div class="panel-pawn-icon"></div></div><div class="ludo-dice dice-disabled" id="dice-3" onclick="requestRoll(3)">🎲</div></div>
   </div>
 
+  <!-- Chat & Voice Dock -->
+  <div class="comm-dock" id="comm-dock">
+    <div class="chat-box" id="chat-messages"></div>
+    <div class="chat-input-row">
+      <input type="text" id="chat-input" placeholder="Type message..." onkeydown="if(event.key==='Enter')sendChatMessage()">
+      <button onclick="sendChatMessage()">Send</button>
+      <button id="mic-btn" onclick="toggleMicrophone()" title="Toggle Mic">🎤 Mic</button>
+    </div>
+  </div>
+
   <script>
     const socket = io();
     let isOnlineMode = false;
     let myPlayerId = null;
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let isMicActive = false;
 
-    // --- MENU LOGIC ---
-    function showLocalMenu() {
-        document.getElementById('main-menu').style.display = 'none';
-        document.getElementById('local-menu').style.display = 'block';
-    }
-    function showOnlineMenu() {
-        document.getElementById('main-menu').style.display = 'none';
-        document.getElementById('private-menu').style.display = 'none';
-        document.getElementById('online-menu').style.display = 'block';
-    }
-    function showPrivateMenu() {
-        document.getElementById('online-menu').style.display = 'none';
-        document.getElementById('private-menu').style.display = 'block';
-    }
-    function backToMain() {
-        document.getElementById('local-menu').style.display = 'none';
-        document.getElementById('online-menu').style.display = 'none';
-        document.getElementById('private-menu').style.display = 'none';
-        document.getElementById('main-menu').style.display = 'block';
-    }
+    function showLocalMenu() { document.getElementById('main-menu').style.display = 'none'; document.getElementById('local-menu').style.display = 'block'; }
+    function showOnlineMenu() { document.getElementById('main-menu').style.display = 'none'; document.getElementById('private-menu').style.display = 'none'; document.getElementById('online-menu').style.display = 'block'; }
+    function showPrivateMenu() { document.getElementById('online-menu').style.display = 'none'; document.getElementById('private-menu').style.display = 'block'; }
+    function backToMain() { document.getElementById('local-menu').style.display = 'none'; document.getElementById('online-menu').style.display = 'none'; document.getElementById('private-menu').style.display = 'none'; document.getElementById('main-menu').style.display = 'block'; }
 
-    // --- SOCKET LOGIC ---
     socket.on('assignPlayer', (id) => {
         myPlayerId = id;
         const colorName = allPlayers.find(p => p.id === id).name;
@@ -276,84 +251,109 @@
         badge.style.display = 'block';
         badge.innerText = `You are ${colorName}`;
         document.getElementById('status').style.display = 'block';
+        document.getElementById('comm-dock').style.display = 'block';
     });
 
-    socket.on('systemMessage', (msg) => {
-        document.getElementById('status').innerText = msg;
-    });
-    
-    socket.on('privateRoomCreated', (code) => {
-        document.getElementById('status').innerText = `Room Code: ${code}. Share this with your friends!`;
-    });
-
-    socket.on('roomError', (msg) => {
-        alert(msg);
-        document.getElementById('setup-screen').style.display = 'flex';
-        document.getElementById('status').style.display = 'none';
-    });
+    socket.on('systemMessage', (msg) => { document.getElementById('status').innerText = msg; });
+    socket.on('privateRoomCreated', (code) => { document.getElementById('status').innerText = `Room Code: ${code}`; });
+    socket.on('roomError', (msg) => { alert(msg); document.getElementById('setup-screen').style.display = 'flex'; });
 
     socket.on('gameStart', (ids) => {
         activePlayers = allPlayers.filter(p => ids.includes(p.id));
         for (let i = 0; i < 4; i++) {
             document.getElementById(`panel-${i}`).style.visibility = activePlayers.find(p => p.id === i) ? 'visible' : 'hidden';
         }
-        activePlayerIndex = 0;
-        currentRank = 1;
-        activeRolls = [];
-        canRoll = true;
+        activePlayerIndex = 0; currentRank = 1; activeRolls = []; canRoll = true;
         document.getElementById('game-container').style.display = 'grid';
-        renderBoard();
-        processTurnState();
+        if(isOnlineMode) document.getElementById('comm-dock').style.display = 'block';
+        renderBoard(); processTurnState();
     });
 
-    socket.on('executeRoll', (data) => {
-        if (isOnlineMode) handleIncomingRoll(data.playerId, data.rollValue);
-    });
-
-    socket.on('executeMove', (data) => {
-        if (isOnlineMode) handleIncomingMove(data.playerId, data.pawnIndex);
-    });
-
+    socket.on('executeRoll', (data) => { if (isOnlineMode) handleIncomingRoll(data.playerId, data.rollValue); });
+    socket.on('executeMove', (data) => { if (isOnlineMode) handleIncomingMove(data.playerId, data.pawnIndex); });
     socket.on('forceSync', (state) => {
         if (isOnlineMode) {
             activePlayerIndex = state.activeIndex;
             state.players.forEach(serverPlayer => {
                 let localPlayer = activePlayers.find(p => p.id === serverPlayer.id);
-                if (localPlayer) {
-                    localPlayer.pawns = serverPlayer.pawns;
-                    localPlayer.hasKilled = serverPlayer.hasKilled;
-                    localPlayer.hasWon = serverPlayer.hasWon;
-                }
+                if (localPlayer) { localPlayer.pawns = serverPlayer.pawns; localPlayer.hasKilled = serverPlayer.hasKilled; localPlayer.hasWon = serverPlayer.hasWon; }
             });
-            isAnimating = false;
-            renderBoard();
-            processTurnState();
+            isAnimating = false; renderBoard(); processTurnState();
         }
     });
 
-    // --- GAME ENGINE ---
-    const totalSpaces = 25;
-    const centerSpace = 12; 
-    let currentRank = 1; 
-    let audioCtx; 
-    let isSoundEnabled = true; 
+    // --- CHAT & VOICE LOGIC ---
+    function sendChatMessage() {
+        const input = document.getElementById('chat-input');
+        const text = input.value.trim();
+        if(!text) return;
+        const playerObj = allPlayers.find(p => p.id === myPlayerId);
+        const playerName = playerObj ? playerObj.name : "Player";
+        
+        if(isOnlineMode) {
+            socket.emit('sendChatMessage', { name: playerName, text: text });
+        } else {
+            appendChatMsg(playerName, text);
+        }
+        input.value = '';
+    }
 
-    let activeRolls = []; 
-    let canRoll = true;   
-    let displayRollValue = 0;
+    socket.on('receiveChatMessage', (data) => { appendChatMsg(data.name, data.text); });
+
+    function appendChatMsg(name, text) {
+        const chatBox = document.getElementById('chat-messages');
+        const div = document.createElement('div');
+        div.innerHTML = `<b>${name}:</b> ${text}`;
+        chatBox.appendChild(div);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    async function toggleMicrophone() {
+        const micBtn = document.getElementById('mic-btn');
+        if(!isMicActive) {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                mediaRecorder.ondataavailable = e => {
+                    if(e.data.size > 0 && isOnlineMode) {
+                        const reader = new FileReader();
+                        reader.readdataurl ? reader.readAsDataURL(e.data) : null;
+                        reader.onloadend = () => { socket.emit('voiceSignal', reader.result); }
+                    }
+                };
+                mediaRecorder.start(1000); // chunk every 1 second
+                isMicActive = true;
+                micBtn.classList.add('mic-btn-active');
+                micBtn.innerText = '🔴 Live';
+            } catch(err) {
+                alert("Microphone permission denied or unavailable.");
+            }
+        } else {
+            if(mediaRecorder) mediaRecorder.stop();
+            isMicActive = false;
+            micBtn.classList.remove('mic-btn-active');
+            micBtn.innerText = '🎤 Mic';
+        }
+    }
+
+    socket.on('voiceSignal', (audioData) => {
+        const audio = new Audio(audioData);
+        audio.play().catch(e => console.log("Audio play error", e));
+    });
+
+    // --- GAME ENGINE (Performance Optimized) ---
+    const totalSpaces = 25, centerSpace = 12; 
+    let currentRank = 1, audioCtx, isSoundEnabled = true; 
+    let activeRolls = [], canRoll = true, isAnimating = false;
 
     const boardArrows = { 10: '↓', 22: '→', 14: '↑', 2: '←', 11: '→', 17: '↑', 13: '←', 7: '↓' };
-    
     const allPlayers = [
       { id: 0, name: "Blue", color: "#1e90ff", hasWon: false, winRank: 0, hasKilled: false, isBot: false, pawns: [0, 0, 0, 0], path: [10, 15, 20, 21, 22, 23, 24, 19, 14, 9, 4, 3, 2, 1, 0, 5, 6, 7, 8, 13, 18, 17, 16, 11, 12] },
       { id: 1, name: "Red", color: "#ff4757", hasWon: false, winRank: 0, hasKilled: false, isBot: false, pawns: [0, 0, 0, 0], path: [2, 1, 0, 5, 10, 15, 20, 21, 22, 23, 24, 19, 14, 9, 4, 3, 8, 13, 18, 17, 16, 11, 6, 7, 12] },
       { id: 2, name: "Green", color: "#2ed573", hasWon: false, winRank: 0, hasKilled: false, isBot: false, pawns: [0, 0, 0, 0], path: [14, 9, 4, 3, 2, 1, 0, 5, 10, 15, 20, 21, 22, 23, 24, 19, 18, 17, 16, 11, 6, 7, 8, 13, 12] },
       { id: 3, name: "Yellow", color: "#ffa502", hasWon: false, winRank: 0, hasKilled: false, isBot: false, pawns: [0, 0, 0, 0], path: [22, 23, 24, 19, 14, 9, 4, 3, 2, 1, 0, 5, 10, 15, 20, 21, 16, 11, 6, 7, 8, 13, 18, 17, 12] }
     ];
-    
-    let activePlayers = []; 
-    let activePlayerIndex = 0; 
-    let isAnimating = false; 
+    let activePlayers = [], activePlayerIndex = 0; 
 
     function playMoveSound() {
       if (!isSoundEnabled || !audioCtx) return;
@@ -363,7 +363,7 @@
       osc.type = 'triangle'; 
       osc.frequency.setValueAtTime(300, audioCtx.currentTime);
       osc.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 0.05);
-      gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+      gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime);
       gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
       osc.connect(gainNode); gainNode.connect(audioCtx.destination);
       osc.start(); osc.stop(audioCtx.currentTime + 0.1);
@@ -371,12 +371,7 @@
 
     function toggleHelp() { document.getElementById('help-screen').style.display = (document.getElementById('help-screen').style.display === 'flex') ? 'none' : 'flex'; }
     function toggleSettings() { document.getElementById('settings-screen').style.display = (document.getElementById('settings-screen').style.display === 'flex') ? 'none' : 'flex'; }
-    function toggleSound() {
-      isSoundEnabled = !isSoundEnabled;
-      const btn = document.getElementById('sound-toggle-btn');
-      if (isSoundEnabled) { btn.innerText = '🔊 Sound: ON'; btn.style.background = '#1e90ff'; } 
-      else { btn.innerText = '🔇 Sound: OFF'; btn.style.background = '#7f8c8d'; }
-    }
+    function toggleSound() { isSoundEnabled = !isSoundEnabled; document.getElementById('sound-toggle-btn').innerText = isSoundEnabled ? '🔊 Sound: ON' : '🔇 Sound: OFF'; }
 
     function startLocalGame(numPlayers) {
       if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -386,27 +381,12 @@
       document.getElementById('status').style.display = 'block';
       document.getElementById('identity-badge').style.display = 'block';
       
-      currentRank = 1; activeRolls = []; canRoll = true;
-
       let playersCopy = JSON.parse(JSON.stringify(allPlayers));
-      if (numPlayers === 1) {
-        activePlayers = [playersCopy[0], playersCopy[2]]; 
-        activePlayers[1].isBot = true; activePlayers[1].name = "Green (Bot)";
-      } else if (numPlayers === 2) {
-        activePlayers = [playersCopy[0], playersCopy[2]]; 
-      } else if (numPlayers === 3) {
-        activePlayers = [playersCopy[0], playersCopy[1], playersCopy[2]]; 
-      } else {
-        activePlayers = [...playersCopy]; 
-      }
-
+      activePlayers = numPlayers === 1 ? [playersCopy[0], Object.assign(playersCopy[2], {isBot:true, name:"Green (Bot)"})] : playersCopy.slice(0, numPlayers);
       for (let i = 0; i < 4; i++) {
         document.getElementById(`panel-${i}`).style.visibility = activePlayers.find(p => p.id === i) ? 'visible' : 'hidden';
       }
-
-      activePlayerIndex = 0; 
-      renderBoard(); 
-      processTurnState(); 
+      activePlayerIndex = 0; renderBoard(); processTurnState(); 
     }
 
     function startOnlineGame(numPlayers) {
@@ -414,7 +394,6 @@
       isOnlineMode = true;
       document.getElementById('setup-screen').style.display = 'none';
       document.getElementById('status').style.display = 'block';
-      document.getElementById('status').innerText = "Connecting to public server...";
       socket.emit('joinGame', numPlayers);
     }
     
@@ -423,27 +402,23 @@
       isOnlineMode = true;
       document.getElementById('setup-screen').style.display = 'none';
       document.getElementById('status').style.display = 'block';
-      document.getElementById('status').innerText = "Generating Room Code...";
       socket.emit('createPrivateGame', numPlayers);
     }
 
     function joinPrivateGame() {
       let codeInput = document.getElementById('room-code-input').value.trim();
-      if (!codeInput) {
-          alert("Please enter a Room Code to join!");
-          return;
-      }
+      if (!codeInput) return alert("Enter code!");
       if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
       isOnlineMode = true;
       document.getElementById('setup-screen').style.display = 'none';
       document.getElementById('status').style.display = 'block';
-      document.getElementById('status').innerText = "Connecting to room...";
       socket.emit('joinPrivateGame', codeInput);
     }
 
+    // Optimized Board Rendering via DocumentFragment to eliminate layout thrashing/lag
     function renderBoard() {
       const boardDiv = document.getElementById('board');
-      boardDiv.innerHTML = ''; 
+      const fragment = document.createDocumentFragment();
       
       for (let i = 0; i < totalSpaces; i++) {
         const cell = document.createElement('div');
@@ -469,23 +444,17 @@
               pawn.style.backgroundColor = player.color;
               
               const currentActivePlayerId = activePlayers[activePlayerIndex].id;
-              let isMyTurnOnline = isOnlineMode && player.id === currentActivePlayerId && myPlayerId === currentActivePlayerId;
-              let isMyTurnLocal = !isOnlineMode && player.id === currentActivePlayerId && !player.isBot;
+              let isMyTurn = (isOnlineMode && player.id === currentActivePlayerId && myPlayerId === currentActivePlayerId) || 
+                             (!isOnlineMode && player.id === currentActivePlayerId && !player.isBot);
               
-              if ((isMyTurnOnline || isMyTurnLocal) && activeRolls.length > 0 && !isAnimating) {
+              if (isMyTurn && activeRolls.length > 0 && !isAnimating) {
                 let futureStep = pawnStep + activeRolls[0]; 
-                let isValidMove = false;
-                
-                if (player.hasKilled && futureStep <= 24) isValidMove = true;
-                if (!player.hasKilled && futureStep <= 15) isValidMove = true;
-
-                if (isValidMove) {
+                if ((player.hasKilled && futureStep <= 24) || (!player.hasKilled && futureStep <= 15)) {
                   pawn.classList.add('clickable-pawn');
                   pawn.onclick = () => {
                       if (isAnimating) return; 
                       isAnimating = true;      
                       updateUI();              
-                      
                       if (isOnlineMode) requestMove(player.id, pawnIndex);
                       else handleIncomingMove(player.id, pawnIndex);
                   };
@@ -495,8 +464,10 @@
             }
           });
         });
-        boardDiv.appendChild(cell);
+        fragment.appendChild(cell);
       }
+      boardDiv.innerHTML = '';
+      boardDiv.appendChild(fragment);
       updateUI();
     }
 
@@ -513,71 +484,43 @@
 
         if (playerObj.hasWon) {
           panel.classList.remove('active-turn');
-          panel.style.opacity = '1'; panel.style.borderColor = '#ffd700'; 
-          panel.style.boxShadow = '0 0 15px rgba(255, 215, 0, 0.6)';
           diceEl.classList.add('dice-disabled');
-          
-          let rankMedal = '👑';
-          if (playerObj.winRank === 1) rankMedal = '🥇';
-          else if (playerObj.winRank === 2) rankMedal = '🥈';
-          else if (playerObj.winRank === 3) rankMedal = '🥉';
-          diceEl.innerText = rankMedal;
+          diceEl.innerText = playerObj.winRank === 1 ? '🥇' : '👑';
           continue;
         }
 
         if (currentPlayer.id === i) {
           panel.classList.add('active-turn');
-          
-          let isMyTurnOnline = isOnlineMode && currentPlayer.id === myPlayerId;
-          let isMyTurnLocal = !isOnlineMode && !currentPlayer.isBot;
-          
-          if (isAnimating || !canRoll || (!isMyTurnOnline && !isMyTurnLocal)) {
-            diceEl.classList.add('dice-disabled');
-          } else {
-            diceEl.classList.remove('dice-disabled');
-          }
+          let isMyTurn = (isOnlineMode && currentPlayer.id === myPlayerId) || (!isOnlineMode && !currentPlayer.isBot);
+          if (isAnimating || !canRoll || !isMyTurn) diceEl.classList.add('dice-disabled');
+          else diceEl.classList.remove('dice-disabled');
         } else {
           panel.classList.remove('active-turn');
           diceEl.classList.add('dice-disabled');
-          if (!isAnimating && activeRolls.length === 0) diceEl.innerText = '🎲'; 
         }
       }
     }
 
     function requestRoll(playerId) {
-      let isMyTurnOnline = isOnlineMode && playerId === myPlayerId;
-      let isMyTurnLocal = !isOnlineMode && !activePlayers[activePlayerIndex].isBot;
+      let isMyTurn = (isOnlineMode && playerId === myPlayerId) || (!isOnlineMode && !activePlayers[activePlayerIndex].isBot);
+      if (!isMyTurn || playerId !== activePlayers[activePlayerIndex].id || isAnimating || !canRoll) return; 
 
-      if ((!isMyTurnOnline && !isMyTurnLocal) || playerId !== activePlayers[activePlayerIndex].id || isAnimating || !canRoll) return; 
-
-      canRoll = false; 
-      updateUI();      
-
-      const allowedRolls = [1, 1, 2, 2, 3, 3, 4, 8];
-      const roll = allowedRolls[Math.floor(Math.random() * allowedRolls.length)];
+      canRoll = false; updateUI();      
+      const roll = [1, 1, 2, 2, 3, 3, 4, 8][Math.floor(Math.random() * 8)];
       
-      if (isOnlineMode) {
-          socket.emit('requestRoll', { playerId: playerId, rollValue: roll });
-      } else {
-          handleIncomingRoll(playerId, roll);
-      }
+      if (isOnlineMode) socket.emit('requestRoll', { playerId, rollValue: roll });
+      else handleIncomingRoll(playerId, roll);
     }
 
     function handleIncomingRoll(playerId, rollValue) {
       if (playerId !== activePlayers[activePlayerIndex].id) return;
       if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-
       canRoll = false; 
-
+      
       const diceBox = document.getElementById(`dice-${playerId}`);
-      diceBox.classList.remove('shake');
-      void diceBox.offsetWidth; 
-      diceBox.classList.add('shake');
       diceBox.innerText = rollValue;
-
       activeRolls.push(rollValue);
       if (rollValue === 4 || rollValue === 8) canRoll = true; 
-
       processTurnState();
     }
 
@@ -586,58 +529,41 @@
 
         while (activeRolls.length > 0) {
             let nextRoll = activeRolls[0];
-            let hasValidMove = false;
-            playerObj.pawns.forEach((pawnStep) => {
-                let futureStep = pawnStep + nextRoll;
-                if (playerObj.hasKilled && futureStep <= 24) hasValidMove = true;
-                if (!playerObj.hasKilled && futureStep <= 15) hasValidMove = true;
-            });
-            
-            if (hasValidMove) { break; } 
-            else { activeRolls.shift(); customMessage = (customMessage ? customMessage + " " : "") + `${nextRoll} was blocked.`; }
+            let hasValidMove = playerObj.pawns.some(p => (playerObj.hasKilled && p + nextRoll <= 24) || (!playerObj.hasKilled && p + nextRoll <= 15));
+            if (hasValidMove) break;
+            activeRolls.shift(); 
+            customMessage = (customMessage ? customMessage + " " : "") + `${nextRoll} blocked.`;
         }
 
         if (activeRolls.length === 0 && !canRoll) {
-            document.getElementById('status').innerText = customMessage ? customMessage : "No valid moves left. Turn over!";
+            document.getElementById('status').innerText = customMessage || "No moves left. Turn over!";
             isAnimating = true; 
-            setTimeout(() => advanceToNextPlayer(), 1500);
+            setTimeout(() => advanceToNextPlayer(), 1200);
             updateUI();
             return;
         }
 
         renderBoard(); 
-
         let statusMsg = customMessage ? customMessage + " " : "";
         if (activeRolls.length > 0) {
             statusMsg += `[Rolls: ${activeRolls.join(', ')}] `;
             let isMyTurn = isOnlineMode ? (playerObj.id === myPlayerId) : (!playerObj.isBot);
-            
-            if (canRoll) statusMsg += isMyTurn ? "Roll again, or tap a pawn!" : "Waiting for player...";
-            else statusMsg += isMyTurn ? `Tap a pawn to move ${activeRolls[0]}.` : "Player is moving...";
+            statusMsg += canRoll ? (isMyTurn ? "Roll again or move!" : "Waiting...") : (isMyTurn ? `Tap pawn to move.` : "Moving...");
         } else if (canRoll) {
-            let isMyTurn = isOnlineMode ? (playerObj.id === myPlayerId) : (!playerObj.isBot);
-            statusMsg += isMyTurn ? "Your Turn! Roll the dice." : `${playerObj.name}'s Turn...`;
+            statusMsg += (isOnlineMode ? playerObj.id === myPlayerId : !playerObj.isBot) ? "Your Turn! Roll." : `${playerObj.name}'s turn...`;
         }
         document.getElementById('status').innerText = statusMsg;
 
         if (!isOnlineMode && playerObj.isBot && !isAnimating) {
             if (canRoll) {
-                setTimeout(() => { 
-                    const allowedRolls = [1, 1, 2, 2, 3, 3, 4, 8];
-                    const roll = allowedRolls[Math.floor(Math.random() * allowedRolls.length)];
-                    handleIncomingRoll(playerObj.id, roll); 
-                }, 1000);
+                setTimeout(() => handleIncomingRoll(playerObj.id, [1,1,2,2,3,3,4,8][Math.floor(Math.random()*8)]), 800);
             } else if (activeRolls.length > 0) {
                 let validPawns = [];
-                let nextR = activeRolls[0];
-                playerObj.pawns.forEach((pawnStep, pawnIndex) => {
-                    let futureStep = pawnStep + nextR;
-                    if (playerObj.hasKilled && futureStep <= 24) validPawns.push(pawnIndex);
-                    if (!playerObj.hasKilled && futureStep <= 15) validPawns.push(pawnIndex);
+                playerObj.pawns.forEach((p, idx) => {
+                    if ((playerObj.hasKilled && p + activeRolls[0] <= 24) || (!playerObj.hasKilled && p + activeRolls[0] <= 15)) validPawns.push(idx);
                 });
                 if (validPawns.length > 0) {
-                    const chosenPawnIndex = validPawns[Math.floor(Math.random() * validPawns.length)];
-                    setTimeout(() => { handleIncomingMove(playerObj.id, chosenPawnIndex); }, 1000);
+                    setTimeout(() => handleIncomingMove(playerObj.id, validPawns[Math.floor(Math.random() * validPawns.length)]), 800);
                 }
             }
         }
@@ -645,46 +571,29 @@
 
     function advanceToNextPlayer() {
         const justPlayedId = activePlayers[activePlayerIndex].id;
-        
         activeRolls = []; canRoll = true; isAnimating = false;
-
         do { activePlayerIndex = (activePlayerIndex + 1) % activePlayers.length; } 
         while (activePlayers[activePlayerIndex].hasWon); 
         
-        for(let i=0; i<4; i++) {
-            let d = document.getElementById(`dice-${i}`);
-            let p = activePlayers.find(pl => pl.id === i);
-            if(d && p && !p.hasWon) d.innerText = '🎲';
-        }
-
         processTurnState();
 
         if (isOnlineMode && justPlayedId === myPlayerId) {
-            const syncData = {
+            socket.emit('syncState', {
                 activeIndex: activePlayerIndex,
                 players: activePlayers.map(p => ({ id: p.id, pawns: p.pawns, hasKilled: p.hasKilled, hasWon: p.hasWon }))
-            };
-            socket.emit('syncState', syncData);
+            });
         }
     }
 
-    function requestMove(playerId, pawnIndex) {
-        socket.emit('requestMove', { playerId: playerId, pawnIndex: pawnIndex });
-    }
+    function requestMove(playerId, pawnIndex) { socket.emit('requestMove', { playerId, pawnIndex }); }
 
     function handleIncomingMove(playerId, pawnIndex) {
       if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-        
-      isAnimating = true; 
-      updateUI(); 
+      isAnimating = true; updateUI(); 
       
       const playerObj = activePlayers.find(p => p.id === playerId);
-      let stepsTaken = 0;
       let targetSteps = activeRolls.shift(); 
-      let customEndMessage = null;
-
-      document.getElementById('status').innerText = `${playerObj.name} is moving ${targetSteps}...`;
-      document.getElementById('status').style.color = '#333';
+      let stepsTaken = 0, customEndMessage = null;
 
       function hop() {
         if (stepsTaken < targetSteps && playerObj.pawns[pawnIndex] < 24) {
@@ -692,77 +601,41 @@
           stepsTaken++;
           playMoveSound(); 
           renderBoard();
-          setTimeout(hop, 250); 
+          setTimeout(hop, 180); // Speeded up animation interval to eliminate perceived lag
         } else {
-          const finalPathStep = playerObj.pawns[pawnIndex];
-          const finalGridCell = playerObj.path[finalPathStep];
+          const finalGridCell = playerObj.path[playerObj.pawns[pawnIndex]];
           
-          if (finalPathStep === 24) {
+          if (playerObj.pawns[pawnIndex] === 24) {
             if (playerObj.pawns.every(p => p === 24)) {
-                playerObj.hasWon = true;
-                playerObj.winRank = currentRank++; 
-                
-                let rankStr = playerObj.winRank === 1 ? "1st" : playerObj.winRank === 2 ? "2nd" : "3rd";
-                customEndMessage = `🎉 ${playerObj.name} finishes in ${rankStr} Place! 🎉`;
-                
-                const activePlayingCount = activePlayers.filter(p => !p.hasWon).length;
-                if (activePlayingCount <= 1 && activePlayers.length > 1) {
-                    const loser = activePlayers.find(p => !p.hasWon);
-                    if (loser) { loser.hasWon = true; loser.winRank = currentRank; }
-                    document.getElementById('status').innerText = customEndMessage + " Game Over!";
-                    updateUI(); 
-                    return; 
-                }
-                setTimeout(advanceToNextPlayer, 2500);
-                return;
-            } else {
-                canRoll = true; 
-                customEndMessage = `Awesome! ${playerObj.name}'s pawn reached HOME! Extra Turn!`;
-            }
+                playerObj.hasWon = true; playerObj.winRank = currentRank++;
+                setTimeout(advanceToNextPlayer, 1500); return;
+            } else { canRoll = true; customEndMessage = `Pawn Home! Extra Turn!`; }
           }
 
-          let capturedOpponents = [];
+          let captured = [];
           if (![2, 10, 14, 22, 12].includes(finalGridCell)) {
-            activePlayers.forEach(opponent => {
-              if (opponent.id !== playerId && !opponent.hasWon) {
-                opponent.pawns.forEach((oppPawnStep, oppIndex) => {
-                  const oppGridCell = opponent.path[oppPawnStep];
-                  if (finalGridCell === oppGridCell && oppPawnStep < 24) {
-                    capturedOpponents.push({ player: opponent, pawnIdx: oppIndex });
-                  }
+            activePlayers.forEach(opp => {
+              if (opp.id !== playerId && !opp.hasWon) {
+                opp.pawns.forEach((step, idx) => {
+                  if (opp.path[step] === finalGridCell && step < 24) captured.push({ player: opp, pawnIdx: idx });
                 });
               }
             });
           }
 
-          if (capturedOpponents.length > 0) {
-              canRoll = true; 
-              if (!playerObj.hasKilled) {
-                  playerObj.hasKilled = true;
-                  customEndMessage = `${playerObj.name} unlocked the Inner Shell!`;
-              } else { customEndMessage = `Ouch! ${playerObj.name} captured a pawn!`; }
-
-              let capturesHandled = 0;
-              function handleNextCapture() {
-                  if (capturesHandled < capturedOpponents.length) {
-                      let cap = capturedOpponents[capturesHandled];
-                      function stepBack() {
-                          if (cap.player.pawns[cap.pawnIdx] > 0) {
-                              cap.player.pawns[cap.pawnIdx]--; 
-                              playMoveSound(); renderBoard(); setTimeout(stepBack, 40); 
-                          } else {
-                              capturesHandled++; handleNextCapture(); 
-                          }
-                      }
-                      stepBack();
-                  } else {
-                      setTimeout(() => { isAnimating = false; processTurnState(customEndMessage); }, 500);
-                  }
+          if (captured.length > 0) {
+              canRoll = true; playerObj.hasKilled = true;
+              let capIdx = 0;
+              function stepBack() {
+                  if (capIdx < captured.length) {
+                      let c = captured[capIdx];
+                      if (c.player.pawns[c.pawnIdx] > 0) { c.player.pawns[c.pawnIdx]--; playMoveSound(); renderBoard(); setTimeout(stepBack, 30); }
+                      else { capIdx++; stepBack(); }
+                  } else { setTimeout(() => { isAnimating = false; processTurnState("Captured!"); }, 300); }
               }
-              handleNextCapture();
+              stepBack();
           } else {
-              isAnimating = false;
-              processTurnState(customEndMessage);
+              isAnimating = false; processTurnState(customEndMessage);
           }
         }
       }
