@@ -1,147 +1,124 @@
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
+const path = require('path');
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-// Serve the game files
-app.use(express.static(__dirname));
+app.use(express.static(path.join(__dirname)));
 
-let rooms = {};
-let roomCounter = 1;
-
-// Function to generate a random 6-character room code
-function generateRoomCode() {
-    return Math.random().toString(36).substring(2, 8).toUpperCase();
-}
+let publicQueues = { 2: [], 3: [], 4: [] };
+let activeRooms = {}; 
 
 io.on('connection', (socket) => {
-    console.log('A user connected:', socket.id);
+    console.log(`User connected: ${socket.id}`);
 
-    // --- PUBLIC MATCHMAKING ---
-    socket.on('joinGame', (requestedSize) => {
-        let joinedRoom = null;
-        
-        for (let roomId in rooms) {
-            let room = rooms[roomId];
-            if (!room.isPrivate && room.size === requestedSize && Object.keys(room.players).length < room.size) {
-                joinedRoom = roomId;
-                break;
-            }
-        }
+    socket.on('joinGame', (numPlayers) => {
+        leaveAllQueues(socket.id);
+        if (!publicQueues[numPlayers]) return;
+        publicQueues[numPlayers].push(socket);
 
-        if (!joinedRoom) {
-            joinedRoom = 'room_' + roomCounter++;
-            let ids = [0, 1, 2, 3];
-            if (requestedSize === 2) ids = [0, 2]; 
-            if (requestedSize === 3) ids = [0, 1, 2]; 
-            rooms[joinedRoom] = { size: requestedSize, players: {}, availableIds: ids, isPrivate: false };
-        }
-
-        const room = rooms[joinedRoom];
-        const assignedId = room.availableIds.shift();
-        room.players[socket.id] = assignedId;
-        
-        socket.join(joinedRoom);
-        socket.roomId = joinedRoom;
-        socket.colorId = assignedId;
-
-        socket.emit('assignPlayer', assignedId);
-        io.to(joinedRoom).emit('systemMessage', `Waiting for public players... (${Object.keys(room.players).length}/${room.size})`);
-
-        if (Object.keys(room.players).length === room.size) {
-            let activeIds = Object.values(room.players);
-            io.to(joinedRoom).emit('gameStart', activeIds);
-            io.to(joinedRoom).emit('systemMessage', 'Game Started!');
+        if (publicQueues[numPlayers].length >= numPlayers) {
+            let matchedSockets = publicQueues[numPlayers].splice(0, numPlayers);
+            let roomId = 'pub_' + Math.random().toString(36).substring(2, 7);
+            setupRoom(roomId, matchedSockets);
+        } else {
+            socket.emit('systemMessage', `Waiting for ${numPlayers - publicQueues[numPlayers].length} more players...`);
         }
     });
 
-    // --- PRIVATE ROOM: CREATE ---
-    socket.on('createPrivateGame', (requestedSize) => {
-        const roomCode = generateRoomCode();
-        let ids = [0, 1, 2, 3];
-        if (requestedSize === 2) ids = [0, 2]; 
-        if (requestedSize === 3) ids = [0, 1, 2]; 
-
-        rooms[roomCode] = { size: requestedSize, players: {}, availableIds: ids, isPrivate: true };
-
-        const assignedId = rooms[roomCode].availableIds.shift();
-        rooms[roomCode].players[socket.id] = assignedId;
+    socket.on('createPrivateGame', (numPlayers) => {
+        leaveAllQueues(socket.id);
+        let roomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+        
+        activeRooms[roomCode] = {
+            maxPlayers: numPlayers,
+            sockets: [socket],
+            isPrivate: true,
+            started: false
+        };
 
         socket.join(roomCode);
-        socket.roomId = roomCode;
-        socket.colorId = assignedId;
-
-        socket.emit('assignPlayer', assignedId);
         socket.emit('privateRoomCreated', roomCode);
-        io.to(roomCode).emit('systemMessage', `Room Code: ${roomCode} (Waiting: ${Object.keys(rooms[roomCode].players).length}/${requestedSize})`);
     });
 
-    // --- PRIVATE ROOM: JOIN ---
-    socket.on('joinPrivateGame', (roomCode) => {
-        roomCode = roomCode.toUpperCase();
-        const room = rooms[roomCode];
+    socket.on('joinPrivateGame', (code) => {
+        let room = activeRooms[code];
+        if (!room) { socket.emit('roomError', 'Room code not found!'); return; }
+        if (room.started) { socket.emit('roomError', 'Game has already started!'); return; }
+        if (room.sockets.length >= room.maxPlayers) { socket.emit('roomError', 'Room is full!'); return; }
 
-        if (!room) {
-            socket.emit('roomError', 'Room not found! Check your code.');
-            return;
-        }
-        if (Object.keys(room.players).length >= room.size) {
-            socket.emit('roomError', 'This room is already full!');
-            return;
-        }
+        leaveAllQueues(socket.id);
+        room.sockets.push(socket);
+        socket.join(code);
 
-        const assignedId = room.availableIds.shift();
-        room.players[socket.id] = assignedId;
+        io.to(code).emit('systemMessage', `Player joined (${room.sockets.length}/${room.maxPlayers})...`);
 
-        socket.join(roomCode);
-        socket.roomId = roomCode;
-        socket.colorId = assignedId;
-
-        socket.emit('assignPlayer', assignedId);
-        io.to(roomCode).emit('systemMessage', `Room Code: ${roomCode} (Waiting: ${Object.keys(room.players).length}/${room.size})`);
-
-        if (Object.keys(room.players).length === room.size) {
-            let activeIds = Object.values(room.players);
-            io.to(roomCode).emit('gameStart', activeIds);
-            io.to(roomCode).emit('systemMessage', 'Game Started!');
+        if (room.sockets.length === room.maxPlayers) {
+            setupRoom(code, room.sockets);
         }
     });
 
-    // --- GAMEPLAY RELAYS ---
+    // In-game communication features
+    socket.on('sendChatMessage', (data) => {
+        let roomId = getSocketRoom(socket);
+        if (roomId) io.to(roomId).emit('receiveChatMessage', data);
+    });
+
+    socket.on('voiceSignal', (data) => {
+        let roomId = getSocketRoom(socket);
+        if (roomId) socket.to(roomId).emit('voiceSignal', data);
+    });
+
     socket.on('requestRoll', (data) => {
-        if (socket.roomId) io.to(socket.roomId).emit('executeRoll', data);
+        let roomId = getSocketRoom(socket);
+        if (roomId) io.to(roomId).emit('executeRoll', data);
     });
 
     socket.on('requestMove', (data) => {
-        if (socket.roomId) io.to(socket.roomId).emit('executeMove', data);
+        let roomId = getSocketRoom(socket);
+        if (roomId) io.to(roomId).emit('executeMove', data);
     });
 
     socket.on('syncState', (state) => {
-        if (socket.roomId) socket.to(socket.roomId).emit('forceSync', state);
+        let roomId = getSocketRoom(socket);
+        if (roomId) socket.to(roomId).emit('forceSync', state);
     });
 
     socket.on('disconnect', () => {
-        console.log('User disconnected:', socket.id);
-        if (socket.roomId && rooms[socket.roomId]) {
-            let room = rooms[socket.roomId];
-            delete room.players[socket.id];
-            
-            room.availableIds.push(socket.colorId);
-            room.availableIds.sort();
-            
-            io.to(socket.roomId).emit('systemMessage', `A player disconnected.`);
-            
-            if (Object.keys(room.players).length === 0) {
-                delete rooms[socket.roomId];
-            }
-        }
+        leaveAllQueues(socket.id);
+        console.log(`User disconnected: ${socket.id}`);
     });
 });
 
+function setupRoom(roomId, socketsArray) {
+    let assignedIds = [0, 1, 2, 3].slice(0, socketsArray.length);
+    socketsArray.forEach((sock, index) => {
+        sock.room = roomId;
+        sock.playerIndex = assignedIds[index];
+        sock.emit('assignPlayer', sock.playerIndex);
+    });
+    if (activeRooms[roomId]) activeRooms[roomId].started = true;
+    io.to(roomId).emit('gameStart', assignedIds);
+    io.to(roomId).emit('systemMessage', 'Match started! Blue goes first.');
+}
+
+function leaveAllQueues(socketId) {
+    for (let key in publicQueues) {
+        publicQueues[key] = publicQueues[key].filter(s => s.id !== socketId);
+    }
+}
+
+function getSocketRoom(socket) {
+    for (let room of socket.rooms) {
+        if (room !== socket.id) return room;
+    }
+    return null;
+}
+
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-    console.log(`Multiplayer server running on port ${PORT}`);
+    console.log(`Server running on http://localhost:${PORT}`);
 });
