@@ -4,10 +4,23 @@ const { Server } = require("socket.io");
 const path = require("path");
 
 const app = express();
-const server = http.createServer(app);
-const io = new Server(server);
 
-app.use(express.static(path.join(__dirname)));
+const server =
+    http.createServer(app);
+
+const io =
+    new Server(server);
+
+app.use(
+    express.static(
+        path.join(__dirname)
+    )
+);
+
+
+/* =========================================================
+   PUBLIC MATCHMAKING
+========================================================= */
 
 const publicQueues = {
     2: [],
@@ -15,13 +28,25 @@ const publicQueues = {
     4: []
 };
 
+
+/* =========================================================
+   ROOMS
+========================================================= */
+
 const rooms = {};
 
+
+/* =========================================================
+   PLAYER DATA
+========================================================= */
+
 const allPlayers = [
+
     {
         id: 0,
         name: "Blue",
         color: "#1e90ff",
+
         path: [
             10,15,20,21,22,
             23,24,19,14,9,
@@ -30,10 +55,12 @@ const allPlayers = [
             18,17,16,11,12
         ]
     },
+
     {
         id: 1,
         name: "Red",
         color: "#ff4757",
+
         path: [
             2,1,0,5,10,
             15,20,21,22,23,
@@ -42,10 +69,12 @@ const allPlayers = [
             16,11,6,7,12
         ]
     },
+
     {
         id: 2,
         name: "Green",
         color: "#2ed573",
+
         path: [
             14,9,4,3,2,
             1,0,5,10,15,
@@ -54,10 +83,12 @@ const allPlayers = [
             6,7,8,13,12
         ]
     },
+
     {
         id: 3,
         name: "Yellow",
         color: "#ffa502",
+
         path: [
             22,23,24,19,14,
             9,4,3,2,1,
@@ -66,67 +97,136 @@ const allPlayers = [
             8,13,18,17,12
         ]
     }
+
 ];
 
-const SAFE_CELLS = [
-    2,
-    10,
-    14,
-    22,
-    12
-];
 
-const HOME = 24;
+/* =========================================================
+   PLAYER CREATION
+========================================================= */
 
 function makePlayer(id) {
+
     return {
+
         id,
-        name: allPlayers[id].name,
-        color: allPlayers[id].color,
-        pawns: [0,0,0,0],
-        hasKilled: false,
-        hasWon: false,
-        winRank: 0
+
+        name:
+            allPlayers[id].name,
+
+        color:
+            allPlayers[id].color,
+
+        pawns:
+            [0,0,0,0],
+
+        hasKilled:
+            false,
+
+        hasWon:
+            false,
+
+        winRank:
+            0
+
     };
+
 }
+
+
+/* =========================================================
+   ROOM CREATION
+========================================================= */
 
 function makeRoom(
     roomId,
     maxPlayers,
     isPrivate = false
 ) {
+
     return {
-        id: roomId,
-        maxPlayers,
-        isPrivate,
-        started: false,
-        sockets: [],
-        players: [],
-        activeIndex: 0,
-        activeRolls: [],
-        canRoll: true,
-        currentRank: 1
+
+        id:
+            roomId,
+
+        maxPlayers:
+            maxPlayers,
+
+        isPrivate:
+            isPrivate,
+
+        started:
+            false,
+
+        sockets:
+            [],
+
+        players:
+            [],
+
+        activeIndex:
+            0,
+
+        activeRolls:
+            [],
+
+        canRoll:
+            true,
+
+        currentRank:
+            1
+
     };
+
 }
 
+
+/* =========================================================
+   ROOM HELPERS
+========================================================= */
+
 function getRoom(socket) {
+
     return socket.gameRoom
-        ? rooms[socket.gameRoom]
+        ? rooms[
+            socket.gameRoom
+        ]
         : null;
+
 }
+
+function currentPlayer(room) {
+
+    if (!room)
+        return null;
+
+    return room.players[
+        room.activeIndex
+    ];
+
+}
+
+
+/* =========================================================
+   SEND STATE
+========================================================= */
 
 function sendState(room) {
 
-    if (!room) return;
+    if (!room)
+        return;
 
     io.to(room.id).emit(
         "gameState",
         {
+
             activeIndex:
                 room.activeIndex,
 
             activeRolls:
-                [...room.activeRolls],
+                [
+                    ...room.activeRolls
+                ],
 
             canRoll:
                 room.canRoll,
@@ -137,42 +237,71 @@ function sendState(room) {
             players:
                 room.players.map(
                     p => ({
-                        id:p.id,
-                        name:p.name,
-                        color:p.color,
-                        pawns:[...p.pawns],
+
+                        id:
+                            p.id,
+
+                        name:
+                            p.name,
+
+                        color:
+                            p.color,
+
+                        pawns:
+                            [
+                                ...p.pawns
+                            ],
+
                         hasKilled:
                             p.hasKilled,
+
                         hasWon:
                             p.hasWon,
+
                         winRank:
                             p.winRank
+
                     })
                 )
+
         }
     );
+
 }
+
+
+/* =========================================================
+   ROOM MESSAGE
+========================================================= */
 
 function sendRoomMessage(
     room,
     message
 ) {
 
-    if (!room) return;
+    if (!room)
+        return;
 
     io.to(room.id).emit(
         "systemMessage",
         message
     );
+
 }
+
+
+/* =========================================================
+   QUEUE CLEANUP
+========================================================= */
 
 function removeFromQueues(
     socketId
 ) {
 
     for (
-        const key
-        of Object.keys(publicQueues)
+        const key of Object.keys(
+            publicQueues
+        )
     ) {
 
         publicQueues[key] =
@@ -181,8 +310,15 @@ function removeFromQueues(
                     s &&
                     s.id !== socketId
             );
+
     }
+
 }
+
+
+/* =========================================================
+   ROOM CODE
+========================================================= */
 
 function generateRoomCode() {
 
@@ -192,14 +328,22 @@ function generateRoomCode() {
 
         code =
             Math.random()
-            .toString(36)
-            .substring(2,8)
-            .toUpperCase();
+                .toString(36)
+                .substring(2,8)
+                .toUpperCase();
 
-    } while (rooms[code]);
+    } while (
+        rooms[code]
+    );
 
     return code;
+
 }
+
+
+/* =========================================================
+   SOCKET PLAYER VALIDATION
+========================================================= */
 
 function validPlayerForSocket(
     room,
@@ -208,21 +352,29 @@ function validPlayerForSocket(
 ) {
 
     return (
+
         room &&
-        socket.gameRoom === room.id &&
-        socket.playerIndex === playerId &&
+
+        socket.gameRoom ===
+            room.id &&
+
+        socket.playerIndex ===
+            playerId &&
+
         room.players.some(
-            p => p.id === playerId
+            p =>
+                p.id ===
+                playerId
         )
+
     );
+
 }
 
-function currentPlayer(room) {
 
-    return room.players[
-        room.activeIndex
-    ];
-}
+/* =========================================================
+   VALID MOVE
+========================================================= */
 
 function hasValidMove(
     player,
@@ -234,16 +386,23 @@ function hasValidMove(
 
             const maxStep =
                 player.hasKilled
-                ? HOME
-                : 15;
+                    ? 24
+                    : 15;
 
             return (
                 step + roll <=
                 maxStep
             );
+
         }
     );
+
 }
+
+
+/* =========================================================
+   NEXT PLAYER
+========================================================= */
 
 function getNextActiveIndex(
     room
@@ -253,8 +412,8 @@ function getNextActiveIndex(
         room.activeIndex;
 
     for (
-        let i=0;
-        i<room.players.length;
+        let i = 0;
+        i < room.players.length;
         i++
     ) {
 
@@ -265,23 +424,40 @@ function getNextActiveIndex(
             room.players.length;
 
         if (
-            !room.players[next].hasWon
+            !room.players[
+                next
+            ].hasWon
         ) {
+
             return next;
+
         }
+
     }
 
     return room.activeIndex;
+
 }
 
-function advanceTurn(room) {
 
-    room.activeRolls = [];
+/* =========================================================
+   ADVANCE TURN
+========================================================= */
 
-    room.canRoll = true;
+function advanceTurn(
+    room
+) {
+
+    room.activeRolls =
+        [];
+
+    room.canRoll =
+        true;
 
     room.activeIndex =
-        getNextActiveIndex(room);
+        getNextActiveIndex(
+            room
+        );
 
     const player =
         currentPlayer(room);
@@ -292,20 +468,39 @@ function advanceTurn(room) {
             room,
             `${player.name}'s turn.`
         );
+
     }
 
     sendState(room);
+
 }
+
+
+/* =========================================================
+   SETUP ROOM
+========================================================= */
 
 function setupRoom(
     roomId,
     socketsArray
 ) {
 
-    const room =
+    let room =
         rooms[roomId];
 
-    if (!room) return;
+    if (!room) {
+
+        room =
+            makeRoom(
+                roomId,
+                socketsArray.length,
+                false
+            );
+
+        rooms[roomId] =
+            room;
+
+    }
 
     room.sockets =
         socketsArray;
@@ -316,7 +511,8 @@ function setupRoom(
             socketsArray.length
         );
 
-    room.players = [];
+    room.players =
+        [];
 
     socketsArray.forEach(
         (
@@ -346,25 +542,34 @@ function setupRoom(
             socket.emit(
                 "assignPlayer",
                 {
+
                     playerId,
+
                     playerName:
                         allPlayers[
                             playerId
                         ].name
+
                 }
             );
+
         }
     );
 
-    room.started = true;
+    room.started =
+        true;
 
-    room.activeIndex = 0;
+    room.activeIndex =
+        0;
 
-    room.activeRolls = [];
+    room.activeRolls =
+        [];
 
-    room.canRoll = true;
+    room.canRoll =
+        true;
 
-    room.currentRank = 1;
+    room.currentRank =
+        1;
 
     io.to(roomId).emit(
         "gameStart",
@@ -380,7 +585,13 @@ function setupRoom(
     );
 
     sendState(room);
+
 }
+
+
+/* =========================================================
+   DESTROY ROOM
+========================================================= */
 
 function destroyRoom(
     roomId,
@@ -390,7 +601,8 @@ function destroyRoom(
     const room =
         rooms[roomId];
 
-    if (!room) return;
+    if (!room)
+        return;
 
     io.to(roomId).emit(
         "roomClosed",
@@ -410,12 +622,20 @@ function destroyRoom(
 
             socket.playerIndex =
                 null;
+
         }
     );
 
-    delete rooms[roomId];
+    delete rooms[
+        roomId
+    ];
+
 }
 
+
+/* =========================================================
+   SOCKET CONNECTION
+========================================================= */
 
 io.on(
     "connection",
@@ -427,7 +647,9 @@ io.on(
         );
 
 
-        /* PUBLIC MATCHMAKING */
+        /* =====================================================
+           PUBLIC MATCHMAKING
+        ===================================================== */
 
         socket.on(
             "joinGame",
@@ -439,8 +661,11 @@ io.on(
                     );
 
                 if (
-                    ![2,3,4]
-                    .includes(
+                    ![
+                        2,
+                        3,
+                        4
+                    ].includes(
                         numPlayers
                     )
                 ) {
@@ -451,6 +676,7 @@ io.on(
                     );
 
                     return;
+
                 }
 
                 removeFromQueues(
@@ -473,7 +699,7 @@ io.on(
                     numPlayers
                 ) {
 
-                    const matched =
+                    const matchedSockets =
                         queue.splice(
                             0,
                             numPlayers
@@ -482,8 +708,11 @@ io.on(
                     const roomId =
                         "pub_" +
                         Math.random()
-                        .toString(36)
-                        .substring(2,8);
+                            .toString(36)
+                            .substring(
+                                2,
+                                8
+                            );
 
                     rooms[roomId] =
                         makeRoom(
@@ -494,21 +723,28 @@ io.on(
 
                     setupRoom(
                         roomId,
-                        matched
+                        matchedSockets
                     );
 
                 } else {
 
                     socket.emit(
                         "systemMessage",
-                        `Waiting for ${numPlayers - queue.length} more player(s)...`
+                        `Waiting for ${
+                            numPlayers -
+                            queue.length
+                        } more player(s)...`
                     );
+
                 }
+
             }
         );
 
 
-        /* CREATE PRIVATE */
+        /* =====================================================
+           CREATE PRIVATE ROOM
+        ===================================================== */
 
         socket.on(
             "createPrivateGame",
@@ -520,8 +756,11 @@ io.on(
                     );
 
                 if (
-                    ![2,3,4]
-                    .includes(
+                    ![
+                        2,
+                        3,
+                        4
+                    ].includes(
                         numPlayers
                     )
                 ) {
@@ -532,6 +771,7 @@ io.on(
                     );
 
                     return;
+
                 }
 
                 removeFromQueues(
@@ -561,7 +801,9 @@ io.on(
                 socket.playerIndex =
                     null;
 
-                socket.join(code);
+                socket.join(
+                    code
+                );
 
                 socket.emit(
                     "privateRoomCreated",
@@ -572,11 +814,14 @@ io.on(
                     "systemMessage",
                     `Room created. Share code ${code}`
                 );
+
             }
         );
 
 
-        /* JOIN PRIVATE */
+        /* =====================================================
+           JOIN PRIVATE ROOM
+        ===================================================== */
 
         socket.on(
             "joinPrivateGame",
@@ -600,9 +845,12 @@ io.on(
                     );
 
                     return;
+
                 }
 
-                if (room.started) {
+                if (
+                    room.started
+                ) {
 
                     socket.emit(
                         "roomError",
@@ -610,6 +858,7 @@ io.on(
                     );
 
                     return;
+
                 }
 
                 if (
@@ -623,6 +872,7 @@ io.on(
                     );
 
                     return;
+
                 }
 
                 removeFromQueues(
@@ -639,7 +889,9 @@ io.on(
                 socket.playerIndex =
                     null;
 
-                socket.join(code);
+                socket.join(
+                    code
+                );
 
                 sendRoomMessage(
                     room,
@@ -655,12 +907,16 @@ io.on(
                         code,
                         room.sockets
                     );
+
                 }
+
             }
         );
 
 
-        /* DICE */
+        /* =====================================================
+           DICE ROLL
+        ===================================================== */
 
         socket.on(
             "requestRoll",
@@ -672,14 +928,16 @@ io.on(
                 if (
                     !room ||
                     !room.started
-                ) {
+                )
                     return;
-                }
 
                 const player =
-                    currentPlayer(room);
+                    currentPlayer(
+                        room
+                    );
 
-                if (!player) return;
+                if (!player)
+                    return;
 
                 if (
                     socket.playerIndex !==
@@ -692,16 +950,20 @@ io.on(
                     );
 
                     return;
+
                 }
 
-                if (!room.canRoll) {
+                if (
+                    !room.canRoll
+                ) {
 
                     socket.emit(
                         "actionError",
-                        "You cannot roll right now."
+                        "You must move a pawn first."
                     );
 
                     return;
+
                 }
 
                 const values = [
@@ -720,20 +982,31 @@ io.on(
                         )
                     ];
 
-                room.canRoll = false;
+                /*
+                    IMPORTANT:
+                    Even 4 and 8 do NOT immediately
+                    allow another roll.
 
-                room.activeRolls.push(
-                    roll
-                );
+                    The extra roll is granted only
+                    AFTER the pawn has moved.
+                */
+
+                room.canRoll =
+                    false;
+
+                room.activeRolls =
+                    [roll];
 
                 io.to(room.id).emit(
                     "diceRolled",
                     {
+
                         playerId:
                             player.id,
 
                         value:
                             roll
+
                     }
                 );
 
@@ -744,21 +1017,25 @@ io.on(
                     )
                 ) {
 
-                    room.activeRolls.shift();
+                    room.activeRolls =
+                        [];
 
                     if (
                         roll === 4 ||
                         roll === 8
                     ) {
 
-                        room.canRoll = true;
+                        room.canRoll =
+                            true;
 
                         sendRoomMessage(
                             room,
                             `${player.name} rolled ${roll}, but has no valid move. Extra roll!`
                         );
 
-                        sendState(room);
+                        sendState(
+                            room
+                        );
 
                     } else {
 
@@ -767,23 +1044,32 @@ io.on(
                             `${player.name} rolled ${roll}. No valid move.`
                         );
 
-                        advanceTurn(room);
+                        advanceTurn(
+                            room
+                        );
+
                     }
 
                     return;
+
                 }
 
                 sendRoomMessage(
                     room,
-                    `${player.name} rolled ${roll}.`
+                    `${player.name} rolled ${roll}. Choose a pawn.`
                 );
 
-                sendState(room);
+                sendState(
+                    room
+                );
+
             }
         );
 
 
-        /* MOVE */
+        /* =====================================================
+           PAWN MOVE
+        ===================================================== */
 
         socket.on(
             "requestMove",
@@ -795,9 +1081,8 @@ io.on(
                 if (
                     !room ||
                     !room.started
-                ) {
+                )
                     return;
-                }
 
                 const playerId =
                     Number(
@@ -823,12 +1108,16 @@ io.on(
                     );
 
                     return;
+
                 }
 
                 const player =
-                    currentPlayer(room);
+                    currentPlayer(
+                        room
+                    );
 
-                if (!player) return;
+                if (!player)
+                    return;
 
                 if (
                     player.id !==
@@ -841,6 +1130,7 @@ io.on(
                     );
 
                     return;
+
                 }
 
                 if (
@@ -850,11 +1140,14 @@ io.on(
                     pawnIndex < 0 ||
                     pawnIndex > 3
                 ) {
+
                     return;
+
                 }
 
                 if (
-                    room.activeRolls.length === 0
+                    room.activeRolls.length ===
+                    0
                 ) {
 
                     socket.emit(
@@ -863,6 +1156,7 @@ io.on(
                     );
 
                     return;
+
                 }
 
                 const roll =
@@ -875,8 +1169,8 @@ io.on(
 
                 const maxStep =
                     player.hasKilled
-                    ? HOME
-                    : 15;
+                        ? 24
+                        : 15;
 
                 if (
                     oldStep + roll >
@@ -889,9 +1183,11 @@ io.on(
                     );
 
                     return;
+
                 }
 
-                room.activeRolls.shift();
+                room.activeRolls =
+                    [];
 
                 const newStep =
                     oldStep + roll;
@@ -904,7 +1200,8 @@ io.on(
                 let captured = [];
 
                 let earnedExtraTurn =
-                    false;
+                    roll === 4 ||
+                    roll === 8;
 
                 const targetCell =
                     allPlayers[
@@ -914,16 +1211,18 @@ io.on(
                     ];
 
 
-                /* HOME */
+                /* =================================================
+                   HOME
+                ================================================= */
 
                 if (
-                    newStep === HOME
+                    newStep === 24
                 ) {
 
                     if (
                         player.pawns.every(
                             p =>
-                            p === HOME
+                                p === 24
                         )
                     ) {
 
@@ -947,14 +1246,26 @@ io.on(
                             room,
                             `${player.name} reached HOME! Extra turn!`
                         );
+
                     }
+
                 }
 
 
-                /* CAPTURE */
+                /* =================================================
+                   CAPTURE
+                ================================================= */
+
+                const safeCells = [
+                    2,
+                    10,
+                    14,
+                    22,
+                    12
+                ];
 
                 if (
-                    !SAFE_CELLS.includes(
+                    !safeCells.includes(
                         targetCell
                     )
                 ) {
@@ -967,7 +1278,9 @@ io.on(
                                 player.id ||
                                 opponent.hasWon
                             ) {
+
                                 return;
+
                             }
 
                             opponent.pawns.forEach(
@@ -977,7 +1290,7 @@ io.on(
                                 ) => {
 
                                     if (
-                                        opponentStep < HOME &&
+                                        opponentStep < 24 &&
                                         allPlayers[
                                             opponent.id
                                         ].path[
@@ -988,32 +1301,41 @@ io.on(
 
                                         captured.push(
                                             {
+
                                                 playerId:
                                                     opponent.id,
 
                                                 pawnIndex:
                                                     index
+
                                             }
                                         );
 
                                         opponent.pawns[
                                             index
-                                        ] = 0;
+                                        ] =
+                                            0;
 
                                         player.hasKilled =
                                             true;
 
                                         earnedExtraTurn =
                                             true;
+
                                     }
+
                                 }
                             );
+
                         }
                     );
+
                 }
 
 
-                /* NEXT ACTION */
+                /* =================================================
+                   FINISH / TURN
+                ================================================= */
 
                 if (
                     player.hasWon
@@ -1022,65 +1344,116 @@ io.on(
                     if (
                         room.players.filter(
                             p =>
-                            !p.hasWon
+                                !p.hasWon
                         ).length <= 1
                     ) {
 
-                        sendState(room);
+                        room.canRoll =
+                            false;
 
-                        io.to(room.id).emit(
+                        io.to(
+                            room.id
+                        ).emit(
+                            "moveResult",
+                            {
+
+                                playerId,
+
+                                pawnIndex,
+
+                                from:
+                                    oldStep,
+
+                                to:
+                                    newStep,
+
+                                roll,
+
+                                captured
+
+                            }
+                        );
+
+                        sendState(
+                            room
+                        );
+
+                        io.to(
+                            room.id
+                        ).emit(
                             "gameFinished"
                         );
 
                         return;
+
                     }
-
-                    room.activeRolls = [];
-
-                    room.canRoll = true;
 
                     room.activeIndex =
                         getNextActiveIndex(
                             room
                         );
+
+                    room.canRoll =
+                        true;
 
                 } else if (
                     earnedExtraTurn
                 ) {
 
-                    room.canRoll = true;
+                    room.canRoll =
+                        true;
 
                 } else {
-
-                    room.activeRolls = [];
-
-                    room.canRoll = true;
 
                     room.activeIndex =
                         getNextActiveIndex(
                             room
                         );
+
+                    room.canRoll =
+                        true;
+
                 }
 
 
-                io.to(room.id).emit(
+                /* =================================================
+                   MOVE RESULT
+                ================================================= */
+
+                io.to(
+                    room.id
+                ).emit(
                     "moveResult",
                     {
+
                         playerId,
+
                         pawnIndex,
-                        from:oldStep,
-                        to:newStep,
+
+                        from:
+                            oldStep,
+
+                        to:
+                            newStep,
+
                         roll,
+
                         captured
+
                     }
                 );
 
-                sendState(room);
+                sendState(
+                    room
+                );
+
             }
         );
 
 
-        /* CHAT */
+        /* =====================================================
+           CHAT
+        ===================================================== */
 
         socket.on(
             "sendChatMessage",
@@ -1089,40 +1462,53 @@ io.on(
                 const room =
                     getRoom(socket);
 
-                if (!room) return;
+                if (!room)
+                    return;
 
                 const player =
                     room.players.find(
                         p =>
-                        p.id ===
-                        socket.playerIndex
+                            p.id ===
+                            socket.playerIndex
                     );
 
-                if (!player) return;
+                if (!player)
+                    return;
 
                 const text =
                     String(
                         data?.text || ""
                     )
-                    .trim()
-                    .substring(0,300);
+                    .trim();
 
-                if (!text) return;
+                if (!text)
+                    return;
 
-                io.to(room.id).emit(
+                io.to(
+                    room.id
+                ).emit(
                     "receiveChatMessage",
                     {
+
                         name:
                             player.name,
 
-                        text
+                        text:
+                            text.substring(
+                                0,
+                                300
+                            )
+
                     }
                 );
+
             }
         );
 
 
-        /* VOICE */
+        /* =====================================================
+           WEBRTC OFFER
+        ===================================================== */
 
         socket.on(
             "voiceOffer",
@@ -1131,22 +1517,31 @@ io.on(
                 const room =
                     getRoom(socket);
 
-                if (!room) return;
+                if (!room)
+                    return;
 
                 socket.to(
                     room.id
                 ).emit(
                     "voiceOffer",
                     {
+
                         from:
                             socket.playerIndex,
 
                         offer:
                             data.offer
+
                     }
                 );
+
             }
         );
+
+
+        /* =====================================================
+           WEBRTC ANSWER
+        ===================================================== */
 
         socket.on(
             "voiceAnswer",
@@ -1155,22 +1550,31 @@ io.on(
                 const room =
                     getRoom(socket);
 
-                if (!room) return;
+                if (!room)
+                    return;
 
                 socket.to(
                     room.id
                 ).emit(
                     "voiceAnswer",
                     {
+
                         from:
                             socket.playerIndex,
 
                         answer:
                             data.answer
+
                     }
                 );
+
             }
         );
+
+
+        /* =====================================================
+           ICE
+        ===================================================== */
 
         socket.on(
             "iceCandidate",
@@ -1179,25 +1583,31 @@ io.on(
                 const room =
                     getRoom(socket);
 
-                if (!room) return;
+                if (!room)
+                    return;
 
                 socket.to(
                     room.id
                 ).emit(
                     "iceCandidate",
                     {
+
                         from:
                             socket.playerIndex,
 
                         candidate:
                             data.candidate
+
                     }
                 );
+
             }
         );
 
 
-        /* DISCONNECT */
+        /* =====================================================
+           DISCONNECT
+        ===================================================== */
 
         socket.on(
             "disconnect",
@@ -1215,20 +1625,28 @@ io.on(
                 const room =
                     getRoom(socket);
 
-                if (!room) return;
+                if (!room)
+                    return;
 
                 destroyRoom(
                     room.id,
                     "A player disconnected. The match has ended."
                 );
+
             }
         );
+
     }
 );
 
 
+/* =========================================================
+   SERVER
+========================================================= */
+
 const PORT =
-    process.env.PORT || 3000;
+    process.env.PORT ||
+    3000;
 
 server.listen(
     PORT,
@@ -1237,5 +1655,6 @@ server.listen(
         console.log(
             `Server running on port ${PORT}`
         );
+
     }
 );
