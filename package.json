@@ -1,7 +1,6 @@
 {
   "name": "ludo-twist",
   "version": "1.0.0",
-  "description": "Ludo Twist multiplayer game",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
