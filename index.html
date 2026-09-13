@@ -2,570 +2,553 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-
-<meta name="viewport"
-      content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
 
 <title>Ludo Twist</title>
 
-<script src="/socket.io/socket.io.js"></script>
-
 <style>
-* {
-    box-sizing: border-box;
+*{
+    box-sizing:border-box;
+    -webkit-tap-highlight-color:transparent;
 }
 
-body {
-    margin: 0;
-    padding: 10px;
-    min-height: 100vh;
-    font-family: Arial, sans-serif;
-    background: linear-gradient(135deg,#1e3c72,#2a5298);
-    color: white;
+body{
+    margin:0;
+    min-height:100vh;
+    padding:10px;
+    font-family:Arial,sans-serif;
+    background:linear-gradient(135deg,#1e3c72,#2a5298);
+    color:white;
 }
 
-button {
-    font-family: inherit;
-    touch-action: manipulation;
+button{
+    border:0;
+    cursor:pointer;
+    font-family:Arial,sans-serif;
 }
 
-.hidden {
-    display: none !important;
+.hidden{
+    display:none!important;
 }
 
 /* ================= HEADER ================= */
 
-.header {
-    width: 100%;
-    max-width: 430px;
-    margin: 8px auto;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+.header{
+    width:100%;
+    max-width:430px;
+    margin:auto;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
 }
 
-.header h2 {
-    margin: 0;
+.header h2{
+    margin:5px 0;
 }
 
-.header-buttons {
-    display: flex;
-    gap: 6px;
+.header-buttons{
+    display:flex;
+    gap:6px;
 }
 
-.action-btn {
-    border: none;
-    border-radius: 20px;
-    padding: 8px 12px;
-    color: white;
-    background: #34495e;
-    font-weight: bold;
-}
-
-/* ================= MODALS ================= */
-
-.modal {
-    position: fixed;
-    inset: 0;
-    z-index: 1000;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: rgba(0,0,0,.86);
-}
-
-.modal-box {
-    width: 88%;
-    max-width: 340px;
-    max-height: 90vh;
-    overflow-y: auto;
-    background: white;
-    color: #222;
-    padding: 22px;
-    border-radius: 16px;
-    text-align: center;
-}
-
-.modal-box h1,
-.modal-box h2 {
-    margin-top: 0;
-}
-
-.menu-btn {
-    width: 100%;
-    border: none;
-    margin: 7px 0;
-    padding: 13px;
-    border-radius: 9px;
-    color: white;
-    font-size: 16px;
-    font-weight: bold;
-    background: #1e90ff;
-}
-
-.green {
-    background: #2ecc71;
-}
-
-.purple {
-    background: #9b59b6;
-}
-
-.gray {
-    background: #7f8c8d;
-}
-
-.red {
-    background: #e74c3c;
-}
-
-.orange {
-    background: #e67e22;
-}
-
-input {
-    width: 100%;
-    padding: 12px;
-    border: 1px solid #ccc;
-    border-radius: 7px;
-    font-size: 16px;
-    text-align: center;
-    text-transform: uppercase;
+.small-btn{
+    padding:9px 12px;
+    border-radius:20px;
+    background:#34495e;
+    color:white;
+    font-size:18px;
 }
 
 /* ================= STATUS ================= */
 
-#status {
-    width: 100%;
-    max-width: 430px;
-    min-height: 30px;
-    margin: 8px auto;
-    padding: 7px 12px;
-    background: rgba(255,255,255,.95);
-    color: #222;
-    border-radius: 20px;
-    text-align: center;
-    font-weight: bold;
+#identity{
+    display:none;
+    width:max-content;
+    max-width:90%;
+    margin:5px auto;
+    padding:6px 15px;
+    border-radius:20px;
+    background:#27ae60;
+    font-weight:bold;
 }
 
-#identity {
-    display: none;
-    width: fit-content;
-    margin: 5px auto;
-    padding: 5px 15px;
-    border-radius: 20px;
-    background: #2ecc71;
-    font-weight: bold;
+#status{
+    width:100%;
+    max-width:430px;
+    min-height:38px;
+    margin:8px auto;
+    padding:9px;
+    border-radius:25px;
+    background:white;
+    color:#222;
+    text-align:center;
+    font-weight:bold;
+}
+
+/* ================= MENU ================= */
+
+#setup{
+    position:fixed;
+    inset:0;
+    z-index:1000;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:rgba(0,0,0,.72);
+}
+
+.menu-box{
+    width:88%;
+    max-width:430px;
+    padding:25px;
+    border-radius:25px;
+    background:white;
+    color:#222;
+    text-align:center;
+    box-shadow:0 15px 50px rgba(0,0,0,.5);
+}
+
+.menu-box h1{
+    margin:0 0 25px;
+    font-size:34px;
+}
+
+.menu-btn{
+    width:100%;
+    margin:7px 0;
+    padding:15px;
+    border-radius:12px;
+    color:white;
+    font-size:18px;
+    font-weight:bold;
+}
+
+.blue-btn{
+    background:#2196f3;
+}
+
+.green-btn{
+    background:#2ecc71;
+}
+
+.purple-btn{
+    background:#9b59b6;
+}
+
+.orange-btn{
+    background:#e67e22;
+}
+
+.red-btn{
+    background:#e74c3c;
+}
+
+.gray-btn{
+    background:#7f8c8d;
+}
+
+.menu-input{
+    width:100%;
+    padding:13px;
+    border:2px solid #ddd;
+    border-radius:10px;
+    text-align:center;
+    font-size:18px;
+    text-transform:uppercase;
 }
 
 /* ================= GAME ================= */
 
-#game {
-    display: none;
-    width: 100%;
-    max-width: 430px;
-    margin: auto;
+#game{
+    display:none;
+    width:100%;
+    max-width:430px;
+    margin:auto;
 }
 
-.players {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-    margin-bottom: 8px;
+.players{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:7px;
 }
 
-.player-panel {
-    min-height: 62px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 3px solid transparent;
-    border-radius: 9px;
-    opacity: .5;
-    transition: .25s;
+.player-panel{
+    min-height:62px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:6px;
+    border:3px solid transparent;
+    border-radius:10px;
+    background:rgba(255,255,255,.16);
+    opacity:.5;
+    transition:.2s;
 }
 
-.player-panel.active {
-    opacity: 1;
-    border-color: #ffd700;
-    transform: scale(1.03);
-    box-shadow: 0 0 12px rgba(255,215,0,.5);
+.player-panel.active{
+    opacity:1;
+    border-color:#ffd700;
+    box-shadow:0 0 14px rgba(255,215,0,.65);
 }
 
-.player-panel.won {
-    opacity: .75;
+.player-panel.won{
+    opacity:.75;
 }
 
-.player-name {
-    padding: 8px;
-    font-weight: bold;
-    font-size: 13px;
+.player-name{
+    font-weight:bold;
+    font-size:13px;
 }
 
-.dice {
-    width: 58px;
-    height: 46px;
-    border: none;
-    border-radius: 8px;
-    background: white;
-    color: #222;
-    font-size: 25px;
-    font-weight: bold;
+.dice{
+    width:52px;
+    height:45px;
+    border-radius:9px;
+    background:white;
+    color:#222;
+    font-size:25px;
+    font-weight:bold;
 }
 
-.dice.disabled {
-    opacity: .35;
-    pointer-events: none;
+.dice.disabled{
+    opacity:.35;
+    pointer-events:none;
 }
 
-.dice-number {
-    animation: dicePop .25s ease;
+.dice.pop{
+    animation:dicePop .25s ease;
 }
 
-@keyframes dicePop {
-    0% {
-        transform: scale(.5) rotate(-15deg);
-    }
-
-    70% {
-        transform: scale(1.2) rotate(5deg);
-    }
-
-    100% {
-        transform: scale(1);
-    }
+@keyframes dicePop{
+    0%{transform:scale(.6)}
+    70%{transform:scale(1.2)}
+    100%{transform:scale(1)}
 }
 
 /* ================= BOARD ================= */
 
-.board {
-    position: relative;
-    display: grid;
-    grid-template-columns: repeat(5,1fr);
-    gap: 4px;
-    width: 100%;
-    aspect-ratio: 1;
-    padding: 6px;
-    background: #263746;
-    border-radius: 13px;
-    box-shadow: 0 12px 30px rgba(0,0,0,.45);
+.board{
+    position:relative;
+    width:100%;
+    aspect-ratio:1;
+    margin:10px auto;
+    padding:6px;
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    grid-template-rows:repeat(5,1fr);
+    gap:4px;
+    background:#263746;
+    border-radius:15px;
+    box-shadow:0 12px 30px rgba(0,0,0,.45);
 }
 
-.cell {
-    position: relative;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border-radius: 6px;
-    background: #ecf0f1;
-    color: #333;
-    font-size: 11px;
-    font-weight: bold;
-    overflow: hidden;
+.cell{
+    position:relative;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    overflow:hidden;
+    border-radius:6px;
+    background:#ecf0f1;
+    color:#333;
+    font-size:10px;
+    font-weight:bold;
 }
 
-.blue {
-    background: linear-gradient(135deg,#74b9ff,#0984e3);
+.start-blue{
+    background:#3498db;
 }
 
-.red-cell {
-    background: linear-gradient(135deg,#ff7675,#d63031);
+.start-red{
+    background:#e74c3c;
 }
 
-.green-cell {
-    background: linear-gradient(135deg,#55efc4,#00b894);
+.start-green{
+    background:#2ecc71;
 }
 
-.yellow-cell {
-    background: linear-gradient(135deg,#ffeaa7,#fdcb6e);
+.start-yellow{
+    background:#f1c40f;
 }
 
-.home {
-    background: linear-gradient(135deg,#9b59b6,#8e44ad);
-    color: white;
+.home-cell{
+    background:#8e44ad;
+    color:white;
+    font-size:12px;
 }
 
-.pawn-layer {
-    position: absolute;
-    inset: 6px;
-    display: grid;
-    grid-template-columns: repeat(5,1fr);
-    grid-template-rows: repeat(5,1fr);
-    pointer-events: none;
-    z-index: 10;
+.arrow{
+    position:absolute;
+    font-size:23px;
+    opacity:.35;
 }
 
-.pawn-slot {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 3px;
-    min-width: 0;
-    min-height: 0;
+.pawn-layer{
+    position:absolute;
+    inset:6px;
+    z-index:20;
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    grid-template-rows:repeat(5,1fr);
+    pointer-events:none;
 }
 
-.pawn {
-    width: 20px;
-    height: 20px;
-    flex: 0 0 auto;
-    border-radius: 50%;
-    border: 2px solid white;
-    box-shadow: 2px 3px 5px rgba(0,0,0,.45);
-    pointer-events: auto;
-    position: relative;
-    z-index: 20;
+.pawn-slot{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:2px;
 }
 
-.pawn.clickable {
-    cursor: pointer;
-    animation: pawnPulse 1s infinite;
-    box-shadow: 0 0 10px 4px white;
+.pawn{
+    width:20px;
+    height:20px;
+    border-radius:50%;
+    border:2px solid white;
+    box-shadow:2px 3px 5px rgba(0,0,0,.45);
+    pointer-events:auto;
+    transition:transform .12s;
 }
 
-@keyframes pawnPulse {
-    0% {
-        transform: scale(1);
-    }
-
-    50% {
-        transform: scale(1.3);
-    }
-
-    100% {
-        transform: scale(1);
-    }
+.pawn.clickable{
+    animation:pawnPulse .8s infinite;
+    box-shadow:0 0 12px 4px white;
 }
 
-.pawn-moving {
-    animation: pawnMove .18s ease;
+@keyframes pawnPulse{
+    0%{transform:scale(1)}
+    50%{transform:scale(1.28)}
+    100%{transform:scale(1)}
 }
 
-@keyframes pawnMove {
-    0% {
-        transform: scale(.75);
-    }
-
-    50% {
-        transform: scale(1.35);
-    }
-
-    100% {
-        transform: scale(1);
-    }
+.pawn.moving{
+    animation:pawnMoving .18s ease;
 }
 
-/* ================= CHAT ================= */
-
-#communication {
-    display: none;
-    width: 100%;
-    max-width: 430px;
-    margin: 10px auto;
-    padding: 8px;
-    border-radius: 10px;
-    background: rgba(0,0,0,.3);
+@keyframes pawnMoving{
+    0%{transform:scale(.7)}
+    50%{transform:scale(1.35)}
+    100%{transform:scale(1)}
 }
 
-#chat {
-    height: 100px;
-    overflow-y: auto;
-    padding: 6px;
-    margin-bottom: 6px;
-    background: rgba(255,255,255,.1);
-    border-radius: 6px;
-    font-size: 12px;
+/* ================= COMMUNICATION ================= */
+
+#communication{
+    display:none;
+    width:100%;
+    max-width:430px;
+    margin:10px auto;
+    padding:8px;
+    border-radius:12px;
+    background:rgba(0,0,0,.28);
 }
 
-.chat-message {
-    margin: 3px 0;
-    padding: 4px 6px;
-    border-radius: 5px;
-    background: rgba(255,255,255,.12);
+#chat{
+    height:105px;
+    overflow-y:auto;
+    padding:5px;
+    border-radius:7px;
+    background:rgba(255,255,255,.1);
 }
 
-.chat-name {
-    font-weight: bold;
+.chat-message{
+    padding:5px;
+    margin:3px 0;
+    border-radius:5px;
+    background:rgba(255,255,255,.12);
+    font-size:13px;
 }
 
-.chat-row {
-    display: flex;
-    gap: 5px;
+.chat-name{
+    font-weight:bold;
 }
 
-.chat-row input {
-    flex: 1;
-    text-align: left;
-    text-transform: none;
-    padding: 8px;
-    font-size: 13px;
+.chat-row{
+    display:flex;
+    gap:5px;
+    margin-top:6px;
 }
 
-.chat-row button {
-    border: none;
-    border-radius: 5px;
-    padding: 7px 10px;
-    color: white;
-    background: #e67e22;
-    font-weight: bold;
+#chatInput{
+    flex:1;
+    min-width:0;
+    padding:10px;
+    border:0;
+    border-radius:7px;
 }
 
-#micBtn {
-    background: #34495e;
+.chat-row button{
+    padding:9px;
+    border-radius:7px;
+    color:white;
+    background:#e67e22;
+    font-weight:bold;
 }
 
-#micBtn.active {
-    background: #c0392b;
-    animation: micPulse 1s infinite;
+#micBtn.active{
+    background:#c0392b;
+    animation:micPulse 1s infinite;
 }
 
-@keyframes micPulse {
-    0% {
-        transform: scale(1);
-    }
-
-    50% {
-        transform: scale(1.05);
-    }
-
-    100% {
-        transform: scale(1);
-    }
+@keyframes micPulse{
+    50%{transform:scale(1.08)}
 }
 
-#voiceStatus {
-    text-align: center;
-    font-size: 11px;
-    margin-top: 4px;
-    opacity: .8;
+#voiceStatus{
+    text-align:center;
+    font-size:11px;
+    margin-top:4px;
 }
 
-.room-code {
-    font-size: 25px;
-    font-weight: bold;
-    letter-spacing: 4px;
+/* ================= MODALS ================= */
+
+.modal{
+    position:fixed;
+    inset:0;
+    z-index:2000;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:rgba(0,0,0,.8);
 }
 
-@media(max-width:360px) {
-    .pawn {
-        width: 17px;
-        height: 17px;
-    }
-
-    .player-name {
-        font-size: 11px;
-    }
-
-    .dice {
-        width: 50px;
-    }
+.modal-box{
+    width:88%;
+    max-width:350px;
+    max-height:90vh;
+    overflow:auto;
+    padding:22px;
+    border-radius:18px;
+    background:white;
+    color:#222;
+    text-align:center;
 }
 </style>
 </head>
 
 <body>
 
-<!-- =====================================================
-     MENU
-===================================================== -->
+<!-- ================================================= -->
+<!-- MAIN MENU -->
+<!-- ================================================= -->
 
-<div id="setup" class="modal">
+<div id="setup">
 
-    <div id="mainMenu" class="modal-box">
+    <div id="mainMenu" class="menu-box">
 
         <h1>🎲 Ludo Twist</h1>
 
-        <button class="menu-btn" id="localBtn">
+        <button
+            class="menu-btn blue-btn"
+            onclick="showLocalMenu()">
             Play Local
         </button>
 
-        <button class="menu-btn green" id="onlineBtn">
+        <button
+            class="menu-btn green-btn"
+            onclick="showOnlineMenu()">
             Play Online
         </button>
 
     </div>
 
-    <div id="localMenu" class="modal-box hidden">
+    <div id="localMenu" class="menu-box hidden">
 
         <h2>Local Game</h2>
 
-        <button class="menu-btn" data-local="1">
+        <button class="menu-btn blue-btn"
+                onclick="startLocal(1)">
             1 Player vs Bot
         </button>
 
-        <button class="menu-btn" data-local="2">
+        <button class="menu-btn blue-btn"
+                onclick="startLocal(2)">
             2 Players
         </button>
 
-        <button class="menu-btn" data-local="3">
+        <button class="menu-btn blue-btn"
+                onclick="startLocal(3)">
             3 Players
         </button>
 
-        <button class="menu-btn" data-local="4">
+        <button class="menu-btn blue-btn"
+                onclick="startLocal(4)">
             4 Players
         </button>
 
-        <button class="menu-btn gray" id="localBack">
+        <button class="menu-btn gray-btn"
+                onclick="backMain()">
             Back
         </button>
 
     </div>
 
-    <div id="onlineMenu" class="modal-box hidden">
+    <div id="onlineMenu" class="menu-box hidden">
 
-        <h2>Online Multiplayer</h2>
+        <h2>Online Game</h2>
 
-        <button class="menu-btn green" data-online="2">
+        <button class="menu-btn green-btn"
+                onclick="startOnline(2)">
             Public 2 Players
         </button>
 
-        <button class="menu-btn green" data-online="3">
+        <button class="menu-btn green-btn"
+                onclick="startOnline(3)">
             Public 3 Players
         </button>
 
-        <button class="menu-btn green" data-online="4">
+        <button class="menu-btn green-btn"
+                onclick="startOnline(4)">
             Public 4 Players
+        </button>
+
+        <button class="menu-btn purple-btn"
+                onclick="showPrivateMenu()">
+            Private Room
+        </button>
+
+        <button class="menu-btn gray-btn"
+                onclick="backMain()">
+            Back
+        </button>
+
+    </div>
+
+    <div id="privateMenu" class="menu-box hidden">
+
+        <h2>Private Room</h2>
+
+        <button class="menu-btn purple-btn"
+                onclick="createPrivate(2)">
+            Create 2 Player Room
+        </button>
+
+        <button class="menu-btn purple-btn"
+                onclick="createPrivate(3)">
+            Create 3 Player Room
+        </button>
+
+        <button class="menu-btn purple-btn"
+                onclick="createPrivate(4)">
+            Create 4 Player Room
         </button>
 
         <hr>
 
-        <button class="menu-btn purple" id="privateBtn">
-            Private Room
-        </button>
+        <input
+            id="roomCode"
+            class="menu-input"
+            maxlength="6"
+            placeholder="ROOM CODE">
 
-        <button class="menu-btn gray" id="onlineBack">
-            Back
-        </button>
-
-    </div>
-
-    <div id="privateMenu" class="modal-box hidden">
-
-        <h2>Private Room</h2>
-
-        <button class="menu-btn green" data-private-create="2">
-            Create 2 Player Room
-        </button>
-
-        <button class="menu-btn green" data-private-create="3">
-            Create 3 Player Room
-        </button>
-
-        <button class="menu-btn green" data-private-create="4">
-            Create 4 Player Room
-        </button>
-
-        <p>OR</p>
-
-        <input id="roomCode"
-               placeholder="ROOM CODE"
-               maxlength="6">
-
-        <button class="menu-btn purple" id="joinPrivateBtn">
+        <button class="menu-btn orange-btn"
+                onclick="joinPrivate()">
             Join Room
         </button>
 
-        <button class="menu-btn gray" id="privateBack">
+        <button class="menu-btn gray-btn"
+                onclick="showOnlineMenu()">
             Back
         </button>
 
@@ -573,58 +556,9 @@ input {
 
 </div>
 
-<!-- =====================================================
-     SETTINGS
-===================================================== -->
-
-<div id="settings" class="modal hidden">
-
-    <div class="modal-box">
-
-        <h2>Settings</h2>
-
-        <button id="soundBtn"
-                class="menu-btn">
-            🔊 Sound: ON
-        </button>
-
-        <button id="closeSettings"
-                class="menu-btn red">
-            Close
-        </button>
-
-    </div>
-
-</div>
-
-<!-- =====================================================
-     HELP
-===================================================== -->
-
-<div id="help" class="modal hidden">
-
-    <div class="modal-box">
-
-        <h2>How to Play</h2>
-
-        <p>🎲 Roll the dice on your turn.</p>
-        <p>🎲 4 and 8 give an extra roll.</p>
-        <p>⚔️ Capture an opponent for an extra turn.</p>
-        <p>🏠 Reaching HOME gives an extra turn.</p>
-        <p>🏆 Move all four pawns HOME to finish.</p>
-
-        <button id="closeHelp"
-                class="menu-btn red">
-            Close
-        </button>
-
-    </div>
-
-</div>
-
-<!-- =====================================================
-     HEADER
-===================================================== -->
+<!-- ================================================= -->
+<!-- HEADER -->
+<!-- ================================================= -->
 
 <div class="header">
 
@@ -632,13 +566,15 @@ input {
 
     <div class="header-buttons">
 
-        <button class="action-btn"
-                id="settingsBtn">
+        <button
+            class="small-btn"
+            onclick="openSettings()">
             ⚙️
         </button>
 
-        <button class="action-btn"
-                id="helpBtn">
+        <button
+            class="small-btn"
+            onclick="openHelp()">
             ❓
         </button>
 
@@ -652,72 +588,72 @@ input {
     Waiting to start...
 </div>
 
-<!-- =====================================================
-     GAME
-===================================================== -->
+<!-- ================================================= -->
+<!-- GAME -->
+<!-- ================================================= -->
 
 <div id="game">
 
     <div class="players">
 
         <div class="player-panel" id="panel-0">
-
-            <div class="player-name"
-                 id="name-0"
-                 style="color:#0984e3">
+            <span
+                class="player-name"
+                id="name-0">
                 Blue
-            </div>
+            </span>
 
-            <button class="dice disabled"
-                    id="dice-0">
+            <button
+                class="dice disabled"
+                id="dice-0"
+                onclick="roll(0)">
                 🎲
             </button>
-
         </div>
 
         <div class="player-panel" id="panel-1">
-
-            <div class="player-name"
-                 id="name-1"
-                 style="color:#d63031">
+            <span
+                class="player-name"
+                id="name-1">
                 Red
-            </div>
+            </span>
 
-            <button class="dice disabled"
-                    id="dice-1">
+            <button
+                class="dice disabled"
+                id="dice-1"
+                onclick="roll(1)">
                 🎲
             </button>
-
         </div>
 
         <div class="player-panel" id="panel-2">
-
-            <div class="player-name"
-                 id="name-2"
-                 style="color:#00b894">
+            <span
+                class="player-name"
+                id="name-2">
                 Green
-            </div>
+            </span>
 
-            <button class="dice disabled"
-                    id="dice-2">
+            <button
+                class="dice disabled"
+                id="dice-2"
+                onclick="roll(2)">
                 🎲
             </button>
-
         </div>
 
         <div class="player-panel" id="panel-3">
-
-            <div class="player-name"
-                 id="name-3"
-                 style="color:#ffa502">
+            <span
+                class="player-name"
+                id="name-3">
                 Yellow
-            </div>
+            </span>
 
-            <button class="dice disabled"
-                    id="dice-3">
+            <button
+                class="dice disabled"
+                id="dice-3"
+                onclick="roll(3)">
                 🎲
             </button>
-
         </div>
 
     </div>
@@ -732,9 +668,9 @@ input {
 
 </div>
 
-<!-- =====================================================
-     CHAT
-===================================================== -->
+<!-- ================================================= -->
+<!-- CHAT -->
+<!-- ================================================= -->
 
 <div id="communication">
 
@@ -742,15 +678,18 @@ input {
 
     <div class="chat-row">
 
-        <input id="chatInput"
-               placeholder="Type message..."
-               maxlength="300">
+        <input
+            id="chatInput"
+            maxlength="300"
+            placeholder="Type message...">
 
-        <button id="sendChatBtn">
+        <button onclick="sendChat()">
             Send
         </button>
 
-        <button id="micBtn">
+        <button
+            id="micBtn"
+            onclick="toggleMic()">
             🎤
         </button>
 
@@ -762,61 +701,165 @@ input {
 
 </div>
 
+<!-- ================================================= -->
+<!-- SETTINGS -->
+<!-- ================================================= -->
+
+<div id="settings"
+     class="modal hidden">
+
+    <div class="modal-box">
+
+        <h2>⚙️ Settings</h2>
+
+        <button
+            id="soundBtn"
+            class="menu-btn blue-btn"
+            onclick="toggleSound()">
+            🔊 Sound: ON
+        </button>
+
+        <button
+            class="menu-btn red-btn"
+            onclick="closeSettings()">
+            Close
+        </button>
+
+    </div>
+
+</div>
+
+<!-- ================================================= -->
+<!-- HELP -->
+<!-- ================================================= -->
+
+<div id="help"
+     class="modal hidden">
+
+    <div class="modal-box">
+
+        <h2>❓ How To Play</h2>
+
+        <p>🎲 Roll the dice on your turn.</p>
+
+        <p>🎲 Rolling 4 or 8 gives an extra roll.</p>
+
+        <p>⚔️ Capturing an opponent gives an extra turn.</p>
+
+        <p>🏠 Reaching HOME gives an extra turn.</p>
+
+        <p>🏆 Get all four pawns HOME to finish.</p>
+
+        <button
+            class="menu-btn red-btn"
+            onclick="closeHelp()">
+            Close
+        </button>
+
+    </div>
+
+</div>
+
 <script>
-"use strict";
 
 /* =====================================================
-   SOCKET.IO SAFE STARTUP
+   IMPORTANT:
+   Socket.IO is NOT loaded at startup.
+
+   This means Local mode works even if Socket.IO
+   has a problem.
 ===================================================== */
 
 let socket = null;
 
-if (typeof io === "function") {
+let socketLoading = false;
 
-    try {
-        socket = io();
-    } catch (error) {
-        console.error("Socket.IO error:", error);
+function connectSocket(callback){
+
+    if(socket && socket.connected){
+        callback();
+        return;
     }
 
-}
+    if(socketLoading){
+        setTimeout(function(){
+            if(socket && socket.connected){
+                callback();
+            }else{
+                alert(
+                    "Could not connect to the game server."
+                );
+            }
+        },1500);
 
-if (!socket) {
+        return;
+    }
 
-    console.warn(
-        "Socket.IO is not available. Local mode will still work."
-    );
+    socketLoading = true;
 
-    socket = {
+    const script =
+        document.createElement("script");
 
-        connected: false,
+    script.src =
+        "/socket.io/socket.io.js";
 
-        emit: function() {
-            console.warn(
-                "Online mode requires the Node.js server."
+    script.onload = function(){
+
+        if(typeof io !== "function"){
+
+            socketLoading = false;
+
+            alert(
+                "Socket.IO could not be loaded."
             );
-        },
 
-        on: function() {
-            // Safe fallback.
+            return;
         }
 
+        socket = io();
+
+        setupSocketEvents();
+
+        socket.on("connect",function(){
+
+            socketLoading = false;
+
+            callback();
+
+        });
+
+        socket.on("connect_error",function(){
+
+            socketLoading = false;
+
+            alert(
+                "Unable to connect to the Ludo server."
+            );
+
+        });
+
     };
+
+    script.onerror = function(){
+
+        socketLoading = false;
+
+        alert(
+            "Server connection file could not be loaded."
+        );
+
+    };
+
+    document.head.appendChild(script);
 }
 
 
 /* =====================================================
-   GAME CONSTANTS
+   CONSTANTS
 ===================================================== */
 
-const TOTAL = 25;
-
-/*
-   Step 24 = finished pawn.
-   Board cell 12 = visual HOME.
-*/
-
 const FINISH_STEP = 24;
+
 const HOME_CELL = 12;
 
 const SAFE_CELLS = [
@@ -827,30 +870,18 @@ const SAFE_CELLS = [
     12
 ];
 
-const boardArrows = {
-    10: "↓",
-    22: "→",
-    14: "↑",
-    2: "←",
-    11: "→",
-    17: "↑",
-    13: "←",
-    7: "↓"
-};
-
 
 /* =====================================================
-   PLAYER DATA
+   PLAYER PATHS
 ===================================================== */
 
 const playerInfo = [
 
     {
-        id: 0,
-        name: "Blue",
-        color: "#1e90ff",
-
-        path: [
+        id:0,
+        name:"Blue",
+        color:"#1e90ff",
+        path:[
             10,15,20,21,22,
             23,24,19,14,9,
             4,3,2,1,0,
@@ -860,11 +891,10 @@ const playerInfo = [
     },
 
     {
-        id: 1,
-        name: "Red",
-        color: "#ff4757",
-
-        path: [
+        id:1,
+        name:"Red",
+        color:"#ff4757",
+        path:[
             2,1,0,5,10,
             15,20,21,22,23,
             24,19,14,9,4,
@@ -874,11 +904,10 @@ const playerInfo = [
     },
 
     {
-        id: 2,
-        name: "Green",
-        color: "#2ed573",
-
-        path: [
+        id:2,
+        name:"Green",
+        color:"#2ed573",
+        path:[
             14,9,4,3,2,
             1,0,5,10,15,
             20,21,22,23,24,
@@ -888,11 +917,10 @@ const playerInfo = [
     },
 
     {
-        id: 3,
-        name: "Yellow",
-        color: "#ffa502",
-
-        path: [
+        id:3,
+        name:"Yellow",
+        color:"#ffa502",
+        path:[
             22,23,24,19,14,
             9,4,3,2,1,
             0,5,10,15,20,
@@ -905,10 +933,11 @@ const playerInfo = [
 
 
 /* =====================================================
-   GAME STATE
+   STATE
 ===================================================== */
 
 let online = false;
+
 let myPlayerId = null;
 
 let players = [];
@@ -932,341 +961,7 @@ let gameFinished = false;
 
 let localBotTimer = null;
 
-let animationToken = 0;
-
-const visualSteps = {};
-
-
-/* =====================================================
-   DOM READY
-===================================================== */
-
-document.addEventListener(
-    "DOMContentLoaded",
-    init
-);
-
-
-/* =====================================================
-   INITIALIZATION
-===================================================== */
-
-function init() {
-
-    createBoard();
-
-    setupMenuButtons();
-
-    setupGameButtons();
-
-    setupChat();
-
-    updatePlayerPanels();
-
-    render();
-
-    console.log(
-        "Ludo Twist initialized successfully."
-    );
-}
-
-
-/* =====================================================
-   MENU BUTTONS
-===================================================== */
-
-function setupMenuButtons() {
-
-    document
-        .getElementById("localBtn")
-        .addEventListener(
-            "click",
-            showLocalMenu
-        );
-
-    document
-        .getElementById("onlineBtn")
-        .addEventListener(
-            "click",
-            showOnlineMenu
-        );
-
-    document
-        .getElementById("localBack")
-        .addEventListener(
-            "click",
-            backMain
-        );
-
-    document
-        .getElementById("onlineBack")
-        .addEventListener(
-            "click",
-            backMain
-        );
-
-    document
-        .getElementById("privateBtn")
-        .addEventListener(
-            "click",
-            showPrivate
-        );
-
-    document
-        .getElementById("privateBack")
-        .addEventListener(
-            "click",
-            showOnlineMenu
-        );
-
-    document
-        .querySelectorAll("[data-local]")
-        .forEach(button => {
-
-            button.addEventListener(
-                "click",
-                () => {
-
-                    startLocal(
-                        Number(
-                            button.dataset.local
-                        )
-                    );
-
-                }
-            );
-
-        });
-
-    document
-        .querySelectorAll("[data-online]")
-        .forEach(button => {
-
-            button.addEventListener(
-                "click",
-                () => {
-
-                    startOnline(
-                        Number(
-                            button.dataset.online
-                        )
-                    );
-
-                }
-            );
-
-        });
-
-    document
-        .querySelectorAll(
-            "[data-private-create]"
-        )
-        .forEach(button => {
-
-            button.addEventListener(
-                "click",
-                () => {
-
-                    createPrivate(
-                        Number(
-                            button.dataset.privateCreate
-                        )
-                    );
-
-                }
-            );
-
-        });
-
-    document
-        .getElementById("joinPrivateBtn")
-        .addEventListener(
-            "click",
-            joinPrivate
-        );
-}
-
-
-/* =====================================================
-   GAME BUTTONS
-===================================================== */
-
-function setupGameButtons() {
-
-    document
-        .getElementById("settingsBtn")
-        .addEventListener(
-            "click",
-            openSettings
-        );
-
-    document
-        .getElementById("helpBtn")
-        .addEventListener(
-            "click",
-            openHelp
-        );
-
-    document
-        .getElementById("closeSettings")
-        .addEventListener(
-            "click",
-            closeSettings
-        );
-
-    document
-        .getElementById("closeHelp")
-        .addEventListener(
-            "click",
-            closeHelp
-        );
-
-    document
-        .getElementById("soundBtn")
-        .addEventListener(
-            "click",
-            toggleSound
-        );
-
-    for (let i = 0; i < 4; i++) {
-
-        document
-            .getElementById(`dice-${i}`)
-            .addEventListener(
-                "click",
-                () => roll(i)
-            );
-    }
-
-    document
-        .getElementById("sendChatBtn")
-        .addEventListener(
-            "click",
-            sendChat
-        );
-
-    document
-        .getElementById("micBtn")
-        .addEventListener(
-            "click",
-            toggleMic
-        );
-}
-
-
-/* =====================================================
-   MENU DISPLAY
-===================================================== */
-
-function hideMenus() {
-
-    document
-        .querySelectorAll(
-            "#setup .modal-box"
-        )
-        .forEach(box => {
-
-            box.classList.add(
-                "hidden"
-            );
-
-        });
-}
-
-function showLocalMenu() {
-
-    document
-        .getElementById("setup")
-        .classList.remove("hidden");
-
-    hideMenus();
-
-    document
-        .getElementById("localMenu")
-        .classList.remove("hidden");
-}
-
-function showOnlineMenu() {
-
-    document
-        .getElementById("setup")
-        .classList.remove("hidden");
-
-    hideMenus();
-
-    document
-        .getElementById("onlineMenu")
-        .classList.remove("hidden");
-}
-
-function showPrivate() {
-
-    hideMenus();
-
-    document
-        .getElementById("privateMenu")
-        .classList.remove("hidden");
-}
-
-function backMain() {
-
-    hideMenus();
-
-    document
-        .getElementById("mainMenu")
-        .classList.remove("hidden");
-}
-
-
-/* =====================================================
-   SETTINGS
-===================================================== */
-
-function openSettings() {
-
-    document
-        .getElementById("settings")
-        .classList.remove("hidden");
-}
-
-function closeSettings() {
-
-    document
-        .getElementById("settings")
-        .classList.add("hidden");
-}
-
-function toggleSound() {
-
-    soundEnabled =
-        !soundEnabled;
-
-    document
-        .getElementById("soundBtn")
-        .innerText =
-        soundEnabled
-            ? "🔊 Sound: ON"
-            : "🔇 Sound: OFF";
-}
-
-
-/* =====================================================
-   HELP
-===================================================== */
-
-function openHelp() {
-
-    document
-        .getElementById("help")
-        .classList.remove("hidden");
-}
-
-function closeHelp() {
-
-    document
-        .getElementById("help")
-        .classList.add("hidden");
-}
+let moving = false;
 
 
 /* =====================================================
@@ -1275,15 +970,15 @@ function closeHelp() {
 
 let audioContext = null;
 
-function getAudio() {
+function beep(freq,duration){
 
-    if (!soundEnabled) {
-        return null;
+    if(!soundEnabled){
+        return;
     }
 
-    try {
+    try{
 
-        if (!audioContext) {
+        if(!audioContext){
 
             audioContext =
                 new (
@@ -1291,115 +986,143 @@ function getAudio() {
                     window.webkitAudioContext
                 )();
 
-        if (
-            audioContext.state ===
-            "suspended"
-        ) {
-
-            audioContext.resume();
-
         }
 
-        return audioContext;
+        if(audioContext.state === "suspended"){
+            audioContext.resume();
+        }
 
-    } catch (error) {
+        const osc =
+            audioContext.createOscillator();
 
-        return null;
+        const gain =
+            audioContext.createGain();
 
-    }
+        osc.frequency.value = freq;
+
+        gain.gain.value = .08;
+
+        osc.connect(gain);
+
+        gain.connect(
+            audioContext.destination
+        );
+
+        osc.start();
+
+        osc.stop(
+            audioContext.currentTime +
+            duration
+        );
+
+    }catch(e){}
 }
 
-function beep(
-    frequency,
-    duration,
-    type
-) {
+function diceSound(){
 
-    const ctx =
-        getAudio();
-
-    if (!ctx) {
-        return;
-    }
-
-    const osc =
-        ctx.createOscillator();
-
-    const gain =
-        ctx.createGain();
-
-    osc.type =
-        type || "sine";
-
-    osc.frequency.value =
-        frequency || 500;
-
-    gain.gain.setValueAtTime(
-        0.0001,
-        ctx.currentTime
-    );
-
-    gain.gain.exponentialRampToValueAtTime(
-        0.12,
-        ctx.currentTime + 0.01
-    );
-
-    gain.gain.exponentialRampToValueAtTime(
-        0.0001,
-        ctx.currentTime +
-        (duration || .1)
-    );
-
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-
-    osc.start();
-
-    osc.stop(
-        ctx.currentTime +
-        (duration || .1) +
-        .02
-    );
-}
-
-function diceSound() {
-
-    beep(450,.08,"square");
+    beep(450,.08);
 
     setTimeout(
-        () => beep(700,.08,"square"),
+        function(){
+            beep(700,.08);
+        },
         80
     );
 }
 
-function moveSound() {
-
-    beep(300,.06,"triangle");
+function moveSound(){
+    beep(320,.05);
 }
 
-function homeSound() {
+function captureSound(){
 
-    beep(500,.1,"sine");
+    beep(180,.1);
 
     setTimeout(
-        () => beep(700,.1,"sine"),
+        function(){
+            beep(100,.12);
+        },
+        100
+    );
+}
+
+function homeSound(){
+
+    beep(500,.1);
+
+    setTimeout(
+        function(){
+            beep(700,.1);
+        },
         100
     );
 
     setTimeout(
-        () => beep(900,.15,"sine"),
+        function(){
+            beep(900,.15);
+        },
         200
     );
 }
 
-function captureSound() {
 
-    beep(180,.12,"sawtooth");
+/* =====================================================
+   MENU
+===================================================== */
 
-    setTimeout(
-        () => beep(100,.15,"sawtooth"),
-        100
-    );
+function hideAllMenus(){
+
+    document
+        .getElementById("mainMenu")
+        .classList.add("hidden");
+
+    document
+        .getElementById("localMenu")
+        .classList.add("hidden");
+
+    document
+        .getElementById("onlineMenu")
+        .classList.add("hidden");
+
+    document
+        .getElementById("privateMenu")
+        .classList.add("hidden");
+}
+
+function showLocalMenu(){
+
+    hideAllMenus();
+
+    document
+        .getElementById("localMenu")
+        .classList.remove("hidden");
+}
+
+function showOnlineMenu(){
+
+    hideAllMenus();
+
+    document
+        .getElementById("onlineMenu")
+        .classList.remove("hidden");
+}
+
+function showPrivateMenu(){
+
+    hideAllMenus();
+
+    document
+        .getElementById("privateMenu")
+        .classList.remove("hidden");
+}
+
+function backMain(){
+
+    hideAllMenus();
+
+    document
+        .getElementById("mainMenu")
+        .classList.remove("hidden");
 }
 
 
@@ -1407,26 +1130,20 @@ function captureSound() {
    BOARD
 ===================================================== */
 
-function createBoard() {
+function createBoard(){
 
     const board =
         document.getElementById("board");
 
-    if (!board) {
-        return;
-    }
-
     board
         .querySelectorAll(".cell")
         .forEach(
-            cell => cell.remove()
+            function(x){
+                x.remove();
+            }
         );
 
-    for (
-        let i = 0;
-        i < TOTAL;
-        i++
-    ) {
+    for(let i=0;i<25;i++){
 
         const cell =
             document.createElement("div");
@@ -1434,64 +1151,63 @@ function createBoard() {
         cell.className =
             "cell";
 
-        if (
-            i === HOME_CELL
-        ) {
+        if(i===HOME_CELL){
 
             cell.classList.add(
-                "home"
+                "home-cell"
             );
 
             cell.innerText =
                 "HOME";
 
-        } else if (i === 10) {
+        }else if(i===10){
 
             cell.classList.add(
-                "blue"
+                "start-blue"
             );
 
-        } else if (i === 2) {
+        }else if(i===2){
 
             cell.classList.add(
-                "red-cell"
+                "start-red"
             );
 
-        } else if (i === 14) {
+        }else if(i===14){
 
             cell.classList.add(
-                "green-cell"
+                "start-green"
             );
 
-        } else if (i === 22) {
+        }else if(i===22){
 
             cell.classList.add(
-                "yellow-cell"
+                "start-yellow"
             );
         }
 
-        if (
-            boardArrows[i] &&
-            i !== HOME_CELL
-        ) {
+        const arrows = {
+            10:"↓",
+            22:"→",
+            14:"↑",
+            2:"←",
+            11:"→",
+            17:"↑",
+            13:"←",
+            7:"↓"
+        };
 
-            const arrow =
-                document.createElement(
-                    "span"
-                );
+        if(arrows[i]){
 
-            arrow.innerText =
-                boardArrows[i];
+            const a =
+                document.createElement("span");
 
-            arrow.style.opacity =
-                ".25";
+            a.className =
+                "arrow";
 
-            arrow.style.fontSize =
-                "24px";
+            a.innerText =
+                arrows[i];
 
-            cell.appendChild(
-                arrow
-            );
+            cell.appendChild(a);
         }
 
         board.insertBefore(
@@ -1509,43 +1225,35 @@ function createBoard() {
 
     layer.innerHTML = "";
 
-    for (
-        let i = 0;
-        i < TOTAL;
-        i++
-    ) {
+    for(let i=0;i<25;i++){
 
         const slot =
-            document.createElement(
-                "div"
-            );
+            document.createElement("div");
 
         slot.className =
             "pawn-slot";
 
         slot.id =
-            `slot-${i}`;
+            "slot-"+i;
 
-        layer.appendChild(
-            slot
-        );
+        layer.appendChild(slot);
     }
 }
 
 
 /* =====================================================
-   RESET
+   START LOCAL
 ===================================================== */
 
-function resetClientState() {
+function startLocal(count){
+
+    online = false;
+
+    myPlayerId = 0;
+
+    clearTimeout(localBotTimer);
 
     players = [];
-
-    activeIndex = 0;
-
-    activeRolls = [];
-
-    canRoll = false;
 
     diceValues = [
         null,
@@ -1554,37 +1262,57 @@ function resetClientState() {
         null
     ];
 
+    activeRolls = [];
+
+    activeIndex = 0;
+
     gameFinished = false;
 
-    animationToken++;
+    moving = false;
 
-    Object.keys(
-        visualSteps
-    ).forEach(
-        key => delete visualSteps[key]
-    );
+    if(count===1){
 
-    clearTimeout(
-        localBotTimer
-    );
+        players.push(
+            createLocalPlayer(
+                playerInfo[0],
+                false
+            )
+        );
 
-    document
-        .getElementById("chat")
-        .innerHTML = "";
-}
+        /*
+          IMPORTANT FIX:
+          Bot is RED / ID 1.
+          No ID/index mismatch.
+        */
 
+        players.push(
+            createLocalPlayer(
+                playerInfo[1],
+                true
+            )
+        );
 
-/* =====================================================
-   SHOW GAME
-===================================================== */
+    }else{
 
-function showGame(
-    communication
-) {
+        for(
+            let i=0;
+            i<count;
+            i++
+        ){
+
+            players.push(
+                createLocalPlayer(
+                    playerInfo[i],
+                    false
+                )
+            );
+        }
+    }
 
     document
         .getElementById("setup")
-        .classList.add("hidden");
+        .style.display =
+        "none";
 
     document
         .getElementById("game")
@@ -1592,343 +1320,67 @@ function showGame(
         "block";
 
     document
+        .getElementById("communication")
+        .style.display =
+        "none";
+
+    document
         .getElementById("identity")
         .style.display =
         "block";
-
-    document
-        .getElementById("communication")
-        .style.display =
-        communication
-            ? "block"
-            : "none";
-}
-
-
-/* =====================================================
-   START LOCAL
-===================================================== */
-
-function startLocal(count) {
-
-    online = false;
-
-    myPlayerId = 0;
-
-    resetClientState();
-
-    showGame(false);
-
-    /*
-       IMPORTANT:
-       For 1-player mode:
-       Blue = ID 0
-       Red Bot = ID 1
-    */
-
-    if (count === 1) {
-
-        players = [
-
-            {
-                ...playerInfo[0],
-
-                pawns: [0,0,0,0],
-
-                hasKilled: false,
-
-                hasWon: false,
-
-                winRank: 0,
-
-                isBot: false
-            },
-
-            {
-                ...playerInfo[1],
-
-                name: "Red (Bot)",
-
-                pawns: [0,0,0,0],
-
-                hasKilled: false,
-
-                hasWon: false,
-
-                winRank: 0,
-
-                isBot: true
-            }
-
-        ];
-
-    } else {
-
-        players =
-            playerInfo
-                .slice(0,count)
-                .map(
-                    p => ({
-
-                        ...p,
-
-                        pawns: [
-                            0,0,0,0
-                        ],
-
-                        hasKilled: false,
-
-                        hasWon: false,
-
-                        winRank: 0,
-
-                        isBot: false
-
-                    })
-                );
-    }
-
-    activeIndex = 0;
-
-    activeRolls = [];
-
-    canRoll = true;
 
     document
         .getElementById("identity")
         .innerText =
         "You are Blue";
 
-    document
-        .getElementById("status")
-        .innerText =
-        "Blue's turn.";
-
     createBoard();
 
-    updatePlayerPanels();
+    canRoll = true;
+
+    setStatus(
+        "Blue's turn. Roll the dice."
+    );
 
     render();
 }
 
+function createLocalPlayer(info,isBot){
 
-/* =====================================================
-   START ONLINE
-===================================================== */
+    return {
 
-function startOnline(count) {
+        id:info.id,
 
-    if (
-        typeof io !== "function"
-    ) {
+        name:
+            isBot
+                ? "Red (Bot)"
+                : info.name,
 
-        alert(
-            "Online mode needs the Node.js server. Start the server and open the game through http://localhost:3000 or your hosted website."
-        );
+        color:info.color,
 
-        return;
-    }
+        path:info.path,
 
-    online = true;
+        pawns:[
+            0,0,0,0
+        ],
 
-    myPlayerId = null;
+        hasKilled:false,
 
-    resetClientState();
+        hasWon:false,
 
-    showGame(true);
+        winRank:0,
 
-    document
-        .getElementById("identity")
-        .innerText =
-        "Connecting...";
+        isBot:isBot
 
-    document
-        .getElementById("status")
-        .innerText =
-        "Finding players...";
-
-    createBoard();
-
-    socket.emit(
-        "joinGame",
-        count
-    );
+    };
 }
 
 
 /* =====================================================
-   PRIVATE CREATE
+   DICE
 ===================================================== */
 
-function createPrivate(count) {
-
-    if (
-        typeof io !== "function"
-    ) {
-
-        alert(
-            "Start the Node.js server before using Online mode."
-        );
-
-        return;
-    }
-
-    online = true;
-
-    myPlayerId = null;
-
-    resetClientState();
-
-    showGame(true);
-
-    document
-        .getElementById("identity")
-        .innerText =
-        "Creating room...";
-
-    document
-        .getElementById("status")
-        .innerText =
-        "Creating private room...";
-
-    createBoard();
-
-    socket.emit(
-        "createPrivateGame",
-        count
-    );
-}
-
-
-/* =====================================================
-   PRIVATE JOIN
-===================================================== */
-
-function joinPrivate() {
-
-    const input =
-        document.getElementById(
-            "roomCode"
-        );
-
-    const code =
-        input.value
-            .trim()
-            .toUpperCase();
-
-    if (!code) {
-
-        alert(
-            "Enter a room code."
-        );
-
-        return;
-    }
-
-    if (
-        typeof io !== "function"
-    ) {
-
-        alert(
-            "Start the Node.js server before using Online mode."
-        );
-
-        return;
-    }
-
-    online = true;
-
-    myPlayerId = null;
-
-    resetClientState();
-
-    showGame(true);
-
-    document
-        .getElementById("identity")
-        .innerText =
-        "Joining room...";
-
-    document
-        .getElementById("status")
-        .innerText =
-        "Joining room...";
-
-    createBoard();
-
-    socket.emit(
-        "joinPrivateGame",
-        code
-    );
-}
-
-
-/* =====================================================
-   ROLL
-===================================================== */
-
-function roll(playerId) {
-
-    if (gameFinished) {
-        return;
-    }
-
-    if (online) {
-
-        if (
-            Number(playerId) !==
-            Number(myPlayerId)
-        ) {
-            return;
-        }
-
-        socket.emit(
-            "requestRoll"
-        );
-
-        return;
-    }
-
-    if (
-        Number(playerId) !==
-        Number(myPlayerId)
-    ) {
-        return;
-    }
-
-    const current =
-        players[activeIndex];
-
-    if (!current) {
-        return;
-    }
-
-    if (
-        current.id !==
-        myPlayerId
-    ) {
-        return;
-    }
-
-    if (!canRoll) {
-        return;
-    }
-
-    if (
-        activeRolls.length !== 0
-    ) {
-        return;
-    }
-
-    localRoll();
-}
-
-
-/* =====================================================
-   RANDOM DICE
-===================================================== */
-
-function getRandomRoll() {
+function randomDice(){
 
     const values = [
         1,1,
@@ -1946,57 +1398,108 @@ function getRandomRoll() {
     ];
 }
 
+function roll(playerId){
 
-/* =====================================================
-   LOCAL ROLL
-===================================================== */
+    if(moving || gameFinished){
+        return;
+    }
 
-function localRoll() {
+    if(online){
+
+        if(
+            Number(playerId)!==
+            Number(myPlayerId)
+        ){
+            return;
+        }
+
+        if(socket){
+
+            socket.emit(
+                "requestRoll"
+            );
+        }
+
+        return;
+    }
+
+    if(
+        Number(playerId)!==
+        Number(myPlayerId)
+    ){
+        return;
+    }
+
+    if(!canRoll){
+        return;
+    }
+
+    if(activeRolls.length){
+        return;
+    }
 
     const player =
         players[activeIndex];
 
-    if (!player) {
+    if(!player){
         return;
     }
 
+    if(player.id!==myPlayerId){
+        return;
+    }
+
+    localRoll();
+}
+
+function localRoll(){
+
+    const player =
+        players[activeIndex];
+
     const value =
-        getRandomRoll();
+        randomDice();
 
     diceValues[player.id] =
         value;
 
-    activeRolls = [value];
+    activeRolls =
+        [value];
 
     canRoll = false;
 
     diceSound();
 
-    updatePlayerPanels();
+    animateDice(
+        player.id
+    );
 
-    if (
+    if(
         !hasValidMove(
             player,
             value
         )
-    ) {
+    ){
 
         activeRolls = [];
 
-        if (
-            value === 4 ||
-            value === 8
-        ) {
+        if(
+            value===4 ||
+            value===8
+        ){
 
             canRoll = true;
 
             setStatus(
-                `${player.name} rolled ${value}. Extra roll!`
+                player.name+
+                " rolled "+
+                value+
+                ". Extra roll!"
             );
 
             render();
 
-            if (player.isBot) {
+            if(player.isBot){
                 botTurn();
             }
 
@@ -2004,13 +1507,14 @@ function localRoll() {
         }
 
         setStatus(
-            `${player.name} rolled ${value}. No valid move.`
+            player.name+
+            " has no valid move."
         );
 
         render();
 
         setTimeout(
-            () => {
+            function(){
 
                 nextLocalTurn();
 
@@ -2026,14 +1530,35 @@ function localRoll() {
     }
 
     setStatus(
-        `${player.name} rolled ${value}. Choose a pawn.`
+        player.name+
+        " rolled "+
+        value+
+        ". Choose a pawn."
     );
 
     render();
 
-    if (player.isBot) {
+    if(player.isBot){
         botTurn();
     }
+}
+
+function animateDice(playerId){
+
+    const dice =
+        document.getElementById(
+            "dice-"+playerId
+        );
+
+    if(!dice){
+        return;
+    }
+
+    dice.classList.remove("pop");
+
+    void dice.offsetWidth;
+
+    dice.classList.add("pop");
 }
 
 
@@ -2043,41 +1568,41 @@ function localRoll() {
 
 function hasValidMove(
     player,
-    rollValue
-) {
-
-    if (!player) {
-        return false;
-    }
+    value
+){
 
     return player.pawns.some(
-        step =>
-            Number(step) +
-            Number(rollValue) <=
-            FINISH_STEP
+        function(step){
+
+            return (
+                step+
+                value<=
+                FINISH_STEP
+            );
+        }
     );
 }
 
 
 /* =====================================================
-   MOVE PAWN
+   PAWN CLICK
 ===================================================== */
 
 function movePawn(
     playerId,
     pawnIndex
-) {
+){
 
-    if (gameFinished) {
+    if(moving || gameFinished){
         return;
     }
 
-    if (online) {
+    if(online){
 
-        if (
-            Number(playerId) !==
+        if(
+            Number(playerId)!==
             Number(myPlayerId)
-        ) {
+        ){
             return;
         }
 
@@ -2095,27 +1620,28 @@ function movePawn(
         return;
     }
 
-    if (
-        Number(playerId) !==
+    if(
+        Number(playerId)!==
         Number(myPlayerId)
-    ) {
+    ){
         return;
     }
 
-    if (
-        activeIndex !==
+    const index =
         players.findIndex(
-            p =>
-                Number(p.id) ===
-                Number(playerId)
-        )
-    ) {
+            function(p){
+                return (
+                    Number(p.id)===
+                    Number(playerId)
+                );
+            }
+        );
+
+    if(index!==activeIndex){
         return;
     }
 
-    if (
-        activeRolls.length === 0
-    ) {
+    if(!activeRolls.length){
         return;
     }
 
@@ -2127,17 +1653,18 @@ function movePawn(
 
 
 /* =====================================================
-   ANIMATION
+   MOVE ANIMATION
 ===================================================== */
 
-function sleep(ms) {
+function wait(ms){
 
     return new Promise(
-        resolve =>
+        function(resolve){
             setTimeout(
                 resolve,
                 ms
-            )
+            );
+        }
     );
 }
 
@@ -2146,55 +1673,58 @@ async function animatePawn(
     pawnIndex,
     fromStep,
     toStep
-) {
+){
 
-    if (
-        fromStep ===
-        toStep
-    ) {
+    moving = true;
+
+    const player =
+        players.find(
+            function(p){
+                return (
+                    Number(p.id)===
+                    Number(playerId)
+                );
+            }
+        );
+
+    if(!player){
+
+        moving = false;
+
         return;
     }
 
-    const key =
-        `${playerId}-${pawnIndex}`;
-
-    const token =
-        ++animationToken;
-
     const direction =
-        toStep >= fromStep
+        toStep>=fromStep
             ? 1
             : -1;
 
-    for (
-        let step =
-            fromStep + direction;
+    for(
+        let step=
+            fromStep+direction;
 
-        direction > 0
-            ? step <= toStep
-            : step >= toStep;
+        direction>0
+            ? step<=toStep
+            : step>=toStep;
 
-        step += direction
-    ) {
+        step+=direction
+    ){
 
-        if (
-            token !==
-            animationToken
-        ) {
-            return;
-        }
-
-        visualSteps[key] =
-            step;
+        player._animatedPawn = {
+            pawnIndex:pawnIndex,
+            step:step
+        };
 
         render();
 
         moveSound();
 
-        await sleep(180);
+        await wait(170);
     }
 
-    delete visualSteps[key];
+    delete player._animatedPawn;
+
+    moving = false;
 
     render();
 }
@@ -2207,27 +1737,28 @@ async function animatePawn(
 async function performLocalMove(
     playerId,
     pawnIndex
-) {
+){
+
+    if(!activeRolls.length){
+        return;
+    }
 
     const player =
         players.find(
-            p =>
-                Number(p.id) ===
-                Number(playerId)
+            function(p){
+                return (
+                    Number(p.id)===
+                    Number(playerId)
+                );
+            }
         );
 
-    if (!player) {
+    if(!player){
         return;
     }
 
     const rollValue =
-        Number(
-            activeRolls[0]
-        );
-
-    if (!rollValue) {
-        return;
-    }
+        Number(activeRolls[0]);
 
     const oldStep =
         Number(
@@ -2235,12 +1766,12 @@ async function performLocalMove(
         );
 
     const newStep =
-        oldStep + rollValue;
+        oldStep+rollValue;
 
-    if (
-        newStep >
+    if(
+        newStep>
         FINISH_STEP
-    ) {
+    ){
         return;
     }
 
@@ -2248,12 +1779,6 @@ async function performLocalMove(
 
     player.pawns[pawnIndex] =
         newStep;
-
-    const key =
-        `${playerId}-${pawnIndex}`;
-
-    visualSteps[key] =
-        oldStep;
 
     render();
 
@@ -2264,102 +1789,94 @@ async function performLocalMove(
         newStep
     );
 
-    let extraTurn =
-        false;
+    let extraTurn = false;
 
     const targetCell =
-        playerInfo[player.id]
-            .path[newStep];
+        player.path[newStep];
 
-    /* ================= HOME ================= */
+    /* HOME */
 
-    if (
-        newStep ===
+    if(
+        newStep===
         FINISH_STEP
-    ) {
+    ){
 
-        if (
+        homeSound();
+
+        if(
             player.pawns.every(
-                p =>
-                    p ===
-                    FINISH_STEP
+                function(x){
+                    return (
+                        x===
+                        FINISH_STEP
+                    );
+                }
             )
-        ) {
+        ){
 
-            player.hasWon = true;
-
-            const winners =
-                players.filter(
-                    p => p.hasWon
-                ).length;
+            player.hasWon =
+                true;
 
             player.winRank =
-                winners;
-
-            homeSound();
+                players.filter(
+                    function(x){
+                        return x.hasWon;
+                    }
+                ).length;
 
             setStatus(
-                `${player.name} finished #${player.winRank}!`
+                player.name+
+                " finished!"
             );
 
-        } else {
+        }else{
 
             extraTurn = true;
 
-            homeSound();
-
             setStatus(
-                `${player.name} reached HOME! Extra turn.`
+                player.name+
+                " reached HOME! Extra turn."
             );
         }
     }
 
-    /* ================= CAPTURE ================= */
+    /* CAPTURE */
 
-    if (
-        newStep <
+    if(
+        newStep<
         FINISH_STEP &&
-        !SAFE_CELLS.includes(
+        SAFE_CELLS.indexOf(
             targetCell
-        )
-    ) {
+        )===-1
+    ){
 
         players.forEach(
-            opponent => {
+            function(opponent){
 
-                if (
-                    opponent.id ===
+                if(
+                    opponent.id===
                     player.id
-                ) {
-                    return;
-                }
-
-                if (
-                    opponent.hasWon
-                ) {
+                ){
                     return;
                 }
 
                 opponent.pawns.forEach(
-                    (
+                    function(
                         opponentStep,
                         index
-                    ) => {
+                    ){
 
-                        if (
-                            opponentStep <
+                        if(
+                            opponentStep<
                             FINISH_STEP &&
-                            playerInfo[
-                                opponent.id
-                            ].path[
+                            opponent.path[
                                 opponentStep
-                            ] ===
+                            ]===
                             targetCell
-                        ) {
+                        ){
 
-                            opponent.pawns[
-                                index
-                            ] = 0;
+                            opponent.pawns[index] =
+                                0;
 
                             player.hasKilled =
                                 true;
@@ -2368,46 +1885,49 @@ async function performLocalMove(
                                 true;
 
                             captureSound();
+
+                            setStatus(
+                                player.name+
+                                " captured an opponent! Extra turn."
+                            );
                         }
                     }
                 );
-
             }
         );
     }
 
-    /* ================= TURN ================= */
+    /* WIN */
 
-    if (
-        player.hasWon
-    ) {
+    if(player.hasWon){
 
         const remaining =
             players.filter(
-                p => !p.hasWon
+                function(p){
+                    return !p.hasWon;
+                }
             );
 
-        if (
-            remaining.length <= 1
-        ) {
+        if(
+            remaining.length<=1
+        ){
 
-            gameFinished =
-                true;
+            gameFinished = true;
 
-            canRoll =
-                false;
+            canRoll = false;
 
             render();
 
             setTimeout(
-                () => {
+                function(){
 
                     alert(
-                        `${player.name} wins!`
+                        player.name+
+                        " wins the game! 🏆"
                     );
 
                 },
-                100
+                150
             );
 
             return;
@@ -2415,15 +1935,11 @@ async function performLocalMove(
 
         nextLocalTurn();
 
-    } else if (
-        extraTurn
-    ) {
+    }else if(extraTurn){
 
         canRoll = true;
 
-        activeRolls = [];
-
-    } else {
+    }else{
 
         nextLocalTurn();
     }
@@ -2435,56 +1951,59 @@ async function performLocalMove(
 
 
 /* =====================================================
-   NEXT TURN
+   NEXT LOCAL TURN
 ===================================================== */
 
-function nextLocalTurn() {
+function nextLocalTurn(){
 
     activeRolls = [];
 
     canRoll = true;
 
-    if (
-        players.length === 0
-    ) {
+    if(!players.length){
         return;
     }
 
-    let next =
-        activeIndex;
+    for(
+        let count=0;
+        count<players.length;
+        count++
+    ){
 
-    for (
-        let i = 0;
-        i < players.length;
-        i++
-    ) {
-
-        next =
+        activeIndex =
             (
-                next + 1
-            ) %
+                activeIndex+1
+            )%
             players.length;
 
-        if (
-            !players[next].hasWon
-        ) {
-
-            activeIndex =
-                next;
-
+        if(
+            !players[activeIndex]
+                .hasWon
+        ){
             break;
         }
     }
 
-    const player =
-        players[activeIndex];
+    diceValues =
+        diceValues.map(
+            function(value,index){
 
-    if (player) {
+                if(
+                    players[index] &&
+                    players[index].id===
+                    players[activeIndex].id
+                ){
+                    return value;
+                }
 
-        setStatus(
-            `${player.name}'s turn.`
+                return value;
+            }
         );
-    }
+
+    setStatus(
+        players[activeIndex].name+
+        "'s turn."
+    );
 }
 
 
@@ -2492,44 +2011,43 @@ function nextLocalTurn() {
    BOT
 ===================================================== */
 
-function botTurn() {
+function botTurn(){
 
     clearTimeout(
         localBotTimer
     );
 
-    if (
+    if(
         online ||
-        gameFinished
-    ) {
+        gameFinished ||
+        moving
+    ){
         return;
     }
 
     const bot =
         players[activeIndex];
 
-    if (
+    if(
         !bot ||
         !bot.isBot
-    ) {
+    ){
         return;
     }
 
     localBotTimer =
         setTimeout(
-            () => {
+            function(){
 
-                if (
-                    activeRolls.length ===
-                    0
-                ) {
+                if(
+                    !activeRolls.length
+                ){
 
                     localBotRoll();
 
-                } else {
+                }else{
 
                     localBotMove();
-
                 }
 
             },
@@ -2537,48 +2055,54 @@ function botTurn() {
         );
 }
 
-function localBotRoll() {
+function localBotRoll(){
 
     const bot =
         players[activeIndex];
 
-    if (
+    if(
         !bot ||
         !bot.isBot
-    ) {
+    ){
         return;
     }
 
     const value =
-        getRandomRoll();
+        randomDice();
 
     diceValues[bot.id] =
         value;
 
-    activeRolls = [value];
+    activeRolls =
+        [value];
 
     canRoll = false;
 
     diceSound();
 
-    if (
+    animateDice(bot.id);
+
+    if(
         !hasValidMove(
             bot,
             value
         )
-    ) {
+    ){
 
         activeRolls = [];
 
-        if (
-            value === 4 ||
-            value === 8
-        ) {
+        if(
+            value===4 ||
+            value===8
+        ){
 
             canRoll = true;
 
             setStatus(
-                `${bot.name} rolled ${value}. Extra roll!`
+                bot.name+
+                " rolled "+
+                value+
+                ". Extra roll!"
             );
 
             render();
@@ -2589,13 +2113,14 @@ function localBotRoll() {
         }
 
         setStatus(
-            `${bot.name} has no valid move.`
+            bot.name+
+            " has no valid move."
         );
 
         render();
 
         setTimeout(
-            () => {
+            function(){
 
                 nextLocalTurn();
 
@@ -2611,7 +2136,9 @@ function localBotRoll() {
     }
 
     setStatus(
-        `${bot.name} rolled ${value}.`
+        bot.name+
+        " rolled "+
+        value
     );
 
     render();
@@ -2619,52 +2146,35 @@ function localBotRoll() {
     botTurn();
 }
 
-function localBotMove() {
+function localBotMove(){
 
     const bot =
         players[activeIndex];
 
-    if (
-        !bot ||
-        !bot.isBot
-    ) {
+    if(!bot){
         return;
     }
 
-    const rollValue =
-        Number(
-            activeRolls[0]
-        );
-
-    if (!rollValue) {
-        return;
-    }
+    const value =
+        Number(activeRolls[0]);
 
     const possible = [];
 
     bot.pawns.forEach(
-        (
-            step,
-            index
-        ) => {
+        function(step,index){
 
-            if (
-                Number(step) +
-                rollValue <=
+            if(
+                step+
+                value<=
                 FINISH_STEP
-            ) {
+            ){
 
-                possible.push(
-                    index
-                );
+                possible.push(index);
             }
         }
     );
 
-    if (
-        possible.length ===
-        0
-    ) {
+    if(!possible.length){
 
         nextLocalTurn();
 
@@ -2675,35 +2185,39 @@ function localBotMove() {
         return;
     }
 
+    /* Prefer pawn closest to HOME */
+
     let chosen =
-        possible.find(
-            index =>
-                bot.pawns[index] +
-                rollValue ===
+        possible[0];
+
+    possible.forEach(
+        function(index){
+
+            if(
+                bot.pawns[index]>
+                bot.pawns[chosen]
+            ){
+
+                chosen=index;
+            }
+        }
+    );
+
+    /* Prefer exact HOME */
+
+    possible.forEach(
+        function(index){
+
+            if(
+                bot.pawns[index]+
+                value===
                 FINISH_STEP
-        );
+            ){
 
-    if (
-        chosen === undefined
-    ) {
-
-        chosen =
-            possible.reduce(
-                (
-                    best,
-                    index
-                ) => {
-
-                    return
-                        bot.pawns[index] >
-                        bot.pawns[best]
-                            ? index
-                            : best;
-
-                },
-                possible[0]
-            );
-    }
+                chosen=index;
+            }
+        }
+    );
 
     performLocalMove(
         bot.id,
@@ -2716,62 +2230,58 @@ function localBotMove() {
    RENDER
 ===================================================== */
 
-function render() {
+function render(){
 
     const layer =
         document.getElementById(
             "pawnLayer"
         );
 
-    if (!layer) {
+    if(!layer){
         return;
     }
 
     layer
         .querySelectorAll(".pawn")
         .forEach(
-            pawn =>
-                pawn.remove()
+            function(p){
+                p.remove();
+            }
         );
 
     players.forEach(
-        player => {
-
-            const info =
-                playerInfo[player.id];
-
-            if (!info) {
-                return;
-            }
+        function(player){
 
             player.pawns.forEach(
-                (
+                function(
                     storedStep,
                     pawnIndex
-                ) => {
+                ){
 
-                    const key =
-                        `${player.id}-${pawnIndex}`;
+                    let step =
+                        storedStep;
 
-                    const step =
-                        Object.prototype
-                            .hasOwnProperty
-                            .call(
-                                visualSteps,
-                                key
-                            )
-                            ? visualSteps[key]
-                            : storedStep;
+                    if(
+                        player._animatedPawn &&
+                        player._animatedPawn
+                            .pawnIndex===
+                            pawnIndex
+                    ){
+
+                        step =
+                            player._animatedPawn
+                                .step;
+                    }
 
                     const cell =
-                        info.path[step];
+                        player.path[step];
 
                     const slot =
                         document.getElementById(
-                            `slot-${cell}`
+                            "slot-"+cell
                         );
 
-                    if (!slot) {
+                    if(!slot){
                         return;
                     }
 
@@ -2786,51 +2296,46 @@ function render() {
                     pawn.style.background =
                         player.color;
 
-                    pawn.title =
-                        `${player.name} Pawn ${pawnIndex + 1}`;
-
-                    const playerArrayIndex =
-                        players.findIndex(
-                            p =>
-                                Number(p.id) ===
-                                Number(player.id)
-                        );
-
-                    const isCurrent =
-                        playerArrayIndex ===
-                        activeIndex;
+                    const currentPlayer =
+                        players[
+                            activeIndex
+                        ];
 
                     const isMine =
-                        Number(player.id) ===
+                        Number(player.id)===
                         Number(myPlayerId);
 
-                    if (
+                    const isCurrent =
+                        currentPlayer &&
+                        Number(
+                            currentPlayer.id
+                        )===
+                        Number(player.id);
+
+                    if(
                         isMine &&
                         isCurrent &&
-                        activeRolls.length >
-                        0 &&
+                        activeRolls.length &&
                         !player.isBot &&
                         !gameFinished
-                    ) {
+                    ){
 
-                        const rollValue =
+                        const value =
                             Number(
                                 activeRolls[0]
                             );
 
-                        if (
-                            step +
-                            rollValue <=
+                        if(
+                            step+value<=
                             FINISH_STEP
-                        ) {
+                        ){
 
                             pawn.classList.add(
                                 "clickable"
                             );
 
-                            pawn.addEventListener(
-                                "click",
-                                event => {
+                            pawn.onclick =
+                                function(event){
 
                                     event.stopPropagation();
 
@@ -2838,20 +2343,8 @@ function render() {
                                         player.id,
                                         pawnIndex
                                     );
-
-                                }
-                            );
+                                };
                         }
-                    }
-
-                    if (
-                        visualSteps[key] !==
-                        undefined
-                    ) {
-
-                        pawn.classList.add(
-                            "pawn-moving"
-                        );
                     }
 
                     slot.appendChild(
@@ -2862,40 +2355,41 @@ function render() {
         }
     );
 
-    updatePlayerPanels();
+    updatePanels();
 }
 
 
 /* =====================================================
-   PLAYER PANELS
+   PANELS
 ===================================================== */
 
-function updatePlayerPanels() {
+function updatePanels(){
 
-    for (
-        let i = 0;
-        i < 4;
+    for(
+        let i=0;
+        i<4;
         i++
-    ) {
+    ){
 
         const panel =
             document.getElementById(
-                `panel-${i}`
+                "panel-"+i
             );
 
         const name =
             document.getElementById(
-                `name-${i}`
+                "name-"+i
             );
 
         const dice =
             document.getElementById(
-                `dice-${i}`
+                "dice-"+i
             );
 
-        if (
-            !players[i]
-        ) {
+        const player =
+            players[i];
+
+        if(!player){
 
             panel.style.display =
                 "none";
@@ -2907,33 +2401,26 @@ function updatePlayerPanels() {
             "flex";
 
         panel.classList.remove(
-            "active",
+            "active"
+        );
+
+        panel.classList.remove(
             "won"
         );
 
         name.innerText =
-            players[i].name;
+            player.name;
 
-        const actualPlayerIndex =
-            players.findIndex(
-                p =>
-                    Number(p.id) ===
-                    Number(players[i].id)
-            );
-
-        if (
-            actualPlayerIndex ===
-            activeIndex
-        ) {
+        if(
+            activeIndex===i
+        ){
 
             panel.classList.add(
                 "active"
             );
         }
 
-        if (
-            players[i].hasWon
-        ) {
+        if(player.hasWon){
 
             panel.classList.add(
                 "won"
@@ -2941,53 +2428,47 @@ function updatePlayerPanels() {
         }
 
         const value =
-            diceValues[
-                players[i].id
-            ];
+            diceValues[player.id];
 
         dice.innerText =
-            value === null ||
-            value === undefined
+            value===null ||
+            value===undefined
                 ? "🎲"
                 : String(value);
 
-        const canUse =
-            !online &&
-            Number(players[i].id) ===
-            Number(myPlayerId) &&
-            actualPlayerIndex ===
-            activeIndex &&
-            canRoll &&
-            activeRolls.length ===
-            0 &&
-            !gameFinished;
+        let enabled = false;
 
-        if (
-            online
-        ) {
+        if(
+            !online
+        ){
 
-            const onlineCanUse =
-                Number(players[i].id) ===
-                Number(myPlayerId) &&
-                actualPlayerIndex ===
-                activeIndex &&
+            enabled =
+                player.id===
+                myPlayerId &&
+                activeIndex===
+                i &&
                 canRoll &&
-                activeRolls.length ===
-                0 &&
-                !gameFinished;
+                !activeRolls.length &&
+                !gameFinished &&
+                !moving;
 
-            dice.classList.toggle(
-                "disabled",
-                !onlineCanUse
-            );
+        }else{
 
-        } else {
-
-            dice.classList.toggle(
-                "disabled",
-                !canUse
-            );
+            enabled =
+                player.id===
+                myPlayerId &&
+                activeIndex===
+                i &&
+                canRoll &&
+                !activeRolls.length &&
+                !gameFinished &&
+                !moving;
         }
+
+        dice.classList.toggle(
+            "disabled",
+            !enabled
+        );
     }
 }
 
@@ -2996,7 +2477,7 @@ function updatePlayerPanels() {
    STATUS
 ===================================================== */
 
-function setStatus(text) {
+function setStatus(text){
 
     document
         .getElementById("status")
@@ -3006,433 +2487,566 @@ function setStatus(text) {
 
 
 /* =====================================================
-   SOCKET: ASSIGN PLAYER
+   ONLINE
 ===================================================== */
 
-socket.on(
-    "assignPlayer",
-    data => {
+function startOnline(count){
 
-        myPlayerId =
-            Number(
-                data.playerId
+    connectSocket(
+        function(){
+
+            online = true;
+
+            myPlayerId = null;
+
+            players = [];
+
+            activeRolls = [];
+
+            diceValues = [
+                null,
+                null,
+                null,
+                null
+            ];
+
+            document
+                .getElementById("setup")
+                .style.display =
+                "none";
+
+            document
+                .getElementById("game")
+                .style.display =
+                "block";
+
+            document
+                .getElementById("communication")
+                .style.display =
+                "block";
+
+            document
+                .getElementById("identity")
+                .style.display =
+                "block";
+
+            document
+                .getElementById("identity")
+                .innerText =
+                "Connecting...";
+
+            setStatus(
+                "Finding players..."
             );
 
-        document
-            .getElementById("identity")
-            .innerText =
-            `You are ${data.playerName}`;
+            createBoard();
 
-        updatePlayerPanels();
-    }
-);
-
-
-/* =====================================================
-   SOCKET: GAME START
-===================================================== */
-
-socket.on(
-    "gameStart",
-    () => {
-
-        showGame(true);
-
-        setStatus(
-            "Match started!"
-        );
-
-        updatePlayerPanels();
-    }
-);
-
-
-/* =====================================================
-   SOCKET: STATUS
-===================================================== */
-
-socket.on(
-    "statusMessage",
-    message => {
-
-        setStatus(
-            String(message)
-        );
-    }
-);
-
-
-/* =====================================================
-   SOCKET: GAME STATE
-===================================================== */
-
-socket.on(
-    "gameState",
-    state => {
-
-        if (!online) {
-            return;
+            socket.emit(
+                "joinGame",
+                count
+            );
         }
+    );
+}
 
-        players =
-            Array.isArray(
-                state.players
-            )
-                ? state.players
-                : [];
+function createPrivate(count){
 
-        activeIndex =
-            Number.isInteger(
-                state.activeIndex
-            )
-                ? state.activeIndex
-                : 0;
+    connectSocket(
+        function(){
 
-        activeRolls =
-            Array.isArray(
-                state.activeRolls
-            )
-                ? [
-                    ...state.activeRolls
-                ]
-                : [];
+            online = true;
 
-        canRoll =
-            Boolean(
-                state.canRoll
+            document
+                .getElementById("setup")
+                .style.display =
+                "none";
+
+            document
+                .getElementById("game")
+                .style.display =
+                "block";
+
+            document
+                .getElementById("communication")
+                .style.display =
+                "block";
+
+            document
+                .getElementById("identity")
+                .style.display =
+                "block";
+
+            setStatus(
+                "Creating private room..."
             );
 
-        if (
-            Array.isArray(
-                state.diceValues
-            )
-        ) {
+            createBoard();
+
+            socket.emit(
+                "createPrivateGame",
+                count
+            );
+        }
+    );
+}
+
+function joinPrivate(){
+
+    const code =
+        document
+            .getElementById("roomCode")
+            .value
+            .trim()
+            .toUpperCase();
+
+    if(!code){
+
+        alert(
+            "Enter the room code."
+        );
+
+        return;
+    }
+
+    connectSocket(
+        function(){
+
+            online = true;
+
+            document
+                .getElementById("setup")
+                .style.display =
+                "none";
+
+            document
+                .getElementById("game")
+                .style.display =
+                "block";
+
+            document
+                .getElementById("communication")
+                .style.display =
+                "block";
+
+            document
+                .getElementById("identity")
+                .style.display =
+                "block";
+
+            setStatus(
+                "Joining private room..."
+            );
+
+            createBoard();
+
+            socket.emit(
+                "joinPrivateGame",
+                code
+            );
+        }
+    );
+}
+
+
+/* =====================================================
+   SOCKET EVENTS
+===================================================== */
+
+function setupSocketEvents(){
+
+    socket.on(
+        "assignPlayer",
+        function(data){
+
+            myPlayerId =
+                Number(
+                    data.playerId
+                );
+
+            document
+                .getElementById("identity")
+                .innerText =
+                "You are "+
+                data.playerName;
+        }
+    );
+
+    socket.on(
+        "gameStart",
+        function(){
+
+            setStatus(
+                "Match started!"
+            );
+
+            render();
+        }
+    );
+
+    socket.on(
+        "statusMessage",
+        function(message){
+
+            setStatus(
+                message
+            );
+        }
+    );
+
+    socket.on(
+        "gameState",
+        function(state){
+
+            players =
+                Array.isArray(
+                    state.players
+                )
+                    ? state.players
+                    : [];
+
+            activeIndex =
+                Number(
+                    state.activeIndex
+                );
+
+            activeRolls =
+                Array.isArray(
+                    state.activeRolls
+                )
+                    ? state.activeRolls
+                    : [];
+
+            canRoll =
+                Boolean(
+                    state.canRoll
+                );
 
             diceValues =
-                state.diceValues
-                    .slice(0,4);
+                Array.isArray(
+                    state.diceValues
+                )
+                    ? state.diceValues
+                    : [
+                        null,
+                        null,
+                        null,
+                        null
+                    ];
 
-            while (
-                diceValues.length <
-                4
-            ) {
+            render();
 
-                diceValues.push(
-                    null
+            createPeerConnections();
+        }
+    );
+
+    socket.on(
+        "diceRolled",
+        function(data){
+
+            const id =
+                Number(
+                    data.playerId
+                );
+
+            diceValues[id] =
+                Number(data.value);
+
+            diceSound();
+
+            animateDice(id);
+
+            render();
+        }
+    );
+
+    socket.on(
+        "moveResult",
+        async function(data){
+
+            const player =
+                players.find(
+                    function(p){
+                        return (
+                            Number(p.id)===
+                            Number(data.playerId)
+                        );
+                    }
+                );
+
+            if(!player){
+                return;
+            }
+
+            await animatePawn(
+                Number(data.playerId),
+                Number(data.pawnIndex),
+                Number(data.from),
+                Number(data.to)
+            );
+
+            if(
+                Number(data.to)===
+                FINISH_STEP
+            ){
+                homeSound();
+            }
+
+            if(
+                Array.isArray(
+                    data.captured
+                ) &&
+                data.captured.length
+            ){
+                captureSound();
+            }
+
+            render();
+        }
+    );
+
+    socket.on(
+        "privateRoomCreated",
+        function(code){
+
+            alert(
+                "Private room created!\n\n"+
+                "ROOM CODE: "+
+                code+
+                "\n\nShare this code with your friend."
+            );
+
+            setStatus(
+                "Room Code: "+
+                code+
+                " — waiting for players..."
+            );
+        }
+    );
+
+    socket.on(
+        "roomError",
+        function(message){
+
+            alert(
+                String(message)
+            );
+
+            location.reload();
+        }
+    );
+
+    socket.on(
+        "roomClosed",
+        function(message){
+
+            alert(
+                String(message)
+            );
+
+            location.reload();
+        }
+    );
+
+    socket.on(
+        "gameFinished",
+        function(){
+
+            gameFinished = true;
+
+            canRoll = false;
+
+            setStatus(
+                "🏆 Game finished!"
+            );
+
+            render();
+        }
+    );
+
+    /* ================= CHAT ================= */
+
+    socket.on(
+        "receiveChatMessage",
+        function(data){
+
+            addChat(
+                data.name,
+                data.text
+            );
+        }
+    );
+
+    /* ================= VOICE ================= */
+
+    socket.on(
+        "voiceOffer",
+        async function(data){
+
+            const id =
+                Number(data.from);
+
+            const pc =
+                getPeer(
+                    id,
+                    false
+                );
+
+            try{
+
+                await pc.setRemoteDescription(
+                    data.offer
+                );
+
+                const answer =
+                    await pc.createAnswer();
+
+                await pc.setLocalDescription(
+                    answer
+                );
+
+                socket.emit(
+                    "voiceAnswer",
+                    {
+                        to:id,
+                        answer:
+                            pc.localDescription
+                    }
+                );
+
+            }catch(e){
+
+                console.log(
+                    "Voice offer error",
+                    e
                 );
             }
         }
+    );
 
-        updatePlayerPanels();
+    socket.on(
+        "voiceAnswer",
+        async function(data){
 
-        render();
-    }
-);
+            const pc =
+                peers[
+                    Number(data.from)
+                ];
 
+            if(!pc){
+                return;
+            }
 
-/* =====================================================
-   SOCKET: DICE
-===================================================== */
+            try{
 
-socket.on(
-    "diceRolled",
-    data => {
+                await pc.setRemoteDescription(
+                    data.answer
+                );
 
-        const playerId =
-            Number(
-                data.playerId
-            );
-
-        const value =
-            Number(
-                data.value
-            );
-
-        if (
-            playerId >= 0 &&
-            playerId < 4
-        ) {
-
-            diceValues[
-                playerId
-            ] = value;
+            }catch(e){}
         }
+    );
 
-        diceSound();
+    socket.on(
+        "iceCandidate",
+        async function(data){
 
-        const dice =
-            document.getElementById(
-                `dice-${playerId}`
-            );
+            const id =
+                Number(data.from);
 
-        if (!dice) {
-            return;
+            const pc =
+                getPeer(
+                    id,
+                    false
+                );
+
+            try{
+
+                await pc.addIceCandidate(
+                    data.candidate
+                );
+
+            }catch(e){}
         }
-
-        dice.innerText =
-            String(value);
-
-        dice.classList.remove(
-            "dice-number"
-        );
-
-        void dice.offsetWidth;
-
-        dice.classList.add(
-            "dice-number"
-        );
-    }
-);
-
-
-/* =====================================================
-   SOCKET: MOVE RESULT
-===================================================== */
-
-socket.on(
-    "moveResult",
-    async data => {
-
-        const playerId =
-            Number(
-                data.playerId
-            );
-
-        const pawnIndex =
-            Number(
-                data.pawnIndex
-            );
-
-        const from =
-            Number(
-                data.from
-            );
-
-        const to =
-            Number(
-                data.to
-            );
-
-        await animatePawn(
-            playerId,
-            pawnIndex,
-            from,
-            to
-        );
-
-        if (
-            to === FINISH_STEP
-        ) {
-
-            homeSound();
-
-        }
-
-        if (
-            Array.isArray(
-                data.captured
-            ) &&
-            data.captured.length
-        ) {
-
-            captureSound();
-        }
-
-        render();
-    }
-);
-
-
-/* =====================================================
-   SOCKET: ROOM ERROR
-===================================================== */
-
-socket.on(
-    "roomError",
-    message => {
-
-        alert(
-            String(message)
-        );
-
-        document
-            .getElementById("game")
-            .style.display =
-            "none";
-
-        document
-            .getElementById(
-                "communication"
-            )
-            .style.display =
-            "none";
-
-        document
-            .getElementById("setup")
-            .classList.remove(
-                "hidden"
-            );
-
-        backMain();
-    }
-);
-
-
-/* =====================================================
-   PRIVATE ROOM CREATED
-===================================================== */
-
-socket.on(
-    "privateRoomCreated",
-    code => {
-
-        setStatus(
-            `Room Code: ${code}`
-        );
-
-        alert(
-            `Your room code is:\n\n${code}\n\nShare this code with your friend.`
-        );
-    }
-);
-
-
-/* =====================================================
-   ROOM CLOSED
-===================================================== */
-
-socket.on(
-    "roomClosed",
-    message => {
-
-        alert(
-            String(message)
-        );
-
-        location.reload();
-    }
-);
-
-
-/* =====================================================
-   ACTION ERROR
-===================================================== */
-
-socket.on(
-    "actionError",
-    message => {
-
-        setStatus(
-            String(message)
-        );
-    }
-);
-
-
-/* =====================================================
-   GAME FINISHED
-===================================================== */
-
-socket.on(
-    "gameFinished",
-    () => {
-
-        gameFinished = true;
-
-        setStatus(
-            "🏆 Game finished!"
-        );
-
-        updatePlayerPanels();
-    }
-);
+    );
+}
 
 
 /* =====================================================
    CHAT
 ===================================================== */
 
-function setupChat() {
+function sendChat(){
 
-    document
-        .getElementById("chatInput")
-        .addEventListener(
-            "keydown",
-            event => {
-
-                if (
-                    event.key ===
-                    "Enter"
-                ) {
-
-                    event.preventDefault();
-
-                    sendChat();
-                }
-
-            }
-        );
-}
-
-function sendChat() {
-
-    if (!online) {
+    if(!online || !socket){
         return;
     }
 
     const input =
-        document.getElementById(
-            "chatInput"
-        );
+        document
+            .getElementById("chatInput");
 
     const text =
         input.value.trim();
 
-    if (!text) {
+    if(!text){
         return;
     }
 
     socket.emit(
         "sendChatMessage",
         {
-            text
+            text:text
         }
     );
 
-    input.value = "";
+    input.value="";
 }
 
-socket.on(
-    "receiveChatMessage",
-    data => {
+document
+    .getElementById("chatInput")
+    .addEventListener(
+        "keydown",
+        function(e){
 
-        addChatMessage(
-            data.name,
-            data.text
-        );
-    }
-);
+            if(e.key==="Enter"){
 
-function addChatMessage(
-    name,
-    text
-) {
+                e.preventDefault();
+
+                sendChat();
+            }
+        }
+    );
+
+function addChat(name,text){
 
     const chat =
-        document.getElementById(
-            "chat"
-        );
+        document.getElementById("chat");
 
     const row =
-        document.createElement(
-            "div"
-        );
+        document.createElement("div");
 
     row.className =
         "chat-message";
 
-    row.innerHTML =
-        `<span class="chat-name">${escapeHTML(name)}:</span> ${escapeHTML(text)}`;
+    const nameSpan =
+        document.createElement("span");
+
+    nameSpan.className =
+        "chat-name";
+
+    nameSpan.innerText =
+        name+
+        ": ";
+
+    row.appendChild(
+        nameSpan
+    );
+
+    row.appendChild(
+        document.createTextNode(
+            text
+        )
+    );
 
     chat.appendChild(
         row
@@ -3442,102 +3056,186 @@ function addChatMessage(
         chat.scrollHeight;
 }
 
-function escapeHTML(text) {
-
-    const div =
-        document.createElement(
-            "div"
-        );
-
-    div.textContent =
-        String(text);
-
-    return div.innerHTML;
-}
-
 
 /* =====================================================
-   MICROPHONE
+   MICROPHONE / WEBRTC
 ===================================================== */
 
 let localStream = null;
+
 let micEnabled = false;
 
-const peerConnections = {};
-const pendingIceCandidates = {};
+const peers = {};
 
-const rtcConfig = {
+async function toggleMic(){
 
-    iceServers: [
+    if(!online){
 
-        {
-            urls:
-                "stun:stun.l.google.com:19302"
-        },
+        alert(
+            "Voice chat is available in Online mode."
+        );
 
-        {
-            urls:
-                "stun:stun1.l.google.com:19302"
+        return;
+    }
+
+    if(!navigator.mediaDevices){
+
+        alert(
+            "Microphone is not available in this browser."
+        );
+
+        return;
+    }
+
+    if(micEnabled){
+
+        if(localStream){
+
+            localStream
+                .getAudioTracks()
+                .forEach(
+                    function(track){
+                        track.enabled=false;
+                    }
+                );
         }
 
-    ]
+        micEnabled=false;
 
-};
+        document
+            .getElementById("micBtn")
+            .classList.remove("active");
 
+        document
+            .getElementById("voiceStatus")
+            .innerText =
+            "Mic off";
 
-/* =====================================================
-   CREATE PEER
-===================================================== */
+        return;
+    }
 
-function createPeer(
+    try{
+
+        localStream =
+            await navigator
+                .mediaDevices
+                .getUserMedia({
+                    audio:true
+                });
+
+        micEnabled=true;
+
+        document
+            .getElementById("micBtn")
+            .classList.add("active");
+
+        document
+            .getElementById("voiceStatus")
+            .innerText =
+            "Microphone ON";
+
+        createPeerConnections();
+
+    }catch(error){
+
+        console.log(
+            error
+        );
+
+        alert(
+            "Microphone permission was denied or unavailable. Allow microphone access for this site."
+        );
+    }
+}
+
+function createPeerConnections(){
+
+    if(
+        !online ||
+        myPlayerId===null ||
+        !players.length
+    ){
+        return;
+    }
+
+    players.forEach(
+        function(player){
+
+            const id =
+                Number(player.id);
+
+            if(
+                id===
+                Number(myPlayerId)
+            ){
+                return;
+            }
+
+            /*
+              Only the player with the smaller ID
+              creates the offer. This prevents
+              duplicate connections.
+            */
+
+            if(
+                Number(myPlayerId)<
+                id
+            ){
+
+                getPeer(
+                    id,
+                    true
+                );
+            }
+        }
+    );
+}
+
+function getPeer(
     remoteId,
-    shouldOffer
-) {
+    offer
+){
 
-    if (
-        peerConnections[remoteId]
-    ) {
-
-        return peerConnections[
-            remoteId
-        ];
+    if(
+        peers[remoteId]
+    ){
+        return peers[remoteId];
     }
 
     const pc =
-        new RTCPeerConnection(
-            rtcConfig
-        );
+        new RTCPeerConnection({
+            iceServers:[
+                {
+                    urls:
+                    "stun:stun.l.google.com:19302"
+                }
+            ]
+        });
 
-    peerConnections[
-        remoteId
-    ] = pc;
+    peers[remoteId]=pc;
 
-    pendingIceCandidates[
-        remoteId
-    ] = [];
-
-    if (localStream) {
+    if(localStream){
 
         localStream
             .getTracks()
             .forEach(
-                track => {
+                function(track){
 
                     pc.addTrack(
                         track,
                         localStream
                     );
-
                 }
             );
     }
 
     pc.onicecandidate =
-        event => {
+        function(event){
 
-            if (
-                event.candidate
-            ) {
+            if(
+                event.candidate &&
+                socket
+            ){
 
                 socket.emit(
                     "iceCandidate",
@@ -3553,14 +3251,14 @@ function createPeer(
         };
 
     pc.ontrack =
-        event => {
+        function(event){
 
             let audio =
                 document.getElementById(
-                    `remoteAudio-${remoteId}`
+                    "remoteAudio-"+remoteId
                 );
 
-            if (!audio) {
+            if(!audio){
 
                 audio =
                     document.createElement(
@@ -3568,13 +3266,9 @@ function createPeer(
                     );
 
                 audio.id =
-                    `remoteAudio-${remoteId}`;
+                    "remoteAudio-"+remoteId;
 
-                audio.autoplay =
-                    true;
-
-                audio.playsInline =
-                    true;
+                audio.autoplay=true;
 
                 document.body.appendChild(
                     audio
@@ -3583,20 +3277,34 @@ function createPeer(
 
             audio.srcObject =
                 event.streams[0];
-
-            audio.play().catch(
-                () => {}
-            );
         };
 
-    if (
-        shouldOffer
-    ) {
+    if(offer){
 
-        createOffer(
-            remoteId,
-            pc
-        );
+        pc.createOffer()
+            .then(
+                function(o){
+                    return pc.setLocalDescription(o);
+                }
+            )
+            .then(
+                function(){
+
+                    socket.emit(
+                        "voiceOffer",
+                        {
+                            to:
+                                remoteId,
+
+                            offer:
+                                pc.localDescription
+                        }
+                    );
+                }
+            )
+            .catch(
+                console.log
+            );
     }
 
     return pc;
@@ -3604,493 +3312,61 @@ function createPeer(
 
 
 /* =====================================================
-   CREATE PEERS
+   SETTINGS
 ===================================================== */
 
-function createPeerConnections() {
+function openSettings(){
 
-    if (
-        !online ||
-        myPlayerId === null
-    ) {
+    document
+        .getElementById("settings")
+        .classList.remove("hidden");
+}
 
-        return;
-    }
+function closeSettings(){
 
-    players.forEach(
-        player => {
+    document
+        .getElementById("settings")
+        .classList.add("hidden");
+}
 
-            const remoteId =
-                Number(
-                    player.id
-                );
+function toggleSound(){
 
-            if (
-                remoteId ===
-                Number(myPlayerId)
-            ) {
-                return;
-            }
+    soundEnabled =
+        !soundEnabled;
 
-            createPeer(
-                remoteId,
-                Number(myPlayerId) <
-                remoteId
-            );
-        }
-    );
+    document
+        .getElementById("soundBtn")
+        .innerText =
+        soundEnabled
+            ? "🔊 Sound: ON"
+            : "🔇 Sound: OFF";
 }
 
 
 /* =====================================================
-   OFFER
+   HELP
 ===================================================== */
 
-async function createOffer(
-    remoteId,
-    pc
-) {
+function openHelp(){
 
-    try {
+    document
+        .getElementById("help")
+        .classList.remove("hidden");
+}
 
-        const offer =
-            await pc.createOffer();
+function closeHelp(){
 
-        await pc.setLocalDescription(
-            offer
-        );
-
-        socket.emit(
-            "voiceOffer",
-            {
-                to:
-                    remoteId,
-
-                offer:
-                    pc.localDescription
-            }
-        );
-
-    } catch(error) {
-
-        console.error(
-            "Voice offer error:",
-            error
-        );
-    }
+    document
+        .getElementById("help")
+        .classList.add("hidden");
 }
 
 
 /* =====================================================
-   VOICE OFFER
+   INITIAL BOARD
 ===================================================== */
 
-socket.on(
-    "voiceOffer",
-    async data => {
-
-        const remoteId =
-            Number(
-                data.from
-            );
-
-        const pc =
-            createPeer(
-                remoteId,
-                false
-            );
-
-        try {
-
-            await pc.setRemoteDescription(
-                new RTCSessionDescription(
-                    data.offer
-                )
-            );
-
-            const pending =
-                pendingIceCandidates[
-                    remoteId
-                ] || [];
-
-            for (
-                const candidate of pending
-            ) {
-
-                try {
-
-                    await pc.addIceCandidate(
-                        candidate
-                    );
-
-                } catch(error) {}
-            }
-
-            pendingIceCandidates[
-                remoteId
-            ] = [];
-
-            const answer =
-                await pc.createAnswer();
-
-            await pc.setLocalDescription(
-                answer
-            );
-
-            socket.emit(
-                "voiceAnswer",
-                {
-                    to:
-                        remoteId,
-
-                    answer:
-                        pc.localDescription
-                }
-            );
-
-        } catch(error) {
-
-            console.error(
-                "Voice answer error:",
-                error
-            );
-        }
-    }
-);
-
-
-/* =====================================================
-   VOICE ANSWER
-===================================================== */
-
-socket.on(
-    "voiceAnswer",
-    async data => {
-
-        const remoteId =
-            Number(
-                data.from
-            );
-
-        const pc =
-            peerConnections[
-                remoteId
-            ];
-
-        if (!pc) {
-            return;
-        }
-
-        try {
-
-            await pc.setRemoteDescription(
-                new RTCSessionDescription(
-                    data.answer
-                )
-            );
-
-            const pending =
-                pendingIceCandidates[
-                    remoteId
-                ] || [];
-
-            for (
-                const candidate of pending
-            ) {
-
-                try {
-
-                    await pc.addIceCandidate(
-                        candidate
-                    );
-
-                } catch(error) {}
-            }
-
-            pendingIceCandidates[
-                remoteId
-            ] = [];
-
-        } catch(error) {
-
-            console.error(
-                "Voice answer error:",
-                error
-            );
-        }
-    }
-);
-
-
-/* =====================================================
-   ICE
-===================================================== */
-
-socket.on(
-    "iceCandidate",
-    async data => {
-
-        const remoteId =
-            Number(
-                data.from
-            );
-
-        const pc =
-            createPeer(
-                remoteId,
-                false
-            );
-
-        const candidate =
-            new RTCIceCandidate(
-                data.candidate
-            );
-
-        if (
-            pc.remoteDescription &&
-            pc.remoteDescription.type
-        ) {
-
-            try {
-
-                await pc.addIceCandidate(
-                    candidate
-                );
-
-            } catch(error) {
-
-                console.error(
-                    "ICE error:",
-                    error
-                );
-            }
-
-        } else {
-
-            if (
-                !pendingIceCandidates[
-                    remoteId
-                ]
-            ) {
-
-                pendingIceCandidates[
-                    remoteId
-                ] = [];
-            }
-
-            pendingIceCandidates[
-                remoteId
-            ].push(
-                candidate
-            );
-        }
-    }
-);
-
-
-/* =====================================================
-   MICROPHONE
-===================================================== */
-
-async function toggleMic() {
-
-    if (!online) {
-
-        alert(
-            "Microphone voice chat is available in Online Multiplayer."
-        );
-
-        return;
-    }
-
-    const mic =
-        document.getElementById(
-            "micBtn"
-        );
-
-    const voiceStatus =
-        document.getElementById(
-            "voiceStatus"
-        );
-
-    if (
-        micEnabled
-    ) {
-
-        if (
-            localStream
-        ) {
-
-            localStream
-                .getAudioTracks()
-                .forEach(
-                    track => {
-
-                        track.enabled =
-                            false;
-
-                    }
-                );
-        }
-
-        micEnabled =
-            false;
-
-        mic.classList.remove(
-            "active"
-        );
-
-        mic.innerText =
-            "🎤";
-
-        voiceStatus.innerText =
-            "Mic off";
-
-        return;
-    }
-
-    try {
-
-        if (
-            !navigator.mediaDevices ||
-            !navigator.mediaDevices.getUserMedia
-        ) {
-
-            throw new Error(
-                "Microphone API unavailable"
-            );
-        }
-
-        localStream =
-            await navigator.mediaDevices
-                .getUserMedia({
-
-                    audio: {
-
-                        echoCancellation:
-                            true,
-
-                        noiseSuppression:
-                            true,
-
-                        autoGainControl:
-                            true
-                    },
-
-                    video:
-                        false
-
-                });
-
-        Object.entries(
-            peerConnections
-        ).forEach(
-            ([remoteId,pc]) => {
-
-                localStream
-                    .getTracks()
-                    .forEach(
-                        track => {
-
-                            pc.addTrack(
-                                track,
-                                localStream
-                            );
-
-                        }
-                    );
-
-                if (
-                    Number(myPlayerId) <
-                    Number(remoteId)
-                ) {
-
-                    createOffer(
-                        Number(remoteId),
-                        pc
-                    );
-                }
-
-            }
-        );
-
-        createPeerConnections();
-
-        micEnabled =
-            true;
-
-        mic.classList.add(
-            "active"
-        );
-
-        mic.innerText =
-            "🔴";
-
-        voiceStatus.innerText =
-            "Microphone ON";
-
-    } catch(error) {
-
-        console.error(
-            "Microphone error:",
-            error
-        );
-
-        voiceStatus.innerText =
-            "Microphone unavailable";
-
-        alert(
-            "Microphone permission was not granted. Allow microphone access and use HTTPS or localhost."
-        );
-    }
-}
-
-
-/* =====================================================
-   CLEANUP
-===================================================== */
-
-window.addEventListener(
-    "beforeunload",
-    () => {
-
-        if (
-            localStream
-        ) {
-
-            localStream
-                .getTracks()
-                .forEach(
-                    track =>
-                        track.stop()
-                );
-        }
-
-        Object.values(
-            peerConnections
-        ).forEach(
-            pc =>
-                pc.close()
-        );
-    }
-);
-
-
-/* =====================================================
-   ERROR DISPLAY
-===================================================== */
-
-window.addEventListener(
-    "error",
-    event => {
-
-        console.error(
-            "Ludo Twist error:",
-            event.error ||
-            event.message
-        );
-    }
-);
+createBoard();
 
 </script>
 
