@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
 <meta charset="UTF-8">
 
 <meta
@@ -15,7 +13,6 @@
 <script src="/socket.io/socket.io.js"></script>
 
 <style>
-
 * {
     box-sizing: border-box;
 }
@@ -24,31 +21,20 @@ body {
     margin: 0;
     padding: 10px;
     min-height: 100vh;
-
-    font-family:
-        Arial,
-        "Segoe UI",
-        sans-serif;
-
-    background:
-        linear-gradient(
-            135deg,
-            #1e3c72,
-            #2a5298
-        );
-
+    font-family: Arial, "Segoe UI", sans-serif;
+    background: linear-gradient(135deg, #1e3c72, #2a5298);
     color: white;
 }
 
 button {
     font-family: inherit;
+    touch-action: manipulation;
 }
 
 .header {
     width: 100%;
     max-width: 430px;
     margin: 8px auto;
-
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -66,45 +52,33 @@ button {
 .action-btn {
     border: none;
     border-radius: 20px;
-
     padding: 8px 12px;
-
     color: white;
     background: #34495e;
-
     font-weight: bold;
 }
 
 .modal {
     position: fixed;
     inset: 0;
-
     z-index: 1000;
-
     display: flex;
-
     justify-content: center;
     align-items: center;
-
     background: rgba(0,0,0,.86);
 }
 
 .modal-box {
     width: 88%;
     max-width: 340px;
-
+    max-height: 90vh;
+    overflow-y: auto;
     background: white;
     color: #222;
-
     padding: 22px;
-
     border-radius: 16px;
-
     text-align: center;
-
-    box-shadow:
-        0 15px 40px
-        rgba(0,0,0,.5);
+    box-shadow: 0 15px 40px rgba(0,0,0,.5);
 }
 
 .modal-box h1,
@@ -114,21 +88,13 @@ button {
 
 .menu-btn {
     width: 100%;
-
     border: none;
-
     margin: 7px 0;
-
     padding: 13px;
-
     border-radius: 9px;
-
     color: white;
-
     font-size: 16px;
-
     font-weight: bold;
-
     background: #1e90ff;
 }
 
@@ -154,54 +120,34 @@ button {
 
 input {
     width: 100%;
-
     padding: 12px;
-
     border-radius: 7px;
-
     border: 1px solid #ccc;
-
     font-size: 16px;
-
     text-align: center;
-
     text-transform: uppercase;
 }
 
 #status {
     width: 100%;
     max-width: 430px;
-
     min-height: 30px;
-
     margin: 8px auto;
-
     padding: 7px 12px;
-
     background: rgba(255,255,255,.95);
-
     color: #222;
-
     border-radius: 20px;
-
     text-align: center;
-
     font-weight: bold;
 }
 
 #identity {
     display: none;
-
     width: fit-content;
-
     margin: 5px auto;
-
     padding: 5px 15px;
-
     border-radius: 20px;
-
     background: #2ecc71;
-
     font-weight: bold;
 }
 
@@ -209,50 +155,34 @@ input {
 
 #game {
     display: none;
-
     width: 100%;
     max-width: 430px;
-
     margin: auto;
 }
 
 .players {
     display: grid;
-
-    grid-template-columns:
-        1fr 1fr;
-
+    grid-template-columns: 1fr 1fr;
     gap: 8px;
-
     margin-bottom: 8px;
 }
 
 .player-panel {
     display: flex;
-
     align-items: center;
     justify-content: center;
-
     border: 3px solid transparent;
-
     border-radius: 9px;
-
     opacity: .5;
-
-    transition:
-        .25s;
+    transition: .25s;
+    min-height: 62px;
 }
 
 .player-panel.active {
     opacity: 1;
-
     border-color: #ffd700;
-
     transform: scale(1.03);
-
-    box-shadow:
-        0 0 12px
-        rgba(255,215,0,.5);
+    box-shadow: 0 0 12px rgba(255,215,0,.5);
 }
 
 .player-panel.won {
@@ -261,44 +191,32 @@ input {
 
 .player-name {
     padding: 8px;
-
     font-weight: bold;
-
     font-size: 13px;
 }
 
 .dice {
-    width: 50px;
+    width: 58px;
     height: 46px;
-
     border: none;
-
     border-radius: 8px;
-
     background: white;
-
     color: #222;
-
     font-size: 25px;
-
     font-weight: bold;
-
     cursor: pointer;
 }
 
 .dice.disabled {
     opacity: .4;
-
     pointer-events: none;
 }
 
 .dice-number {
-    animation:
-        dicePop .25s ease;
+    animation: dicePop .25s ease;
 }
 
 @keyframes dicePop {
-
     0% {
         transform: scale(.5) rotate(-15deg);
     }
@@ -316,156 +234,92 @@ input {
 
 .board {
     position: relative;
-
     display: grid;
-
-    grid-template-columns:
-        repeat(5,1fr);
-
+    grid-template-columns: repeat(5,1fr);
     gap: 4px;
-
     width: 100%;
-
     aspect-ratio: 1;
-
     padding: 6px;
-
     background: #263746;
-
     border-radius: 13px;
-
-    box-shadow:
-        0 12px 30px
-        rgba(0,0,0,.45);
+    box-shadow: 0 12px 30px rgba(0,0,0,.45);
 }
 
 .cell {
     position: relative;
-
     display: flex;
-
     justify-content: center;
     align-items: center;
-
     border-radius: 6px;
-
     background: #ecf0f1;
-
     color: #333;
-
     font-size: 11px;
-
     font-weight: bold;
+    overflow: hidden;
 }
 
 .blue {
-    background:
-        linear-gradient(
-            135deg,
-            #74b9ff,
-            #0984e3
-        );
+    background: linear-gradient(135deg,#74b9ff,#0984e3);
 }
 
 .red-cell {
-    background:
-        linear-gradient(
-            135deg,
-            #ff7675,
-            #d63031
-        );
+    background: linear-gradient(135deg,#ff7675,#d63031);
 }
 
 .green-cell {
-    background:
-        linear-gradient(
-            135deg,
-            #55efc4,
-            #00b894
-        );
+    background: linear-gradient(135deg,#55efc4,#00b894);
 }
 
 .yellow {
-    background:
-        linear-gradient(
-            135deg,
-            #ffeaa7,
-            #fdcb6e
-        );
+    background: linear-gradient(135deg,#ffeaa7,#fdcb6e);
 }
 
 .home {
-    background:
-        linear-gradient(
-            135deg,
-            #9b59b6,
-            #8e44ad
-        );
-
+    background: linear-gradient(135deg,#9b59b6,#8e44ad);
     color: white;
 }
 
 .pawn-layer {
     position: absolute;
-
     inset: 6px;
-
     display: grid;
-
-    grid-template-columns:
-        repeat(5,1fr);
-
-    grid-template-rows:
-        repeat(5,1fr);
-
+    grid-template-columns: repeat(5,1fr);
+    grid-template-rows: repeat(5,1fr);
     pointer-events: none;
-
     z-index: 10;
 }
 
 .pawn-slot {
     display: flex;
-
     align-items: center;
     justify-content: center;
-
     flex-wrap: wrap;
-
     gap: 3px;
-
     pointer-events: none;
+    min-width: 0;
+    min-height: 0;
 }
 
 .pawn {
-    width: 19px;
-    height: 19px;
-
+    width: 20px;
+    height: 20px;
+    flex: 0 0 auto;
     border-radius: 50%;
-
     border: 2px solid white;
-
-    box-shadow:
-        2px 3px 5px
-        rgba(0,0,0,.45);
-
+    box-shadow: 2px 3px 5px rgba(0,0,0,.45);
     pointer-events: auto;
-
-    transition:
-        transform .15s;
+    transition: transform .15s;
+    position: relative;
+    z-index: 20;
 }
 
 .pawn.clickable {
     cursor: pointer;
-
-    animation:
-        pawnPulse 1s infinite;
-
-    box-shadow:
-        0 0 10px 4px white;
+    animation: pawnPulse 1s infinite;
+    box-shadow: 0 0 10px 4px white;
 }
 
 @keyframes pawnPulse {
-
     0% {
         transform: scale(1);
     }
@@ -480,14 +334,12 @@ input {
 }
 
 .pawn-moving {
-    animation:
-        pawnMove .35s ease;
+    animation: pawnMove .3s ease;
 }
 
 @keyframes pawnMove {
-
     0% {
-        transform: scale(.8);
+        transform: scale(.75);
     }
 
     50% {
@@ -500,12 +352,10 @@ input {
 }
 
 .capture-effect {
-    animation:
-        capture .5s ease;
+    animation: capture .5s ease;
 }
 
 @keyframes capture {
-
     0% {
         transform: scale(1);
     }
@@ -523,45 +373,29 @@ input {
 
 #communication {
     display: none;
-
     width: 100%;
     max-width: 430px;
-
     margin: 10px auto;
-
     padding: 8px;
-
     border-radius: 10px;
-
-    background:
-        rgba(0,0,0,.3);
+    background: rgba(0,0,0,.3);
 }
 
 #chat {
     height: 100px;
-
     overflow-y: auto;
-
     padding: 6px;
-
     margin-bottom: 6px;
-
-    background:
-        rgba(255,255,255,.1);
-
+    background: rgba(255,255,255,.1);
     border-radius: 6px;
-
     font-size: 12px;
 }
 
 .chat-message {
     margin: 3px 0;
     padding: 4px 6px;
-
     border-radius: 5px;
-
-    background:
-        rgba(255,255,255,.12);
+    background: rgba(255,255,255,.12);
 }
 
 .chat-name {
@@ -570,33 +404,23 @@ input {
 
 .chat-row {
     display: flex;
-
     gap: 5px;
 }
 
 .chat-row input {
     flex: 1;
-
     text-align: left;
-
     text-transform: none;
-
     padding: 8px;
-
     font-size: 13px;
 }
 
 .chat-row button {
     border: none;
-
     border-radius: 5px;
-
     padding: 7px 10px;
-
     color: white;
-
     background: #e67e22;
-
     font-weight: bold;
 }
 
@@ -606,13 +430,10 @@ input {
 
 #micBtn.active {
     background: #c0392b;
-
-    animation:
-        micPulse 1s infinite;
+    animation: micPulse 1s infinite;
 }
 
 @keyframes micPulse {
-
     0% {
         transform: scale(1);
     }
@@ -628,18 +449,36 @@ input {
 
 #voiceStatus {
     text-align: center;
-
     font-size: 11px;
-
     margin-top: 4px;
-
     opacity: .8;
+}
+
+.room-code {
+    font-size: 25px;
+    font-weight: bold;
+    letter-spacing: 4px;
+    margin: 12px 0;
 }
 
 .hidden {
     display: none !important;
 }
 
+@media (max-width:360px) {
+    .pawn {
+        width: 17px;
+        height: 17px;
+    }
+
+    .player-name {
+        font-size: 11px;
+    }
+
+    .dice {
+        width: 50px;
+    }
+}
 </style>
 </head>
 
@@ -653,137 +492,83 @@ input {
 
         <h1>🎲 Ludo Twist</h1>
 
-        <button
-            class="menu-btn"
-            onclick="showLocalMenu()"
-        >
+        <button class="menu-btn" onclick="showLocalMenu()">
             Play Local
         </button>
 
-        <button
-            class="menu-btn green"
-            onclick="showOnlineMenu()"
-        >
+        <button class="menu-btn green" onclick="showOnlineMenu()">
             Play Online
         </button>
 
     </div>
 
-    <div
-        id="localMenu"
-        class="modal-box hidden"
-    >
+    <div id="localMenu" class="modal-box hidden">
 
         <h2>Local Game</h2>
 
-        <button
-            class="menu-btn"
-            onclick="startLocal(1)"
-        >
+        <button class="menu-btn" onclick="startLocal(1)">
             1 Player vs Bot
         </button>
 
-        <button
-            class="menu-btn"
-            onclick="startLocal(2)"
-        >
+        <button class="menu-btn" onclick="startLocal(2)">
             2 Players
         </button>
 
-        <button
-            class="menu-btn"
-            onclick="startLocal(3)"
-        >
+        <button class="menu-btn" onclick="startLocal(3)">
             3 Players
         </button>
 
-        <button
-            class="menu-btn"
-            onclick="startLocal(4)"
-        >
+        <button class="menu-btn" onclick="startLocal(4)">
             4 Players
         </button>
 
-        <button
-            class="menu-btn gray"
-            onclick="backMain()"
-        >
+        <button class="menu-btn gray" onclick="backMain()">
             Back
         </button>
 
     </div>
 
-    <div
-        id="onlineMenu"
-        class="modal-box hidden"
-    >
+    <div id="onlineMenu" class="modal-box hidden">
 
         <h2>Online Multiplayer</h2>
 
-        <button
-            class="menu-btn green"
-            onclick="startOnline(2)"
-        >
+        <button class="menu-btn green" onclick="startOnline(2)">
             Public 2 Players
         </button>
 
-        <button
-            class="menu-btn green"
-            onclick="startOnline(3)"
-        >
+        <button class="menu-btn green" onclick="startOnline(3)">
             Public 3 Players
         </button>
 
-        <button
-            class="menu-btn green"
-            onclick="startOnline(4)"
-        >
+        <button class="menu-btn green" onclick="startOnline(4)">
             Public 4 Players
         </button>
 
         <hr>
 
-        <button
-            class="menu-btn purple"
-            onclick="showPrivate()"
-        >
+        <button class="menu-btn purple" onclick="showPrivate()">
             Private Room
         </button>
 
-        <button
-            class="menu-btn gray"
-            onclick="backMain()"
-        >
+        <button class="menu-btn gray" onclick="backMain()">
             Back
         </button>
 
     </div>
 
-    <div
-        id="privateMenu"
-        class="modal-box hidden"
-    >
+    <div id="privateMenu" class="modal-box hidden">
 
         <h2>Private Room</h2>
 
-        <button
-            class="menu-btn green"
-            onclick="createPrivate(2)"
-        >
+        <button class="menu-btn green" onclick="createPrivate(2)">
             Create 2 Player Room
         </button>
 
-        <button
-            class="menu-btn green"
-            onclick="createPrivate(3)"
-        >
+        <button class="menu-btn green" onclick="createPrivate(3)">
             Create 3 Player Room
         </button>
 
-        <button
-            class="menu-btn green"
-            onclick="createPrivate(4)"
-        >
+        <button class="menu-btn green" onclick="createPrivate(4)">
             Create 4 Player Room
         </button>
 
@@ -792,19 +577,14 @@ input {
         <input
             id="roomCode"
             placeholder="ROOM CODE"
+            maxlength="6"
         >
 
-        <button
-            class="menu-btn purple"
-            onclick="joinPrivate()"
-        >
+        <button class="menu-btn purple" onclick="joinPrivate()">
             Join Room
         </button>
 
-        <button
-            class="menu-btn gray"
-            onclick="showOnlineMenu()"
-        >
+        <button class="menu-btn gray" onclick="showOnlineMenu()">
             Back
         </button>
 
@@ -814,10 +594,7 @@ input {
 
 <!-- SETTINGS -->
 
-<div
-    id="settings"
-    class="modal hidden"
->
+<div id="settings" class="modal hidden">
 
     <div class="modal-box">
 
@@ -844,10 +621,7 @@ input {
 
 <!-- HELP -->
 
-<div
-    id="help"
-    class="modal hidden"
->
+<div id="help" class="modal hidden">
 
     <div class="modal-box">
 
@@ -855,18 +629,15 @@ input {
 
         <p>🎲 Roll the dice on your turn.</p>
 
-        <p>4 and 8 give an extra roll.</p>
+        <p>🎲 4 and 8 give an extra roll.</p>
 
-        <p>Capture an opponent for an extra turn.</p>
+        <p>⚔️ Capture an opponent for an extra turn.</p>
 
-        <p>Reach HOME to progress.</p>
+        <p>🏠 Reaching HOME gives an extra turn.</p>
 
-        <p>Move all four pawns HOME to finish.</p>
+        <p>🏆 Move all four pawns HOME to finish.</p>
 
-        <button
-            class="menu-btn red"
-            onclick="closeHelp()"
-        >
+        <button class="menu-btn red" onclick="closeHelp()">
             Close
         </button>
 
@@ -882,17 +653,11 @@ input {
 
     <div class="header-buttons">
 
-        <button
-            class="action-btn"
-            onclick="openSettings()"
-        >
+        <button class="action-btn" onclick="openSettings()">
             ⚙️
         </button>
 
-        <button
-            class="action-btn"
-            onclick="openHelp()"
-        >
+        <button class="action-btn" onclick="openHelp()">
             ❓
         </button>
 
@@ -912,10 +677,8 @@ input {
 
     <div class="players">
 
-        <div
-            class="player-panel"
-            id="panel-0"
-        >
+        <div class="player-panel" id="panel-0">
+
             <div
                 class="player-name"
                 style="color:#0984e3"
@@ -931,12 +694,11 @@ input {
             >
                 🎲
             </button>
+
         </div>
 
-        <div
-            class="player-panel"
-            id="panel-1"
-        >
+        <div class="player-panel" id="panel-1">
+
             <div
                 class="player-name"
                 style="color:#d63031"
@@ -952,12 +714,11 @@ input {
             >
                 🎲
             </button>
+
         </div>
 
-        <div
-            class="player-panel"
-            id="panel-2"
-        >
+        <div class="player-panel" id="panel-2">
+
             <div
                 class="player-name"
                 style="color:#00b894"
@@ -973,12 +734,11 @@ input {
             >
                 🎲
             </button>
+
         </div>
 
-        <div
-            class="player-panel"
-            id="panel-3"
-        >
+        <div class="player-panel" id="panel-3">
+
             <div
                 class="player-name"
                 style="color:#ffa502"
@@ -994,25 +754,18 @@ input {
             >
                 🎲
             </button>
+
         </div>
 
     </div>
 
-    <div
-        id="board"
-        class="board"
-    >
-
-        <div
-            id="pawnLayer"
-            class="pawn-layer"
-        ></div>
-
+    <div id="board" class="board">
+        <div id="pawnLayer" class="pawn-layer"></div>
     </div>
 
 </div>
 
-<!-- CHAT / MIC -->
+<!-- COMMUNICATION -->
 
 <div id="communication">
 
@@ -1023,22 +776,14 @@ input {
         <input
             id="chatInput"
             placeholder="Type message..."
-            onkeydown="
-                if(event.key === 'Enter')
-                    sendChat()
-            "
+            maxlength="300"
         >
 
-        <button
-            onclick="sendChat()"
-        >
+        <button onclick="sendChat()">
             Send
         </button>
 
-        <button
-            id="micBtn"
-            onclick="toggleMic()"
-        >
+        <button id="micBtn" onclick="toggleMic()">
             🎤
         </button>
 
@@ -1083,7 +828,6 @@ const playerInfo = [
         id: 0,
         name: "Blue",
         color: "#1e90ff",
-
         path: [
             10,15,20,21,22,
             23,24,19,14,9,
@@ -1097,7 +841,6 @@ const playerInfo = [
         id: 1,
         name: "Red",
         color: "#ff4757",
-
         path: [
             2,1,0,5,10,
             15,20,21,22,23,
@@ -1111,7 +854,6 @@ const playerInfo = [
         id: 2,
         name: "Green",
         color: "#2ed573",
-
         path: [
             14,9,4,3,2,
             1,0,5,10,15,
@@ -1125,7 +867,6 @@ const playerInfo = [
         id: 3,
         name: "Yellow",
         color: "#ffa502",
-
         path: [
             22,23,24,19,14,
             9,4,3,2,1,
@@ -1138,26 +879,25 @@ const playerInfo = [
 ];
 
 let online = false;
-
 let myPlayerId = null;
-
 let players = [];
-
 let activeIndex = 0;
-
 let activeRolls = [];
-
 let canRoll = false;
-
 let soundEnabled = true;
-
 let localBotTimer = null;
 
-let lastMovingPawn = null;
+let diceValues = [null,null,null,null];
+
+let gameFinished = false;
+
+let animationToken = 0;
+
+const visualSteps = {};
 
 
 /* =====================================================
-   SOUND ENGINE
+   AUDIO
 ===================================================== */
 
 let audioContext = null;
@@ -1169,24 +909,20 @@ function getAudio() {
     try {
 
         if (!audioContext) {
+
             audioContext =
                 new (
                     window.AudioContext ||
                     window.webkitAudioContext
                 )();
-        }
 
-        if (
-            audioContext.state ===
-            "suspended"
-        ) {
+        if (audioContext.state === "suspended") {
             audioContext.resume();
         }
 
         return audioContext;
 
-    } catch(e) {
-
+    } catch (e) {
         return null;
     }
 }
@@ -1201,16 +937,11 @@ function beep(
 
     if (!ctx) return;
 
-    const osc =
-        ctx.createOscillator();
-
-    const gain =
-        ctx.createGain();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
 
     osc.type = type;
-
-    osc.frequency.value =
-        frequency;
+    osc.frequency.value = frequency;
 
     gain.gain.setValueAtTime(
         .0001,
@@ -1231,7 +962,6 @@ function beep(
     gain.connect(ctx.destination);
 
     osc.start();
-
     osc.stop(
         ctx.currentTime + duration + .02
     );
@@ -1290,9 +1020,9 @@ function captureSound() {
 function hideMenus() {
 
     document
-        .querySelectorAll(".modal-box")
-        .forEach(box =>
-            box.classList.add("hidden")
+        .querySelectorAll("#setup .modal-box")
+        .forEach(
+            box => box.classList.add("hidden")
         );
 }
 
@@ -1353,8 +1083,7 @@ function closeSettings() {
 
 function toggleSound() {
 
-    soundEnabled =
-        !soundEnabled;
+    soundEnabled = !soundEnabled;
 
     document
         .getElementById("soundBtn")
@@ -1395,28 +1124,19 @@ function createBoard() {
 
     board
         .querySelectorAll(".cell")
-        .forEach(
-            c => c.remove()
-        );
+        .forEach(c => c.remove());
 
-    for (
-        let i = 0;
-        i < TOTAL;
-        i++
-    ) {
+    for (let i = 0; i < TOTAL; i++) {
 
         const cell =
             document.createElement("div");
 
-        cell.className =
-            "cell";
+        cell.className = "cell";
 
         if (i === HOME) {
 
             cell.classList.add("home");
-
-            cell.innerText =
-                "HOME";
+            cell.innerText = "HOME";
 
         } else if (i === 10) {
 
@@ -1446,47 +1166,60 @@ function createBoard() {
             arrow.innerText =
                 boardArrows[i];
 
-            arrow.style.opacity =
-                ".25";
-
-            arrow.style.fontSize =
-                "24px";
+            arrow.style.opacity = ".25";
+            arrow.style.fontSize = "24px";
 
             cell.appendChild(arrow);
         }
 
         board.insertBefore(
             cell,
-            document.getElementById(
-                "pawnLayer"
-            )
+            document.getElementById("pawnLayer")
         );
     }
 
     const layer =
-        document.getElementById(
-            "pawnLayer"
-        );
+        document.getElementById("pawnLayer");
 
     layer.innerHTML = "";
 
-    for (
-        let i = 0;
-        i < TOTAL;
-        i++
-    ) {
+    for (let i = 0; i < TOTAL; i++) {
 
         const slot =
             document.createElement("div");
 
-        slot.className =
-            "pawn-slot";
-
-        slot.id =
-            `slot-${i}`;
+        slot.className = "pawn-slot";
+        slot.id = `slot-${i}`;
 
         layer.appendChild(slot);
     }
+}
+
+
+/* =====================================================
+   RESET GAME
+===================================================== */
+
+function resetClientState() {
+
+    players = [];
+    activeIndex = 0;
+    activeRolls = [];
+    canRoll = false;
+
+    diceValues = [null,null,null,null];
+
+    gameFinished = false;
+
+    animationToken++;
+
+    for (const key of Object.keys(visualSteps)) {
+        delete visualSteps[key];
+    }
+
+    clearTimeout(localBotTimer);
+
+    document.getElementById("chat").innerHTML = "";
 }
 
 
@@ -1497,10 +1230,9 @@ function createBoard() {
 function startLocal(count) {
 
     online = false;
-
     myPlayerId = 0;
 
-    clearTimeout(localBotTimer);
+    resetClientState();
 
     document
         .getElementById("setup")
@@ -1512,7 +1244,7 @@ function startLocal(count) {
 
     document
         .getElementById("communication")
-        .style.display = "block";
+        .style.display = "none";
 
     document
         .getElementById("identity")
@@ -1522,23 +1254,14 @@ function startLocal(count) {
         playerInfo
             .slice(
                 0,
-                count === 1
-                    ? 1
-                    : count
+                count === 1 ? 1 : count
             )
             .map(p => ({
                 ...p,
-
-                pawns: [
-                    0,0,0,0
-                ],
-
+                pawns: [0,0,0,0],
                 hasKilled: false,
-
                 hasWon: false,
-
                 winRank: 0,
-
                 isBot: false
             }));
 
@@ -1548,12 +1271,9 @@ function startLocal(count) {
 
             ...playerInfo[2],
 
-            name:
-                "Green (Bot)",
+            name: "Green (Bot)",
 
-            pawns: [
-                0,0,0,0
-            ],
+            pawns: [0,0,0,0],
 
             hasKilled: false,
 
@@ -1566,25 +1286,19 @@ function startLocal(count) {
     }
 
     activeIndex = 0;
-
     activeRolls = [];
-
     canRoll = true;
 
     document
         .getElementById("identity")
-        .innerText =
-        "You are Blue";
+        .innerText = "You are Blue";
 
     document
         .getElementById("status")
-        .innerText =
-        "Blue's turn.";
+        .innerText = "Blue's turn.";
 
     createBoard();
-
     updatePlayerPanels();
-
     render();
 }
 
@@ -1596,8 +1310,9 @@ function startLocal(count) {
 function startOnline(count) {
 
     online = true;
-
     myPlayerId = null;
+
+    resetClientState();
 
     document
         .getElementById("setup")
@@ -1617,30 +1332,28 @@ function startOnline(count) {
 
     document
         .getElementById("identity")
-        .innerText =
-        "Connecting...";
+        .innerText = "Connecting...";
 
     document
         .getElementById("status")
-        .innerText =
-        "Finding players...";
+        .innerText = "Finding players...";
 
     createBoard();
 
-    socket.emit(
-        "joinGame",
-        count
-    );
+    socket.emit("joinGame", count);
 }
 
 
 /* =====================================================
-   PRIVATE
+   PRIVATE ROOM
 ===================================================== */
 
 function createPrivate(count) {
 
     online = true;
+    myPlayerId = null;
+
+    resetClientState();
 
     document
         .getElementById("setup")
@@ -1660,8 +1373,7 @@ function createPrivate(count) {
 
     document
         .getElementById("identity")
-        .innerText =
-        "Creating room...";
+        .innerText = "Creating room...";
 
     createBoard();
 
@@ -1682,14 +1394,14 @@ function joinPrivate() {
 
     if (!code) {
 
-        alert(
-            "Enter a room code."
-        );
-
+        alert("Enter a room code.");
         return;
     }
 
     online = true;
+    myPlayerId = null;
+
+    resetClientState();
 
     document
         .getElementById("setup")
@@ -1709,8 +1421,7 @@ function joinPrivate() {
 
     document
         .getElementById("identity")
-        .innerText =
-        "Joining room...";
+        .innerText = "Joining room...";
 
     createBoard();
 
@@ -1722,7 +1433,7 @@ function joinPrivate() {
 
 
 /* =====================================================
-   SOCKET ASSIGN PLAYER
+   ASSIGN PLAYER
 ===================================================== */
 
 socket.on(
@@ -1737,7 +1448,7 @@ socket.on(
             .innerText =
             `You are ${data.playerName}`;
 
-        createPeerConnections();
+        updateDiceButtons();
     }
 );
 
@@ -1776,12 +1487,6 @@ socket.on(
     "statusMessage",
     message => {
 
-        /*
-        IMPORTANT:
-        Server messages go ONLY into status.
-        They are NOT added to chat.
-        */
-
         document
             .getElementById("status")
             .innerText =
@@ -1802,16 +1507,29 @@ socket.on(
             state.players || [];
 
         activeIndex =
-            state.activeIndex;
+            Number.isInteger(state.activeIndex)
+                ? state.activeIndex
+                : 0;
 
         activeRolls =
-            state.activeRolls || [];
+            Array.isArray(state.activeRolls)
+                ? state.activeRolls
+                : [];
 
         canRoll =
-            state.canRoll;
+            Boolean(state.canRoll);
+
+        if (Array.isArray(state.diceValues)) {
+
+            diceValues =
+                state.diceValues.slice(0,4);
+
+            while (diceValues.length < 4) {
+                diceValues.push(null);
+            }
+        }
 
         updatePlayerPanels();
-
         render();
 
         if (
@@ -1830,30 +1548,27 @@ socket.on(
 
 function roll(playerId) {
 
+    if (gameFinished) return;
+
     if (online) {
 
-        if (
-            playerId !== myPlayerId
-        ) {
+        if (Number(playerId) !== Number(myPlayerId)) {
             return;
         }
 
-        socket.emit(
-            "requestRoll"
-        );
+        socket.emit("requestRoll");
 
         return;
     }
 
-    if (
-        playerId !== myPlayerId
-    ) {
+    if (playerId !== myPlayerId) {
         return;
     }
 
     if (
-        activeIndex !== 0 ||
-        !canRoll
+        activeIndex !== myPlayerId ||
+        !canRoll ||
+        activeRolls.length !== 0
     ) {
         return;
     }
@@ -1861,7 +1576,7 @@ function roll(playerId) {
     localRoll();
 }
 
-function localRoll() {
+function getRandomRoll() {
 
     const values = [
         1,1,
@@ -1871,27 +1586,33 @@ function localRoll() {
         8
     ];
 
-    const value =
-        values[
-            Math.floor(
-                Math.random() *
-                values.length
-            )
-        ];
+    return values[
+        Math.floor(
+            Math.random() * values.length
+        )
+    ];
+}
+
+function localRoll() {
+
+    const player =
+        players[activeIndex];
+
+    if (!player) return;
+
+    const value = getRandomRoll();
 
     diceSound();
+
+    diceValues[player.id] = value;
 
     activeRolls.push(value);
 
     canRoll = false;
 
-    const player =
-        players[activeIndex];
-
-    if (!hasLocalValidMove(
-        player,
-        value
-    )) {
+    if (
+        !hasValidMove(player,value)
+    ) {
 
         activeRolls = [];
 
@@ -1907,19 +1628,26 @@ function localRoll() {
                 .innerText =
                 `${player.name} rolled ${value}. Extra roll!`;
 
-        } else {
+            render();
 
-            document
-                .getElementById("status")
-                .innerText =
-                `${player.name} has no valid move.`;
-
-            nextLocalTurn();
+            return;
         }
+
+        document
+            .getElementById("status")
+            .innerText =
+            `${player.name} rolled ${value}. No valid move.`;
 
         render();
 
-        botTurn();
+        setTimeout(
+            () => {
+                nextLocalTurn();
+                render();
+                botTurn();
+            },
+            500
+        );
 
         return;
     }
@@ -1932,42 +1660,53 @@ function localRoll() {
     render();
 }
 
-function hasLocalValidMove(
-    player,
-    rollValue
-) {
 
-    const max =
-        player.hasKilled
-            ? 24
-            : 15;
+/* =====================================================
+   VALID MOVE
+===================================================== */
+
+function hasValidMove(player, rollValue) {
+
+    if (!player) return false;
 
     return player.pawns.some(
         step =>
-            step + rollValue <= max
+            step + rollValue <= 24
     );
 }
 
 
 /* =====================================================
-   SOCKET DICE
+   SERVER DICE
 ===================================================== */
 
 socket.on(
     "diceRolled",
     data => {
 
+        const playerId =
+            Number(data.playerId);
+
+        const value =
+            Number(data.value);
+
+        if (
+            playerId >= 0 &&
+            playerId < 4
+        ) {
+            diceValues[playerId] = value;
+        }
+
         diceSound();
 
         const dice =
             document.getElementById(
-                `dice-${data.playerId}`
+                `dice-${playerId}`
             );
 
         if (!dice) return;
 
-        dice.innerText =
-            data.value;
+        dice.innerText = value;
 
         dice.classList.remove(
             "dice-number"
@@ -1983,7 +1722,7 @@ socket.on(
 
 
 /* =====================================================
-   MOVE
+   MOVE REQUEST
 ===================================================== */
 
 function movePawn(
@@ -1991,13 +1730,18 @@ function movePawn(
     pawnIndex
 ) {
 
+    if (gameFinished) return;
+
     if (online) {
 
         socket.emit(
             "requestMove",
             {
-                playerId,
-                pawnIndex
+                playerId:
+                    Number(playerId),
+
+                pawnIndex:
+                    Number(pawnIndex)
             }
         );
 
@@ -2005,22 +1749,74 @@ function movePawn(
     }
 
     if (
-        playerId !== 0 ||
-        activeIndex !== 0
-    ) {
-        return;
-    }
-
-    if (
+        Number(playerId) !== Number(myPlayerId) ||
+        activeIndex !== myPlayerId ||
         activeRolls.length === 0
     ) {
         return;
     }
 
     performLocalMove(
-        playerId,
-        pawnIndex
+        Number(playerId),
+        Number(pawnIndex)
     );
+}
+
+
+/* =====================================================
+   ANIMATION
+===================================================== */
+
+function sleep(ms) {
+
+    return new Promise(
+        resolve => setTimeout(resolve,ms)
+    );
+}
+
+async function animatePawn(
+    playerId,
+    pawnIndex,
+    fromStep,
+    toStep
+) {
+
+    const key =
+        `${playerId}-${pawnIndex}`;
+
+    const token = ++animationToken;
+
+    if (fromStep === toStep) {
+        return;
+    }
+
+    const direction =
+        toStep >= fromStep ? 1 : -1;
+
+    for (
+        let step = fromStep + direction;
+        direction > 0
+            ? step <= toStep
+            : step >= toStep;
+        step += direction
+    ) {
+
+        if (token !== animationToken) {
+            return;
+        }
+
+        visualSteps[key] = step;
+
+        render();
+
+        moveSound();
+
+        await sleep(180);
+    }
+
+    delete visualSteps[key];
+
+    render();
 }
 
 
@@ -2028,28 +1824,28 @@ function movePawn(
    LOCAL MOVE
 ===================================================== */
 
-function performLocalMove(
+async function performLocalMove(
     playerId,
     pawnIndex
 ) {
 
     const player =
-        players[playerId];
+        players.find(
+            p => Number(p.id) === Number(playerId)
+        );
+
+    if (!player) return;
 
     const rollValue =
         activeRolls[0];
 
-    const oldStep =
-        player.pawns[pawnIndex];
+    if (!rollValue) return;
 
-    const max =
-        player.hasKilled
-            ? 24
-            : 15;
+    const oldStep =
+        Number(player.pawns[pawnIndex]);
 
     if (
-        oldStep + rollValue >
-        max
+        oldStep + rollValue > 24
     ) {
         return;
     }
@@ -2062,12 +1858,19 @@ function performLocalMove(
     player.pawns[pawnIndex] =
         newStep;
 
-    lastMovingPawn = {
-        playerId,
-        pawnIndex
-    };
+    const key =
+        `${playerId}-${pawnIndex}`;
 
-    moveSound();
+    visualSteps[key] = oldStep;
+
+    render();
+
+    await animatePawn(
+        playerId,
+        pawnIndex,
+        oldStep,
+        newStep
+    );
 
     let extraTurn = false;
 
@@ -2085,12 +1888,20 @@ function performLocalMove(
 
             player.hasWon = true;
 
+            const winners =
+                players.filter(
+                    p => p.hasWon
+                ).length;
+
+            player.winRank =
+                winners;
+
+            homeSound();
+
             document
                 .getElementById("status")
                 .innerText =
-                `${player.name} finished!`;
-
-            homeSound();
+                `${player.name} finished #${player.winRank}!`;
 
         } else {
 
@@ -2109,15 +1920,15 @@ function performLocalMove(
         [2,10,14,22,12];
 
     if (
-        !safeCells.includes(targetCell)
+        !safeCells.includes(targetCell) &&
+        newStep < 24
     ) {
 
         players.forEach(
             opponent => {
 
                 if (
-                    opponent.id ===
-                    player.id ||
+                    opponent.id === player.id ||
                     opponent.hasWon
                 ) {
                     return;
@@ -2128,10 +1939,8 @@ function performLocalMove(
 
                         if (
                             step < 24 &&
-                            playerInfo[
-                                opponent.id
-                            ].path[step] ===
-                            targetCell
+                            playerInfo[opponent.id]
+                                .path[step] === targetCell
                         ) {
 
                             opponent.pawns[index] = 0;
@@ -2148,25 +1957,29 @@ function performLocalMove(
         );
     }
 
-    if (
-        player.hasWon
-    ) {
+    if (player.hasWon) {
 
         const remaining =
             players.filter(
                 p => !p.hasWon
             );
 
-        if (
-            remaining.length <= 1
-        ) {
+        if (remaining.length <= 1) {
+
+            gameFinished = true;
 
             canRoll = false;
 
+            activeRolls = [];
+
             render();
 
-            alert(
-                `${player.name} wins!`
+            setTimeout(
+                () =>
+                    alert(
+                        `${player.name} wins!`
+                    ),
+                100
             );
 
             return;
@@ -2174,11 +1987,11 @@ function performLocalMove(
 
         nextLocalTurn();
 
-    } else if (
-        extraTurn
-    ) {
+    } else if (extraTurn) {
 
         canRoll = true;
+
+        activeRolls = [];
 
     } else {
 
@@ -2198,7 +2011,6 @@ function performLocalMove(
 function nextLocalTurn() {
 
     activeRolls = [];
-
     canRoll = true;
 
     if (!players.length) {
@@ -2221,18 +2033,23 @@ function nextLocalTurn() {
         if (
             !players[next].hasWon
         ) {
+
             activeIndex = next;
+
             break;
         }
     }
 
-    const p =
+    const player =
         players[activeIndex];
 
-    document
-        .getElementById("status")
-        .innerText =
-        `${p.name}'s turn.`;
+    if (player) {
+
+        document
+            .getElementById("status")
+            .innerText =
+            `${player.name}'s turn.`;
+    }
 }
 
 
@@ -2242,16 +2059,16 @@ function nextLocalTurn() {
 
 function botTurn() {
 
-    clearTimeout(
-        localBotTimer
-    );
+    clearTimeout(localBotTimer);
 
-    if (online) return;
+    if (online || gameFinished) {
+        return;
+    }
 
-    if (
-        !players[activeIndex] ||
-        !players[activeIndex].isBot
-    ) {
+    const bot =
+        players[activeIndex];
+
+    if (!bot || !bot.isBot) {
         return;
     }
 
@@ -2277,36 +2094,24 @@ function botTurn() {
 
 function localBotRoll() {
 
-    const values = [
-        1,1,
-        2,2,
-        3,3,
-        4,
-        8
-    ];
+    const bot =
+        players[activeIndex];
+
+    if (!bot || !bot.isBot) return;
 
     const value =
-        values[
-            Math.floor(
-                Math.random() *
-                values.length
-            )
-        ];
+        getRandomRoll();
 
     diceSound();
+
+    diceValues[bot.id] = value;
 
     activeRolls.push(value);
 
     canRoll = false;
 
-    const bot =
-        players[activeIndex];
-
     if (
-        !hasLocalValidMove(
-            bot,
-            value
-        )
+        !hasValidMove(bot,value)
     ) {
 
         activeRolls = [];
@@ -2334,11 +2139,20 @@ function localBotRoll() {
                 .innerText =
                 `${bot.name} has no valid move.`;
 
-            nextLocalTurn();
-
             render();
 
-            botTurn();
+            setTimeout(
+                () => {
+
+                    nextLocalTurn();
+
+                    render();
+
+                    botTurn();
+
+                },
+                500
+            );
         }
 
         return;
@@ -2359,23 +2173,25 @@ function localBotMove() {
     const bot =
         players[activeIndex];
 
+    if (!bot || !bot.isBot) {
+        return;
+    }
+
     const rollValue =
         activeRolls[0];
 
-    let possible = [];
+    if (!rollValue) {
+        return;
+    }
+
+    const possible = [];
 
     bot.pawns.forEach(
         (step,index) => {
 
-            const max =
-                bot.hasKilled
-                    ? 24
-                    : 15;
-
             if (
-                step + rollValue <= max
+                step + rollValue <= 24
             ) {
-
                 possible.push(index);
             }
         }
@@ -2384,21 +2200,36 @@ function localBotMove() {
     if (!possible.length) {
 
         nextLocalTurn();
-
         render();
-
         botTurn();
 
         return;
     }
 
-    const chosen =
-        possible[
-            Math.floor(
-                Math.random() *
-                possible.length
-            )
-        ];
+    /*
+    Prefer a pawn that can reach HOME.
+    Otherwise prefer the pawn furthest ahead.
+    */
+
+    let chosen =
+        possible.find(
+            index =>
+                bot.pawns[index] +
+                rollValue === 24
+        );
+
+    if (chosen === undefined) {
+
+        chosen =
+            possible.reduce(
+                (best,index) =>
+                    bot.pawns[index] >
+                    bot.pawns[best]
+                        ? index
+                        : best,
+                possible[0]
+            );
+    }
 
     performLocalMove(
         bot.id,
@@ -2408,34 +2239,56 @@ function localBotMove() {
 
 
 /* =====================================================
-   MOVE RESULT FROM SERVER
+   SERVER MOVE RESULT
 ===================================================== */
 
 socket.on(
     "moveResult",
-    data => {
+    async data => {
+
+        const playerId =
+            Number(data.playerId);
+
+        const pawnIndex =
+            Number(data.pawnIndex);
+
+        const from =
+            Number(data.from);
+
+        const to =
+            Number(data.to);
 
         moveSound();
 
-        lastMovingPawn = {
-            playerId: data.playerId,
-            pawnIndex: data.pawnIndex
-        };
+        await animatePawn(
+            playerId,
+            pawnIndex,
+            from,
+            to
+        );
 
-        render();
-
-        if (
-            data.to === 24
-        ) {
+        if (to === 24) {
             homeSound();
         }
 
         if (
-            data.captured &&
+            Array.isArray(data.captured) &&
             data.captured.length
         ) {
+
             captureSound();
+
+            data.captured.forEach(
+                captured => {
+
+                    delete visualSteps[
+                        `${captured.playerId}-${captured.pawnIndex}`
+                    ];
+                }
+            );
         }
+
+        render();
     }
 );
 
@@ -2462,24 +2315,29 @@ function render() {
     players.forEach(
         player => {
 
+            if (!playerInfo[player.id]) {
+                return;
+            }
+
             player.pawns.forEach(
-                (step,pawnIndex) => {
+                (storedStep,pawnIndex) => {
 
-                    if (
-                        step === 0
-                    ) {
-                        /*
-                        Starting position.
-                        Pawns are placed on cell 10/2/14/22
-                        depending on player.
-                        */
+                    const key =
+                        `${player.id}-${pawnIndex}`;
 
-                    }
+                    const step =
+                        Object.prototype
+                            .hasOwnProperty
+                            .call(
+                                visualSteps,
+                                key
+                            )
+                            ? visualSteps[key]
+                            : storedStep;
 
                     const cell =
-                        playerInfo[
-                            player.id
-                        ].path[step];
+                        playerInfo[player.id]
+                            .path[step];
 
                     const slot =
                         document.getElementById(
@@ -2493,8 +2351,7 @@ function render() {
                             "div"
                         );
 
-                    pawn.className =
-                        "pawn";
+                    pawn.className = "pawn";
 
                     pawn.style.background =
                         player.color;
@@ -2503,22 +2360,20 @@ function render() {
                         `${player.name} Pawn ${pawnIndex + 1}`;
 
                     if (
-                        player.id === myPlayerId &&
-                        player.id === activeIndex &&
+                        Number(player.id) ===
+                            Number(myPlayerId) &&
+                        Number(player.id) ===
+                            Number(activeIndex) &&
                         activeRolls.length > 0 &&
-                        !player.isBot
+                        !player.isBot &&
+                        !gameFinished
                     ) {
 
                         const rollValue =
                             activeRolls[0];
 
-                        const max =
-                            player.hasKilled
-                                ? 24
-                                : 15;
-
                         if (
-                            step + rollValue <= max
+                            step + rollValue <= 24
                         ) {
 
                             pawn.classList.add(
@@ -2535,11 +2390,7 @@ function render() {
                     }
 
                     if (
-                        lastMovingPawn &&
-                        lastMovingPawn.playerId ===
-                            player.id &&
-                        lastMovingPawn.pawnIndex ===
-                            pawnIndex
+                        visualSteps[key] !== undefined
                     ) {
 
                         pawn.classList.add(
@@ -2547,9 +2398,7 @@ function render() {
                         );
                     }
 
-                    slot.appendChild(
-                        pawn
-                    );
+                    slot.appendChild(pawn);
                 }
             );
         }
@@ -2565,11 +2414,7 @@ function render() {
 
 function updatePlayerPanels() {
 
-    for (
-        let i = 0;
-        i < 4;
-        i++
-    ) {
+    for (let i = 0; i < 4; i++) {
 
         const panel =
             document.getElementById(
@@ -2591,9 +2436,7 @@ function updatePlayerPanels() {
             "won"
         );
 
-        if (
-            !players[i]
-        ) {
+        if (!players[i]) {
 
             panel.style.display =
                 "none";
@@ -2610,22 +2453,30 @@ function updatePlayerPanels() {
         if (
             players[i].hasWon
         ) {
+
             panel.classList.add(
                 "won"
             );
         }
 
         if (
-            players[i].id ===
-            activeIndex
+            Number(players[i].id) ===
+            Number(activeIndex)
         ) {
+
             panel.classList.add(
                 "active"
             );
         }
 
+        const value =
+            diceValues[players[i].id];
+
         dice.innerText =
-            "🎲";
+            value === null ||
+            value === undefined
+                ? "🎲"
+                : String(value);
     }
 }
 
@@ -2636,11 +2487,7 @@ function updatePlayerPanels() {
 
 function updateDiceButtons() {
 
-    for (
-        let i = 0;
-        i < 4;
-        i++
-    ) {
+    for (let i = 0; i < 4; i++) {
 
         const dice =
             document.getElementById(
@@ -2657,12 +2504,13 @@ function updateDiceButtons() {
         }
 
         const allowed =
-            players[i].id ===
-                myPlayerId &&
-            players[i].id ===
-                activeIndex &&
+            Number(players[i].id) ===
+                Number(myPlayerId) &&
+            Number(players[i].id) ===
+                Number(activeIndex) &&
             canRoll &&
-            activeRolls.length === 0;
+            activeRolls.length === 0 &&
+            !gameFinished;
 
         if (allowed) {
 
@@ -2686,6 +2534,10 @@ function updateDiceButtons() {
 
 function sendChat() {
 
+    if (!online) {
+        return;
+    }
+
     const input =
         document.getElementById(
             "chatInput"
@@ -2696,30 +2548,28 @@ function sendChat() {
 
     if (!text) return;
 
-    if (!online) {
-
-        const player =
-            players[myPlayerId];
-
-        if (!player) return;
-
-        addChatMessage(
-            player.name,
+    socket.emit(
+        "sendChatMessage",
+        {
             text
-        );
-
-    } else {
-
-        socket.emit(
-            "sendChatMessage",
-            {
-                text
-            }
-        );
-    }
+        }
+    );
 
     input.value = "";
 }
+
+document
+    .getElementById("chatInput")
+    .addEventListener(
+        "keydown",
+        event => {
+
+            if (event.key === "Enter") {
+                event.preventDefault();
+                sendChat();
+            }
+        }
+    );
 
 function addChatMessage(
     name,
@@ -2779,7 +2629,7 @@ socket.on(
 
 
 /* =====================================================
-   ROOM ERRORS
+   ROOM EVENTS
 ===================================================== */
 
 socket.on(
@@ -2790,18 +2640,19 @@ socket.on(
 
         document
             .getElementById("setup")
-            .classList.remove(
-                "hidden"
-            );
+            .classList.remove("hidden");
 
         backMain();
+
+        document
+            .getElementById("game")
+            .style.display = "none";
+
+        document
+            .getElementById("communication")
+            .style.display = "none";
     }
 );
-
-
-/* =====================================================
-   PRIVATE ROOM CREATED
-===================================================== */
 
 socket.on(
     "privateRoomCreated",
@@ -2818,11 +2669,6 @@ socket.on(
     }
 );
 
-
-/* =====================================================
-   ROOM CLOSED
-===================================================== */
-
 socket.on(
     "roomClosed",
     message => {
@@ -2832,11 +2678,6 @@ socket.on(
         location.reload();
     }
 );
-
-
-/* =====================================================
-   ACTION ERROR
-===================================================== */
 
 socket.on(
     "actionError",
@@ -2849,19 +2690,18 @@ socket.on(
     }
 );
 
-
-/* =====================================================
-   GAME FINISHED
-===================================================== */
-
 socket.on(
     "gameFinished",
     () => {
+
+        gameFinished = true;
 
         document
             .getElementById("status")
             .innerText =
             "🏆 Game finished!";
+
+        updateDiceButtons();
     }
 );
 
@@ -2873,6 +2713,8 @@ socket.on(
 let localStream = null;
 
 const peerConnections = {};
+
+const pendingIceCandidates = {};
 
 let micEnabled = false;
 
@@ -2890,13 +2732,9 @@ const rtcConfig = {
 };
 
 
-/*
-Create one WebRTC connection to every
-other player.
-
-The player with the LOWER player ID
-creates the offer.
-*/
+/* =====================================================
+   CREATE PEERS
+===================================================== */
 
 function createPeerConnections() {
 
@@ -2912,30 +2750,41 @@ function createPeerConnections() {
         player => {
 
             if (
-                player.id === myPlayerId
+                Number(player.id) ===
+                Number(myPlayerId)
             ) {
                 return;
             }
+
+            const remoteId =
+                Number(player.id);
 
             if (
-                peerConnections[
-                    player.id
-                ]
+                peerConnections[remoteId]
             ) {
                 return;
             }
 
+            const shouldOffer =
+                Number(myPlayerId) <
+                remoteId;
+
             makePeerConnection(
-                player.id,
-                player.id > myPlayerId
+                remoteId,
+                shouldOffer
             );
         }
     );
 }
 
+
+/* =====================================================
+   MAKE PEER
+===================================================== */
+
 function makePeerConnection(
     remoteId,
-    createOffer
+    createOffer = false
 ) {
 
     if (
@@ -2951,6 +2800,9 @@ function makePeerConnection(
 
     peerConnections[remoteId] =
         pc;
+
+    pendingIceCandidates[remoteId] =
+        [];
 
     if (localStream) {
 
@@ -2977,6 +2829,7 @@ function makePeerConnection(
                 socket.emit(
                     "iceCandidate",
                     {
+                        to: remoteId,
                         candidate:
                             event.candidate
                     }
@@ -3002,11 +2855,8 @@ function makePeerConnection(
                 audio.id =
                     `remoteAudio-${remoteId}`;
 
-                audio.autoplay =
-                    true;
-
-                audio.playsInline =
-                    true;
+                audio.autoplay = true;
+                audio.playsInline = true;
 
                 document.body.appendChild(
                     audio
@@ -3015,6 +2865,10 @@ function makePeerConnection(
 
             audio.srcObject =
                 event.streams[0];
+
+            audio.play().catch(
+                () => {}
+            );
         };
 
     pc.onconnectionstatechange =
@@ -3035,31 +2889,50 @@ function makePeerConnection(
 
     if (createOffer) {
 
-        pc.createOffer()
-            .then(
-                offer =>
-                    pc.setLocalDescription(
-                        offer
-                    )
-            )
-            .then(
-                () => {
-
-                    socket.emit(
-                        "voiceOffer",
-                        {
-                            offer:
-                                pc.localDescription
-                        }
-                    );
-                }
-            )
-            .catch(
-                console.error
-            );
+        createVoiceOffer(
+            remoteId,
+            pc
+        );
     }
 
     return pc;
+}
+
+
+/* =====================================================
+   CREATE OFFER
+===================================================== */
+
+async function createVoiceOffer(
+    remoteId,
+    pc
+) {
+
+    try {
+
+        const offer =
+            await pc.createOffer();
+
+        await pc.setLocalDescription(
+            offer
+        );
+
+        socket.emit(
+            "voiceOffer",
+            {
+                to: remoteId,
+                offer:
+                    pc.localDescription
+            }
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Offer error:",
+            error
+        );
+    }
 }
 
 
@@ -3071,19 +2944,11 @@ socket.on(
     "voiceOffer",
     async data => {
 
-        if (
-            myPlayerId === null
-        ) {
-            return;
-        }
-
         const remoteId =
             Number(data.from);
 
         let pc =
-            peerConnections[
-                remoteId
-            ];
+            peerConnections[remoteId];
 
         if (!pc) {
 
@@ -3102,6 +2967,28 @@ socket.on(
                 )
             );
 
+            const candidates =
+                pendingIceCandidates[
+                    remoteId
+                ] || [];
+
+            for (
+                const candidate of candidates
+            ) {
+
+                try {
+
+                    await pc.addIceCandidate(
+                        candidate
+                    );
+
+                } catch(e) {}
+            }
+
+            pendingIceCandidates[
+                remoteId
+            ] = [];
+
             const answer =
                 await pc.createAnswer();
 
@@ -3112,6 +2999,7 @@ socket.on(
             socket.emit(
                 "voiceAnswer",
                 {
+                    to: remoteId,
                     answer:
                         pc.localDescription
                 }
@@ -3140,9 +3028,7 @@ socket.on(
             Number(data.from);
 
         const pc =
-            peerConnections[
-                remoteId
-            ];
+            peerConnections[remoteId];
 
         if (!pc) return;
 
@@ -3153,6 +3039,28 @@ socket.on(
                     data.answer
                 )
             );
+
+            const candidates =
+                pendingIceCandidates[
+                    remoteId
+                ] || [];
+
+            for (
+                const candidate of candidates
+            ) {
+
+                try {
+
+                    await pc.addIceCandidate(
+                        candidate
+                    );
+
+                } catch(e) {}
+            }
+
+            pendingIceCandidates[
+                remoteId
+            ] = [];
 
         } catch(error) {
 
@@ -3177,9 +3085,7 @@ socket.on(
             Number(data.from);
 
         let pc =
-            peerConnections[
-                remoteId
-            ];
+            peerConnections[remoteId];
 
         if (!pc) {
 
@@ -3190,27 +3096,53 @@ socket.on(
                 );
         }
 
-        try {
-
-            await pc.addIceCandidate(
-                new RTCIceCandidate(
-                    data.candidate
-                )
+        const candidate =
+            new RTCIceCandidate(
+                data.candidate
             );
 
-        } catch(error) {
+        if (
+            pc.remoteDescription &&
+            pc.remoteDescription.type
+        ) {
 
-            console.error(
-                "ICE error:",
-                error
-            );
+            try {
+
+                await pc.addIceCandidate(
+                    candidate
+                );
+
+            } catch(error) {
+
+                console.error(
+                    "ICE error:",
+                    error
+                );
+            }
+
+        } else {
+
+            if (
+                !pendingIceCandidates[
+                    remoteId
+                ]
+            ) {
+
+                pendingIceCandidates[
+                    remoteId
+                ] = [];
+            }
+
+            pendingIceCandidates[
+                remoteId
+            ].push(candidate);
         }
     }
 );
 
 
 /* =====================================================
-   MIC BUTTON
+   MICROPHONE
 ===================================================== */
 
 async function toggleMic() {
@@ -3234,10 +3166,6 @@ async function toggleMic() {
             "voiceStatus"
         );
 
-    /*
-    Turn OFF
-    */
-
     if (micEnabled) {
 
         if (localStream) {
@@ -3246,8 +3174,7 @@ async function toggleMic() {
                 .getAudioTracks()
                 .forEach(
                     track => {
-                        track.enabled =
-                            false;
+                        track.enabled = false;
                     }
                 );
         }
@@ -3258,8 +3185,7 @@ async function toggleMic() {
             "active"
         );
 
-        mic.innerText =
-            "🎤";
+        mic.innerText = "🎤";
 
         voiceStatus.innerText =
             "Mic off";
@@ -3267,35 +3193,35 @@ async function toggleMic() {
         return;
     }
 
-    /*
-    Turn ON
-    */
-
     try {
 
-        /*
-        Browser will ask for microphone
-        permission.
-        */
+        if (
+            !navigator.mediaDevices ||
+            !navigator.mediaDevices.getUserMedia
+        ) {
+
+            throw new Error(
+                "Microphone API unavailable"
+            );
+        }
 
         if (!localStream) {
 
             localStream =
                 await navigator.mediaDevices
                     .getUserMedia({
-                        audio: true,
+                        audio: {
+                            echoCancellation: true,
+                            noiseSuppression: true,
+                            autoGainControl: true
+                        },
                         video: false
                     });
 
-            /*
-            Add microphone to every
-            existing connection.
-            */
-
-            Object.values(
+            Object.entries(
                 peerConnections
             ).forEach(
-                pc => {
+                ([remoteId,pc]) => {
 
                     localStream
                         .getTracks()
@@ -3309,9 +3235,21 @@ async function toggleMic() {
                             }
                         );
 
-                    renegotiatePeer(
-                        pc
-                    );
+                    /*
+                    Only the lower player ID
+                    renegotiates.
+                    */
+
+                    if (
+                        Number(myPlayerId) <
+                        Number(remoteId)
+                    ) {
+
+                        createVoiceOffer(
+                            Number(remoteId),
+                            pc
+                        );
+                    }
                 }
             );
 
@@ -3323,20 +3261,16 @@ async function toggleMic() {
                 .getAudioTracks()
                 .forEach(
                     track => {
-                        track.enabled =
-                            true;
+                        track.enabled = true;
                     }
                 );
         }
 
         micEnabled = true;
 
-        mic.classList.add(
-            "active"
-        );
+        mic.classList.add("active");
 
-        mic.innerText =
-            "🔴";
+        mic.innerText = "🔴";
 
         voiceStatus.innerText =
             "Microphone ON";
@@ -3349,51 +3283,17 @@ async function toggleMic() {
         );
 
         voiceStatus.innerText =
-            "Microphone permission denied";
+            "Microphone unavailable";
 
         alert(
-            "Microphone permission is required for voice chat. Please allow microphone access in your browser settings."
+            "Microphone permission is required. Make sure you are using HTTPS (or localhost) and allow microphone access in your browser."
         );
     }
 }
 
 
 /* =====================================================
-   RENEGOTIATE
-===================================================== */
-
-async function renegotiatePeer(
-    pc
-) {
-
-    try {
-
-        const offer =
-            await pc.createOffer();
-
-        await pc.setLocalDescription(
-            offer
-        );
-
-        socket.emit(
-            "voiceOffer",
-            {
-                offer:
-                    pc.localDescription
-            }
-        );
-
-    } catch(error) {
-
-        console.error(
-            error
-        );
-    }
-}
-
-
-/* =====================================================
-   CLEANUP VOICE
+   CLEANUP
 ===================================================== */
 
 window.addEventListener(
@@ -3405,16 +3305,14 @@ window.addEventListener(
             localStream
                 .getTracks()
                 .forEach(
-                    track =>
-                        track.stop()
+                    track => track.stop()
                 );
         }
 
         Object.values(
             peerConnections
         ).forEach(
-            pc =>
-                pc.close()
+            pc => pc.close()
         );
     }
 );
