@@ -5,11 +5,26 @@ const path = require("path");
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server);
 
-app.use(express.static(path.join(__dirname)));
+const io = new Server(server, {
+    cors: {
+        origin: "*"
+    }
+});
 
-const PORT = process.env.PORT || 3000;
+app.use(
+    express.static(
+        path.join(__dirname)
+    )
+);
+
+const PORT =
+    process.env.PORT || 3000;
+
+
+/* =====================================================
+   PUBLIC QUEUES
+===================================================== */
 
 const publicQueues = {
     2: [],
@@ -17,145 +32,364 @@ const publicQueues = {
     4: []
 };
 
+
+/* =====================================================
+   ROOMS
+===================================================== */
+
 const rooms = {};
 
+
+/* =====================================================
+   PLAYER DATA
+===================================================== */
+
 const allPlayers = [
+
     {
         id: 0,
         name: "Blue",
         color: "#1e90ff",
-        path: [10,15,20,21,22,23,24,19,14,9,4,3,2,1,0,5,6,7,8,13,18,17,16,11,12]
+
+        path: [
+            10,15,20,21,22,
+            23,24,19,14,9,
+            4,3,2,1,0,
+            5,6,7,8,13,
+            18,17,16,11,12
+        ]
     },
+
     {
         id: 1,
         name: "Red",
         color: "#ff4757",
-        path: [2,1,0,5,10,15,20,21,22,23,24,19,14,9,4,3,8,13,18,17,16,11,6,7,12]
+
+        path: [
+            2,1,0,5,10,
+            15,20,21,22,23,
+            24,19,14,9,4,
+            3,8,13,18,17,
+            16,11,6,7,12
+        ]
     },
+
     {
         id: 2,
         name: "Green",
         color: "#2ed573",
-        path: [14,9,4,3,2,1,0,5,10,15,20,21,22,23,24,19,18,17,16,11,6,7,8,13,12]
+
+        path: [
+            14,9,4,3,2,
+            1,0,5,10,15,
+            20,21,22,23,24,
+            19,18,17,16,11,
+            6,7,8,13,12
+        ]
     },
+
     {
         id: 3,
         name: "Yellow",
         color: "#ffa502",
-        path: [22,23,24,19,14,9,4,3,2,1,0,5,10,15,20,21,16,11,6,7,8,13,18,17,12]
+
+        path: [
+            22,23,24,19,14,
+            9,4,3,2,1,
+            0,5,10,15,20,
+            21,16,11,6,7,
+            8,13,18,17,12
+        ]
     }
+
 ];
 
+
+/* =====================================================
+   PLAYER CREATION
+===================================================== */
+
 function makePlayer(id) {
+
     return {
+
         id,
-        name: allPlayers[id].name,
-        color: allPlayers[id].color,
-        pawns: [0, 0, 0, 0],
+
+        name:
+            allPlayers[id].name,
+
+        color:
+            allPlayers[id].color,
+
+        pawns: [
+            0,
+            0,
+            0,
+            0
+        ],
+
         hasKilled: false,
+
         hasWon: false,
+
         winRank: 0
     };
 }
 
-function makeRoom(id, maxPlayers, isPrivate) {
+
+/* =====================================================
+   ROOM CREATION
+===================================================== */
+
+function makeRoom(
+    id,
+    maxPlayers,
+    isPrivate
+) {
+
     return {
+
         id,
+
         maxPlayers,
+
         isPrivate,
+
         started: false,
+
         sockets: [],
+
         players: [],
+
         activeIndex: 0,
+
         activeRolls: [],
-        canRoll: true,
-        currentRank: 1
+
+        canRoll: false,
+
+        currentRank: 1,
+
+        diceValues: [
+            null,
+            null,
+            null,
+            null
+        ]
     };
 }
 
+
+/* =====================================================
+   ROOM HELPERS
+===================================================== */
+
 function getRoom(socket) {
-    if (!socket.gameRoom) return null;
-    return rooms[socket.gameRoom] || null;
+
+    if (!socket.gameRoom) {
+        return null;
+    }
+
+    return rooms[
+        socket.gameRoom
+    ] || null;
+}
+
+function currentPlayer(room) {
+
+    if (!room) {
+        return null;
+    }
+
+    return room.players[
+        room.activeIndex
+    ] || null;
 }
 
 function sendState(room) {
-    if (!room) return;
 
-    io.to(room.id).emit("gameState", {
-        activeIndex: room.activeIndex,
-        activeRolls: [...room.activeRolls],
-        canRoll: room.canRoll,
-        currentRank: room.currentRank,
+    if (!room) {
+        return;
+    }
 
-        players: room.players.map(p => ({
-            id: p.id,
-            name: p.name,
-            color: p.color,
-            pawns: [...p.pawns],
-            hasKilled: p.hasKilled,
-            hasWon: p.hasWon,
-            winRank: p.winRank
-        }))
-    });
+    io.to(room.id).emit(
+        "gameState",
+        {
+
+            activeIndex:
+                room.activeIndex,
+
+            activeRolls:
+                [...room.activeRolls],
+
+            canRoll:
+                room.canRoll,
+
+            currentRank:
+                room.currentRank,
+
+            diceValues:
+                [...room.diceValues],
+
+            players:
+                room.players.map(
+                    p => ({
+
+                        id: p.id,
+
+                        name: p.name,
+
+                        color: p.color,
+
+                        pawns:
+                            [...p.pawns],
+
+                        hasKilled:
+                            p.hasKilled,
+
+                        hasWon:
+                            p.hasWon,
+
+                        winRank:
+                            p.winRank
+                    })
+                )
+        }
+    );
 }
 
-function status(room, text) {
-    if (!room) return;
+function status(
+    room,
+    text
+) {
 
-    io.to(room.id).emit("statusMessage", text);
+    if (!room) {
+        return;
+    }
+
+    io.to(room.id).emit(
+        "statusMessage",
+        text
+    );
 }
 
-function removeFromQueues(socketId) {
-    for (const key of Object.keys(publicQueues)) {
-        publicQueues[key] = publicQueues[key].filter(
-            s => s && s.id !== socketId
-        );
+
+/* =====================================================
+   QUEUE MANAGEMENT
+===================================================== */
+
+function removeFromQueues(
+    socketId
+) {
+
+    for (
+        const key of Object.keys(
+            publicQueues
+        )
+    ) {
+
+        publicQueues[key] =
+            publicQueues[key].filter(
+                socket =>
+                    socket &&
+                    socket.id !== socketId
+            );
     }
 }
 
+
+/* =====================================================
+   ROOM CODE
+===================================================== */
+
 function generateRoomCode() {
+
     let code;
 
     do {
-        code = Math.random()
-            .toString(36)
-            .substring(2, 8)
-            .toUpperCase();
+
+        code =
+            Math.random()
+                .toString(36)
+                .substring(2,8)
+                .toUpperCase();
+
     } while (rooms[code]);
 
     return code;
 }
 
-function currentPlayer(room) {
-    return room.players[room.activeIndex];
-}
 
-function validPlayer(room, socket, playerId) {
+/* =====================================================
+   VALIDATION
+===================================================== */
+
+function validPlayer(
+    room,
+    socket,
+    playerId
+) {
+
     return (
+
         room &&
+
         socket.gameRoom === room.id &&
+
         socket.playerIndex === playerId &&
-        room.players.some(p => p.id === playerId)
+
+        room.players.some(
+            player =>
+                player.id === playerId
+        )
     );
 }
 
-function hasValidMove(player, roll) {
-    const maxStep = player.hasKilled ? 24 : 15;
+function hasValidMove(
+    player,
+    roll
+) {
+
+    if (!player) {
+        return false;
+    }
 
     return player.pawns.some(
-        step => step + roll <= maxStep
+        step =>
+            step + roll <= 24
     );
 }
 
+
+/* =====================================================
+   TURN HANDLING
+===================================================== */
+
 function nextActiveIndex(room) {
-    if (!room.players.length) return 0;
 
-    let next = room.activeIndex;
+    if (
+        !room ||
+        !room.players.length
+    ) {
+        return 0;
+    }
 
-    for (let i = 0; i < room.players.length; i++) {
-        next = (next + 1) % room.players.length;
+    let next =
+        room.activeIndex;
 
-        if (!room.players[next].hasWon) {
+    for (
+        let i = 0;
+        i < room.players.length;
+        i++
+    ) {
+
+        next =
+            (next + 1) %
+            room.players.length;
+
+        if (
+            !room.players[next].hasWon
+        ) {
+
             return next;
         }
     }
@@ -164,676 +398,1202 @@ function nextActiveIndex(room) {
 }
 
 function advanceTurn(room) {
-    room.activeRolls = [];
-    room.canRoll = true;
-    room.activeIndex = nextActiveIndex(room);
 
-    const player = currentPlayer(room);
+    if (!room) {
+        return;
+    }
+
+    room.activeRolls = [];
+
+    room.canRoll = true;
+
+    room.activeIndex =
+        nextActiveIndex(room);
+
+    const player =
+        currentPlayer(room);
 
     if (player) {
-        status(room, `${player.name}'s turn.`);
+
+        status(
+            room,
+            `${player.name}'s turn.`
+        );
     }
 
     sendState(room);
 }
 
+
+/* =====================================================
+   START ROOM
+===================================================== */
+
 function setupRoom(room) {
-    const sockets = room.sockets;
 
     room.players = [];
 
-    sockets.forEach((socket, index) => {
-        const playerId = index;
+    room.sockets.forEach(
+        (socket,index) => {
 
-        socket.playerIndex = playerId;
-        socket.gameRoom = room.id;
+            const playerId =
+                index;
 
-        socket.join(room.id);
+            socket.playerIndex =
+                playerId;
 
-        room.players.push(makePlayer(playerId));
+            socket.gameRoom =
+                room.id;
 
-        socket.emit("assignPlayer", {
-            playerId,
-            playerName: allPlayers[playerId].name
-        });
-    });
+            socket.join(
+                room.id
+            );
+
+            room.players.push(
+                makePlayer(
+                    playerId
+                )
+            );
+
+            socket.emit(
+                "assignPlayer",
+                {
+                    playerId,
+
+                    playerName:
+                        allPlayers[
+                            playerId
+                        ].name
+                }
+            );
+        }
+    );
 
     room.started = true;
+
     room.activeIndex = 0;
+
     room.activeRolls = [];
+
     room.canRoll = true;
+
     room.currentRank = 1;
 
-    io.to(room.id).emit("gameStart", {
-        players: room.players.map(p => p.id)
-    });
+    room.diceValues = [
+        null,
+        null,
+        null,
+        null
+    ];
 
-    status(room, "Match started! Blue goes first.");
+    io.to(room.id).emit(
+        "gameStart",
+        {
+            players:
+                room.players.map(
+                    p => p.id
+                )
+        }
+    );
+
+    status(
+        room,
+        "Match started! Blue goes first."
+    );
 
     sendState(room);
 }
 
-function closeRoom(room, message) {
-    if (!room) return;
+
+/* =====================================================
+   CLOSE ROOM
+===================================================== */
+
+function closeRoom(
+    room,
+    message
+) {
+
+    if (!room) {
+        return;
+    }
 
     io.to(room.id).emit(
         "roomClosed",
-        message || "Room closed."
+        message ||
+        "Room closed."
     );
 
-    room.sockets.forEach(socket => {
-        socket.leave(room.id);
-        socket.gameRoom = null;
-        socket.playerIndex = null;
-    });
+    room.sockets.forEach(
+        socket => {
 
-    delete rooms[room.id];
+            socket.leave(
+                room.id
+            );
+
+            socket.gameRoom =
+                null;
+
+            socket.playerIndex =
+                null;
+        }
+    );
+
+    delete rooms[
+        room.id
+    ];
 }
 
-io.on("connection", socket => {
 
-    console.log("Connected:", socket.id);
+/* =====================================================
+   CONNECTION
+===================================================== */
 
-    /*
-    ========================================
-    PUBLIC MATCHMAKING
-    ========================================
-    */
+io.on(
+    "connection",
+    socket => {
 
-    socket.on("joinGame", count => {
-
-        count = Number(count);
-
-        if (![2, 3, 4].includes(count)) {
-            socket.emit(
-                "roomError",
-                "Invalid player count."
-            );
-            return;
-        }
-
-        removeFromQueues(socket.id);
-
-        socket.gameRoom = null;
-        socket.playerIndex = null;
-
-        publicQueues[count].push(socket);
-
-        const queue = publicQueues[count];
-
-        socket.emit(
-            "statusMessage",
-            `Waiting for ${count - queue.length} more player(s)...`
+        console.log(
+            "Connected:",
+            socket.id
         );
 
-        if (queue.length >= count) {
 
-            const matched = queue.splice(0, count);
+        /* =================================================
+           PUBLIC MATCHMAKING
+        ================================================= */
 
-            const roomId =
-                "pub_" +
-                Math.random()
-                    .toString(36)
-                    .substring(2, 8);
+        socket.on(
+            "joinGame",
+            count => {
 
-            const room =
-                makeRoom(roomId, count, false);
-
-            rooms[roomId] = room;
-
-            room.sockets = matched;
-
-            setupRoom(room);
-        }
-    });
-
-    /*
-    ========================================
-    PRIVATE ROOM CREATE
-    ========================================
-    */
-
-    socket.on("createPrivateGame", count => {
-
-        count = Number(count);
-
-        if (![2, 3, 4].includes(count)) {
-            socket.emit(
-                "roomError",
-                "Invalid player count."
-            );
-            return;
-        }
-
-        removeFromQueues(socket.id);
-
-        const code = generateRoomCode();
-
-        const room =
-            makeRoom(code, count, true);
-
-        rooms[code] = room;
-
-        room.sockets.push(socket);
-
-        socket.gameRoom = code;
-        socket.playerIndex = null;
-
-        socket.join(code);
-
-        socket.emit(
-            "privateRoomCreated",
-            code
-        );
-
-        socket.emit(
-            "statusMessage",
-            `Room created. Share code: ${code}`
-        );
-    });
-
-    /*
-    ========================================
-    PRIVATE ROOM JOIN
-    ========================================
-    */
-
-    socket.on("joinPrivateGame", code => {
-
-        code = String(code || "")
-            .trim()
-            .toUpperCase();
-
-        const room = rooms[code];
-
-        if (!room) {
-            socket.emit(
-                "roomError",
-                "Room code not found!"
-            );
-            return;
-        }
-
-        if (room.started) {
-            socket.emit(
-                "roomError",
-                "Game has already started!"
-            );
-            return;
-        }
-
-        if (room.sockets.length >= room.maxPlayers) {
-            socket.emit(
-                "roomError",
-                "Room is full!"
-            );
-            return;
-        }
-
-        removeFromQueues(socket.id);
-
-        room.sockets.push(socket);
-
-        socket.gameRoom = code;
-        socket.playerIndex = null;
-
-        socket.join(code);
-
-        status(
-            room,
-            `Player joined (${room.sockets.length}/${room.maxPlayers}).`
-        );
-
-        if (room.sockets.length === room.maxPlayers) {
-            setupRoom(room);
-        }
-    });
-
-    /*
-    ========================================
-    ROLL DICE
-    ========================================
-    */
-
-    socket.on("requestRoll", () => {
-
-        const room = getRoom(socket);
-
-        if (!room || !room.started) return;
-
-        const player = currentPlayer(room);
-
-        if (!player) return;
-
-        if (socket.playerIndex !== player.id) {
-            socket.emit(
-                "actionError",
-                "It is not your turn."
-            );
-            return;
-        }
-
-        if (!room.canRoll) {
-            socket.emit(
-                "actionError",
-                "Move a pawn first."
-            );
-            return;
-        }
-
-        const values = [
-            1, 1,
-            2, 2,
-            3, 3,
-            4,
-            8
-        ];
-
-        const roll =
-            values[
-                Math.floor(
-                    Math.random() * values.length
-                )
-            ];
-
-        room.canRoll = false;
-        room.activeRolls.push(roll);
-
-        io.to(room.id).emit(
-            "diceRolled",
-            {
-                playerId: player.id,
-                value: roll
-            }
-        );
-
-        if (!hasValidMove(player, roll)) {
-
-            room.activeRolls.shift();
-
-            if (roll === 4 || roll === 8) {
-
-                room.canRoll = true;
-
-                status(
-                    room,
-                    `${player.name} rolled ${roll}. Extra roll!`
-                );
-
-                sendState(room);
-
-            } else {
-
-                status(
-                    room,
-                    `${player.name} rolled ${roll}. No valid move.`
-                );
-
-                advanceTurn(room);
-            }
-
-            return;
-        }
-
-        status(
-            room,
-            `${player.name} rolled ${roll}. Choose a pawn.`
-        );
-
-        sendState(room);
-    });
-
-    /*
-    ========================================
-    MOVE PAWN
-    ========================================
-    */
-
-    socket.on("requestMove", data => {
-
-        const room = getRoom(socket);
-
-        if (!room || !room.started) return;
-
-        const playerId =
-            Number(data?.playerId);
-
-        const pawnIndex =
-            Number(data?.pawnIndex);
-
-        if (
-            !Number.isInteger(playerId) ||
-            !Number.isInteger(pawnIndex)
-        ) {
-            return;
-        }
-
-        if (
-            pawnIndex < 0 ||
-            pawnIndex > 3
-        ) {
-            return;
-        }
-
-        if (!validPlayer(room, socket, playerId)) {
-
-            socket.emit(
-                "actionError",
-                "You cannot control this player."
-            );
-
-            return;
-        }
-
-        const player = currentPlayer(room);
-
-        if (!player || player.id !== playerId) {
-
-            socket.emit(
-                "actionError",
-                "It is not your turn."
-            );
-
-            return;
-        }
-
-        if (room.activeRolls.length === 0) {
-
-            socket.emit(
-                "actionError",
-                "Roll the dice first."
-            );
-
-            return;
-        }
-
-        const roll = room.activeRolls[0];
-
-        const oldStep =
-            player.pawns[pawnIndex];
-
-        const maxStep =
-            player.hasKilled ? 24 : 15;
-
-        if (oldStep + roll > maxStep) {
-
-            socket.emit(
-                "actionError",
-                "That pawn cannot move."
-            );
-
-            return;
-        }
-
-        room.activeRolls.shift();
-
-        const newStep =
-            oldStep + roll;
-
-        player.pawns[pawnIndex] =
-            newStep;
-
-        let captured = [];
-        let extraTurn = false;
-
-        const targetCell =
-            allPlayers[player.id].path[newStep];
-
-        /*
-        ========================================
-        HOME
-        ========================================
-        */
-
-        if (newStep === 24) {
-
-            if (
-                player.pawns.every(
-                    p => p === 24
-                )
-            ) {
-
-                player.hasWon = true;
-                player.winRank =
-                    room.currentRank++;
-
-                status(
-                    room,
-                    `${player.name} finished #${player.winRank}!`
-                );
-
-            } else {
-
-                extraTurn = true;
-
-                status(
-                    room,
-                    `${player.name} reached HOME! Extra turn.`
-                );
-            }
-        }
-
-        /*
-        ========================================
-        CAPTURE
-        ========================================
-        */
-
-        const safeCells =
-            [2, 10, 14, 22, 12];
-
-        if (!safeCells.includes(targetCell)) {
-
-            room.players.forEach(opponent => {
+                count =
+                    Number(count);
 
                 if (
-                    opponent.id === player.id ||
-                    opponent.hasWon
+                    ![2,3,4]
+                        .includes(count)
+                ) {
+
+                    socket.emit(
+                        "roomError",
+                        "Invalid player count."
+                    );
+
+                    return;
+                }
+
+                removeFromQueues(
+                    socket.id
+                );
+
+                socket.gameRoom =
+                    null;
+
+                socket.playerIndex =
+                    null;
+
+                publicQueues[count]
+                    .push(socket);
+
+                const queue =
+                    publicQueues[count];
+
+                socket.emit(
+                    "statusMessage",
+                    `Waiting for ${
+                        count -
+                        queue.length
+                    } more player(s)...`
+                );
+
+                if (
+                    queue.length >=
+                    count
+                ) {
+
+                    const matched =
+                        queue.splice(
+                            0,
+                            count
+                        );
+
+                    const roomId =
+                        "pub_" +
+                        Math.random()
+                            .toString(36)
+                            .substring(2,8);
+
+                    const room =
+                        makeRoom(
+                            roomId,
+                            count,
+                            false
+                        );
+
+                    rooms[
+                        roomId
+                    ] = room;
+
+                    room.sockets =
+                        matched;
+
+                    setupRoom(
+                        room
+                    );
+                }
+            }
+        );
+
+
+        /* =================================================
+           PRIVATE ROOM CREATE
+        ================================================= */
+
+        socket.on(
+            "createPrivateGame",
+            count => {
+
+                count =
+                    Number(count);
+
+                if (
+                    ![2,3,4]
+                        .includes(count)
+                ) {
+
+                    socket.emit(
+                        "roomError",
+                        "Invalid player count."
+                    );
+
+                    return;
+                }
+
+                removeFromQueues(
+                    socket.id
+                );
+
+                const code =
+                    generateRoomCode();
+
+                const room =
+                    makeRoom(
+                        code,
+                        count,
+                        true
+                    );
+
+                rooms[code] =
+                    room;
+
+                room.sockets.push(
+                    socket
+                );
+
+                socket.gameRoom =
+                    code;
+
+                socket.playerIndex =
+                    null;
+
+                socket.join(
+                    code
+                );
+
+                socket.emit(
+                    "privateRoomCreated",
+                    code
+                );
+
+                socket.emit(
+                    "statusMessage",
+                    `Room created. Share code: ${code}`
+                );
+            }
+        );
+
+
+        /* =================================================
+           PRIVATE ROOM JOIN
+        ================================================= */
+
+        socket.on(
+            "joinPrivateGame",
+            code => {
+
+                code =
+                    String(code || "")
+                        .trim()
+                        .toUpperCase();
+
+                const room =
+                    rooms[code];
+
+                if (!room) {
+
+                    socket.emit(
+                        "roomError",
+                        "Room code not found!"
+                    );
+
+                    return;
+                }
+
+                if (room.started) {
+
+                    socket.emit(
+                        "roomError",
+                        "Game has already started!"
+                    );
+
+                    return;
+                }
+
+                if (
+                    room.sockets.length >=
+                    room.maxPlayers
+                ) {
+
+                    socket.emit(
+                        "roomError",
+                        "Room is full!"
+                    );
+
+                    return;
+                }
+
+                removeFromQueues(
+                    socket.id
+                );
+
+                room.sockets.push(
+                    socket
+                );
+
+                socket.gameRoom =
+                    code;
+
+                socket.playerIndex =
+                    null;
+
+                socket.join(
+                    code
+                );
+
+                status(
+                    room,
+                    `Player joined (${room.sockets.length}/${room.maxPlayers}).`
+                );
+
+                if (
+                    room.sockets.length ===
+                    room.maxPlayers
+                ) {
+
+                    setupRoom(
+                        room
+                    );
+                }
+            }
+        );
+
+
+        /* =================================================
+           ROLL DICE
+        ================================================= */
+
+        socket.on(
+            "requestRoll",
+            () => {
+
+                const room =
+                    getRoom(socket);
+
+                if (
+                    !room ||
+                    !room.started
                 ) {
                     return;
                 }
 
-                opponent.pawns.forEach(
-                    (opponentStep, index) => {
+                const player =
+                    currentPlayer(room);
 
-                        if (
-                            opponentStep < 24 &&
-                            allPlayers[opponent.id]
-                                .path[opponentStep] === targetCell
-                        ) {
+                if (!player) {
+                    return;
+                }
 
-                            opponent.pawns[index] = 0;
+                if (
+                    socket.playerIndex !==
+                    player.id
+                ) {
 
-                            captured.push({
-                                playerId: opponent.id,
-                                pawnIndex: index
-                            });
+                    socket.emit(
+                        "actionError",
+                        "It is not your turn."
+                    );
 
-                            player.hasKilled = true;
+                    return;
+                }
 
-                            extraTurn = true;
-                        }
-                    }
+                if (!room.canRoll) {
+
+                    socket.emit(
+                        "actionError",
+                        "Move a pawn first."
+                    );
+
+                    return;
+                }
+
+                if (
+                    room.activeRolls.length
+                ) {
+
+                    socket.emit(
+                        "actionError",
+                        "Move the selected pawn first."
+                    );
+
+                    return;
+                }
+
+                const values = [
+                    1,1,
+                    2,2,
+                    3,3,
+                    4,
+                    8
+                ];
+
+                const roll =
+                    values[
+                        Math.floor(
+                            Math.random() *
+                            values.length
+                        )
+                    ];
+
+                room.diceValues[
+                    player.id
+                ] = roll;
+
+                room.canRoll =
+                    false;
+
+                room.activeRolls.push(
+                    roll
                 );
-            });
-        }
-
-        /*
-        ========================================
-        TURN DECISION
-        ========================================
-        */
-
-        if (player.hasWon) {
-
-            const remaining =
-                room.players.filter(
-                    p => !p.hasWon
-                );
-
-            if (remaining.length <= 1) {
-
-                sendState(room);
 
                 io.to(room.id).emit(
-                    "gameFinished"
+                    "diceRolled",
+                    {
+                        playerId:
+                            player.id,
+
+                        value:
+                            roll
+                    }
                 );
 
-                return;
+                if (
+                    !hasValidMove(
+                        player,
+                        roll
+                    )
+                ) {
+
+                    room.activeRolls
+                        .shift();
+
+                    if (
+                        roll === 4 ||
+                        roll === 8
+                    ) {
+
+                        room.canRoll =
+                            true;
+
+                        status(
+                            room,
+                            `${player.name} rolled ${roll}. Extra roll!`
+                        );
+
+                        sendState(room);
+
+                    } else {
+
+                        status(
+                            room,
+                            `${player.name} rolled ${roll}. No valid move.`
+                        );
+
+                        advanceTurn(
+                            room
+                        );
+                    }
+
+                    return;
+                }
+
+                status(
+                    room,
+                    `${player.name} rolled ${roll}. Choose a pawn.`
+                );
+
+                sendState(room);
             }
+        );
 
-            room.activeRolls = [];
-            room.canRoll = true;
-            room.activeIndex =
-                nextActiveIndex(room);
 
-        } else if (extraTurn) {
+        /* =================================================
+           MOVE PAWN
+        ================================================= */
 
-            room.canRoll = true;
+        socket.on(
+            "requestMove",
+            data => {
 
-        } else {
+                const room =
+                    getRoom(socket);
 
-            room.canRoll = true;
-            room.activeIndex =
-                nextActiveIndex(room);
-        }
+                if (
+                    !room ||
+                    !room.started
+                ) {
+                    return;
+                }
 
-        io.to(room.id).emit(
-            "moveResult",
-            {
-                playerId,
-                pawnIndex,
-                from: oldStep,
-                to: newStep,
-                roll,
-                captured
+                const playerId =
+                    Number(
+                        data?.playerId
+                    );
+
+                const pawnIndex =
+                    Number(
+                        data?.pawnIndex
+                    );
+
+                if (
+                    !Number.isInteger(
+                        playerId
+                    ) ||
+                    !Number.isInteger(
+                        pawnIndex
+                    )
+                ) {
+
+                    socket.emit(
+                        "actionError",
+                        "Invalid move."
+                    );
+
+                    return;
+                }
+
+                if (
+                    pawnIndex < 0 ||
+                    pawnIndex > 3
+                ) {
+
+                    socket.emit(
+                        "actionError",
+                        "Invalid pawn."
+                    );
+
+                    return;
+                }
+
+                if (
+                    !validPlayer(
+                        room,
+                        socket,
+                        playerId
+                    )
+                ) {
+
+                    socket.emit(
+                        "actionError",
+                        "You cannot control this player."
+                    );
+
+                    return;
+                }
+
+                const player =
+                    currentPlayer(room);
+
+                if (
+                    !player ||
+                    player.id !== playerId
+                ) {
+
+                    socket.emit(
+                        "actionError",
+                        "It is not your turn."
+                    );
+
+                    return;
+                }
+
+                if (
+                    room.activeRolls.length === 0
+                ) {
+
+                    socket.emit(
+                        "actionError",
+                        "Roll the dice first."
+                    );
+
+                    return;
+                }
+
+                const roll =
+                    room.activeRolls[0];
+
+                const oldStep =
+                    player.pawns[
+                        pawnIndex
+                    ];
+
+                const newStep =
+                    oldStep + roll;
+
+                if (
+                    newStep > 24
+                ) {
+
+                    socket.emit(
+                        "actionError",
+                        "That pawn cannot move."
+                    );
+
+                    return;
+                }
+
+                room.activeRolls.shift();
+
+                player.pawns[
+                    pawnIndex
+                ] = newStep;
+
+                let captured = [];
+
+                let extraTurn = false;
+
+                const targetCell =
+                    allPlayers[
+                        player.id
+                    ].path[newStep];
+
+
+                /* =========================================
+                   HOME
+                ========================================= */
+
+                if (
+                    newStep === 24
+                ) {
+
+                    if (
+                        player.pawns.every(
+                            p => p === 24
+                        )
+                    ) {
+
+                        player.hasWon =
+                            true;
+
+                        player.winRank =
+                            room.currentRank++;
+
+                        status(
+                            room,
+                            `${player.name} finished #${player.winRank}!`
+                        );
+
+                    } else {
+
+                        extraTurn =
+                            true;
+
+                        status(
+                            room,
+                            `${player.name} reached HOME! Extra turn.`
+                        );
+                    }
+                }
+
+
+                /* =========================================
+                   CAPTURE
+                ========================================= */
+
+                const safeCells = [
+                    2,
+                    10,
+                    14,
+                    22,
+                    12
+                ];
+
+                if (
+                    newStep < 24 &&
+                    !safeCells.includes(
+                        targetCell
+                    )
+                ) {
+
+                    room.players.forEach(
+                        opponent => {
+
+                            if (
+                                opponent.id ===
+                                player.id ||
+                                opponent.hasWon
+                            ) {
+                                return;
+                            }
+
+                            opponent.pawns.forEach(
+                                (
+                                    opponentStep,
+                                    index
+                                ) => {
+
+                                    if (
+                                        opponentStep < 24 &&
+                                        allPlayers[
+                                            opponent.id
+                                        ].path[
+                                            opponentStep
+                                        ] ===
+                                        targetCell
+                                    ) {
+
+                                        opponent.pawns[
+                                            index
+                                        ] = 0;
+
+                                        captured.push({
+                                            playerId:
+                                                opponent.id,
+
+                                            pawnIndex:
+                                                index
+                                        });
+
+                                        player.hasKilled =
+                                            true;
+
+                                        extraTurn =
+                                            true;
+                                    }
+                                }
+                            );
+                        }
+                    );
+                }
+
+
+                /* =========================================
+                   FINISH / TURN
+                ========================================= */
+
+                if (
+                    player.hasWon
+                ) {
+
+                    const remaining =
+                        room.players.filter(
+                            p =>
+                                !p.hasWon
+                        );
+
+                    if (
+                        remaining.length <= 1
+                    ) {
+
+                        room.activeRolls = [];
+
+                        room.canRoll =
+                            false;
+
+                        io.to(room.id).emit(
+                            "moveResult",
+                            {
+                                playerId,
+
+                                pawnIndex,
+
+                                from:
+                                    oldStep,
+
+                                to:
+                                    newStep,
+
+                                roll,
+
+                                captured
+                            }
+                        );
+
+                        sendState(room);
+
+                        io.to(room.id).emit(
+                            "gameFinished"
+                        );
+
+                        return;
+                    }
+
+                    room.activeRolls = [];
+
+                    room.canRoll =
+                        true;
+
+                    room.activeIndex =
+                        nextActiveIndex(
+                            room
+                        );
+
+                } else if (
+                    extraTurn
+                ) {
+
+                    room.activeRolls = [];
+
+                    room.canRoll =
+                        true;
+
+                } else {
+
+                    room.activeRolls = [];
+
+                    room.canRoll =
+                        true;
+
+                    room.activeIndex =
+                        nextActiveIndex(
+                            room
+                        );
+                }
+
+
+                /* =========================================
+                   MOVE RESULT
+                ========================================= */
+
+                io.to(room.id).emit(
+                    "moveResult",
+                    {
+                        playerId,
+
+                        pawnIndex,
+
+                        from:
+                            oldStep,
+
+                        to:
+                            newStep,
+
+                        roll,
+
+                        captured
+                    }
+                );
+
+                const nextPlayer =
+                    currentPlayer(room);
+
+                if (
+                    !player.hasWon
+                ) {
+
+                    if (
+                        extraTurn
+                    ) {
+
+                        status(
+                            room,
+                            `${player.name} gets an extra turn.`
+                        );
+
+                    } else if (
+                        nextPlayer
+                    ) {
+
+                        status(
+                            room,
+                            `${nextPlayer.name}'s turn.`
+                        );
+                    }
+
+                } else if (
+                    nextPlayer
+                ) {
+
+                    status(
+                        room,
+                        `${nextPlayer.name}'s turn.`
+                    );
+                }
+
+                sendState(room);
             }
         );
 
-        sendState(room);
-    });
 
-    /*
-    ========================================
-    PLAYER CHAT
-    ========================================
-    */
+        /* =================================================
+           CHAT
+        ================================================= */
 
-    socket.on("sendChatMessage", data => {
+        socket.on(
+            "sendChatMessage",
+            data => {
 
-        const room = getRoom(socket);
+                const room =
+                    getRoom(socket);
 
-        if (!room) return;
+                if (!room) {
+                    return;
+                }
 
-        const player =
-            room.players.find(
-                p => p.id === socket.playerIndex
-            );
+                const player =
+                    room.players.find(
+                        p =>
+                            p.id ===
+                            socket.playerIndex
+                    );
 
-        if (!player) return;
+                if (!player) {
+                    return;
+                }
 
-        const text =
-            String(data?.text || "")
-                .trim()
-                .substring(0, 300);
+                const text =
+                    String(
+                        data?.text || ""
+                    )
+                        .trim()
+                        .substring(
+                            0,
+                            300
+                        );
 
-        if (!text) return;
+                if (!text) {
+                    return;
+                }
 
-        /*
-        IMPORTANT:
-        Only this event goes into the chat.
-        Server status messages do NOT use it.
-        */
+                /*
+                Only player chat enters
+                receiveChatMessage.
+                */
 
-        io.to(room.id).emit(
-            "receiveChatMessage",
-            {
-                playerId: player.id,
-                name: player.name,
-                text
+                io.to(room.id).emit(
+                    "receiveChatMessage",
+                    {
+                        playerId:
+                            player.id,
+
+                        name:
+                            player.name,
+
+                        text
+                    }
+                );
             }
         );
-    });
 
-    /*
-    ========================================
-    WEBRTC VOICE
-    ========================================
-    */
 
-    socket.on("voiceOffer", data => {
+        /* =================================================
+           WEBRTC OFFER
+        ================================================= */
 
-        const room = getRoom(socket);
-
-        if (!room) return;
-
-        socket.to(room.id).emit(
+        socket.on(
             "voiceOffer",
-            {
-                from: socket.playerIndex,
-                offer: data.offer
+            data => {
+
+                const room =
+                    getRoom(socket);
+
+                if (!room) {
+                    return;
+                }
+
+                const target =
+                    Number(
+                        data?.to
+                    );
+
+                const targetSocket =
+                    room.sockets.find(
+                        s =>
+                            Number(
+                                s.playerIndex
+                            ) === target
+                    );
+
+                if (
+                    !targetSocket
+                ) {
+                    return;
+                }
+
+                targetSocket.emit(
+                    "voiceOffer",
+                    {
+                        from:
+                            socket.playerIndex,
+
+                        offer:
+                            data.offer
+                    }
+                );
             }
         );
-    });
 
-    socket.on("voiceAnswer", data => {
 
-        const room = getRoom(socket);
+        /* =================================================
+           WEBRTC ANSWER
+        ================================================= */
 
-        if (!room) return;
-
-        socket.to(room.id).emit(
+        socket.on(
             "voiceAnswer",
-            {
-                from: socket.playerIndex,
-                answer: data.answer
+            data => {
+
+                const room =
+                    getRoom(socket);
+
+                if (!room) {
+                    return;
+                }
+
+                const target =
+                    Number(
+                        data?.to
+                    );
+
+                const targetSocket =
+                    room.sockets.find(
+                        s =>
+                            Number(
+                                s.playerIndex
+                            ) === target
+                    );
+
+                if (
+                    !targetSocket
+                ) {
+                    return;
+                }
+
+                targetSocket.emit(
+                    "voiceAnswer",
+                    {
+                        from:
+                            socket.playerIndex,
+
+                        answer:
+                            data.answer
+                    }
+                );
             }
         );
-    });
 
-    socket.on("iceCandidate", data => {
 
-        const room = getRoom(socket);
+        /* =================================================
+           ICE
+        ================================================= */
 
-        if (!room) return;
-
-        socket.to(room.id).emit(
+        socket.on(
             "iceCandidate",
-            {
-                from: socket.playerIndex,
-                candidate: data.candidate
+            data => {
+
+                const room =
+                    getRoom(socket);
+
+                if (!room) {
+                    return;
+                }
+
+                const target =
+                    Number(
+                        data?.to
+                    );
+
+                const targetSocket =
+                    room.sockets.find(
+                        s =>
+                            Number(
+                                s.playerIndex
+                            ) === target
+                    );
+
+                if (
+                    !targetSocket
+                ) {
+                    return;
+                }
+
+                targetSocket.emit(
+                    "iceCandidate",
+                    {
+                        from:
+                            socket.playerIndex,
+
+                        candidate:
+                            data.candidate
+                    }
+                );
             }
         );
-    });
 
-    /*
-    ========================================
-    DISCONNECT
-    ========================================
-    */
 
-    socket.on("disconnect", () => {
+        /* =================================================
+           DISCONNECT
+        ================================================= */
+
+        socket.on(
+            "disconnect",
+            () => {
+
+                console.log(
+                    "Disconnected:",
+                    socket.id
+                );
+
+                removeFromQueues(
+                    socket.id
+                );
+
+                const room =
+                    getRoom(socket);
+
+                if (!room) {
+                    return;
+                }
+
+                closeRoom(
+                    room,
+                    "A player disconnected. The match has ended."
+                );
+            }
+        );
+    }
+);
+
+
+/* =====================================================
+   SERVER START
+===================================================== */
+
+server.listen(
+    PORT,
+    () => {
 
         console.log(
-            "Disconnected:",
-            socket.id
+            `Ludo Twist server running on port ${PORT}`
         );
-
-        removeFromQueues(socket.id);
-
-        const room = getRoom(socket);
-
-        if (!room) return;
-
-        closeRoom(
-            room,
-            "A player disconnected. The match has ended."
-        );
-    });
-});
-
-server.listen(PORT, () => {
-    console.log(
-        `Ludo Twist server running on port ${PORT}`
-    );
-});
+    }
+);
