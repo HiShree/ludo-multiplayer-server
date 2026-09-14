@@ -1,7 +1,7 @@
-const express = require("express");
-const http = require("http");
-const path = require("path");
-const { Server } = require("socket.io");
+const express = require('express');
+const http = require('http');
+const path = require('path');
+const { Server } = require('socket.io');
 
 const app = express();
 
@@ -25,17 +25,17 @@ app.use(
 ========================================================= */
 
 const COLORS = [
-    "#2397ff",
-    "#ff5969",
-    "#35d97f",
-    "#ffad16"
+    '#1e90ff',
+    '#ff4757',
+    '#2ed573',
+    '#ffa502'
 ];
 
 const NAMES = [
-    "Blue",
-    "Red",
-    "Green",
-    "Yellow"
+    'Blue',
+    'Red',
+    'Green',
+    'Yellow'
 ];
 
 const PATHS = [
@@ -71,6 +71,14 @@ const SAFE = [
     22
 ];
 
+
+/*
+   Dice:
+   1,1,2,2,3,3,4,8
+
+   4 and 8 are possible,
+   but are NOT guaranteed.
+*/
 const DICE_VALUES = [
     1,1,
     2,2,
@@ -101,31 +109,25 @@ function makePlayer(id){
 
     return {
 
-        id,
+        id: id,
 
-        name:
-            NAMES[id],
+        name: NAMES[id],
 
-        color:
-            COLORS[id],
+        color: COLORS[id],
 
-        pawns:[
+        pawns: [
             0,
             0,
             0,
             0
         ],
 
-        hasKilled:false,
+        hasKilled: false,
 
-        hasWon:false,
+        hasWon: false,
 
-        rank:0,
-
-        lastRoll:null
-
+        rank: 0
     };
-
 }
 
 
@@ -141,32 +143,28 @@ function makeRoom(
 
     return {
 
-        id,
+        id: id,
 
-        maxPlayers,
+        maxPlayers: maxPlayers,
 
-        isPrivate,
+        isPrivate: isPrivate,
 
-        sockets:[],
+        sockets: [],
 
-        players:[],
+        players: [],
 
-        started:false,
+        started: false,
 
-        finished:false,
+        finished: false,
 
-        active:0,
+        active: 0,
 
-        pendingRolls:[],
+        pendingRoll: null,
 
-        canRoll:true,
+        canRoll: true,
 
-        rollPermissionIndex:-1,
-
-        rank:1
-
+        rank: 1
     };
-
 }
 
 
@@ -176,15 +174,13 @@ function makeRoom(
 
 function getRoom(socket){
 
-    const roomId =
-        socket.data.roomId;
+    const roomId = socket.data.roomId;
 
     if(!roomId){
         return null;
     }
 
     return rooms.get(roomId) || null;
-
 }
 
 
@@ -200,13 +196,10 @@ function getCurrentPlayer(room){
     return room.players[
         room.active
     ];
-
 }
 
 
-function removeFromQueues(
-    socketId
-){
+function removeFromQueues(socketId){
 
     for(
         const count of [2,3,4]
@@ -218,9 +211,7 @@ function removeFromQueues(
                     socket &&
                     socket.id !== socketId
             );
-
     }
-
 }
 
 
@@ -241,12 +232,11 @@ function makeRoomCode(){
     );
 
     return code;
-
 }
 
 
 /* =========================================================
-   NEXT PLAYER
+   NEXT ACTIVE PLAYER
 ========================================================= */
 
 function nextActive(room){
@@ -259,16 +249,13 @@ function nextActive(room){
     }
 
     for(
-        let step=1;
-        step<=room.players.length;
+        let step = 1;
+        step <= room.players.length;
         step++
     ){
 
         const index =
-            (
-                room.active+
-                step
-            )%
+            (room.active + step) %
             room.players.length;
 
         const player =
@@ -280,16 +267,14 @@ function nextActive(room){
         ){
             return index;
         }
-
     }
 
     return room.active;
-
 }
 
 
 /* =========================================================
-   MOVEMENT
+   MOVEMENT VALIDATION
 ========================================================= */
 
 function isValidMove(
@@ -315,8 +300,8 @@ function isValidMove(
     }
 
     if(
-        pawnIndex<0 ||
-        pawnIndex>3
+        pawnIndex < 0 ||
+        pawnIndex > 3
     ){
         return false;
     }
@@ -324,19 +309,26 @@ function isValidMove(
     const step =
         player.pawns[pawnIndex];
 
-    if(step>=24){
+    if(step >= 24){
         return false;
     }
 
+    const destination =
+        step + roll;
+
+    /*
+       Before first capture:
+       maximum = 15
+
+       After a player captures:
+       maximum = 24
+    */
     const maximum =
         player.hasKilled
         ? 24
         : 15;
 
-    return (
-        step+roll<=maximum
-    );
-
+    return destination <= maximum;
 }
 
 
@@ -346,111 +338,13 @@ function hasValidMove(
 ){
 
     return player.pawns.some(
-        (_,index)=>
+        (_, index) =>
             isValidMove(
                 player,
                 index,
                 roll
             )
     );
-
-}
-
-
-/* =========================================================
-   CAPTURE
-========================================================= */
-
-function getBoardCell(
-    playerId,
-    step
-){
-
-    return PATHS[
-        playerId
-    ][step];
-
-}
-
-
-function performCapture(
-    room,
-    player,
-    to
-){
-
-    const captured=[];
-
-    if(to>=24){
-        return captured;
-    }
-
-    const cell =
-        getBoardCell(
-            player.id,
-            to
-        );
-
-    if(
-        SAFE.includes(cell)
-    ){
-        return captured;
-    }
-
-    room.players.forEach(
-        opponent=>{
-
-            if(
-                opponent.id===
-                player.id ||
-                opponent.hasWon
-            ){
-                return;
-            }
-
-            for(
-                let i=0;
-                i<4;
-                i++
-            ){
-
-                const step =
-                    opponent.pawns[i];
-
-                if(step>=24){
-                    continue;
-                }
-
-                const opponentCell =
-                    getBoardCell(
-                        opponent.id,
-                        step
-                    );
-
-                if(
-                    opponentCell===
-                    cell
-                ){
-
-                    opponent.pawns[i]=0;
-
-                    captured.push({
-                        playerId:
-                            opponent.id,
-
-                        pawnIndex:
-                            i
-                    });
-
-                }
-
-            }
-
-        }
-    );
-
-    return captured;
-
 }
 
 
@@ -462,18 +356,10 @@ function getPublicState(room){
 
     return {
 
-        active:
-            room.active,
+        active: room.active,
 
-        pendingRolls:
-            room.pendingRolls.map(
-                die=>({
-                    id:die.id,
-                    value:die.value,
-                    extraAvailable:
-                        die.extraAvailable
-                })
-            ),
+        pendingRoll:
+            room.pendingRoll,
 
         canRoll:
             room.canRoll,
@@ -486,18 +372,15 @@ function getPublicState(room){
 
         players:
             room.players.map(
-                player=>({
+                player => ({
 
-                    id:
-                        player.id,
+                    id: player.id,
 
-                    name:
-                        player.name,
+                    name: player.name,
 
-                    color:
-                        player.color,
+                    color: player.color,
 
-                    pawns:[
+                    pawns: [
                         ...player.pawns
                     ],
 
@@ -508,16 +391,10 @@ function getPublicState(room){
                         player.hasWon,
 
                     rank:
-                        player.rank,
-
-                    lastRoll:
-                        player.lastRoll
-
+                        player.rank
                 })
             )
-
     };
-
 }
 
 
@@ -528,10 +405,9 @@ function sendState(room){
     }
 
     io.to(room.id).emit(
-        "gameState",
+        'gameState',
         getPublicState(room)
     );
-
 }
 
 
@@ -545,10 +421,9 @@ function sendMessage(
     }
 
     io.to(room.id).emit(
-        "systemMessage",
+        'systemMessage',
         message
     );
-
 }
 
 
@@ -565,37 +440,37 @@ function checkGameFinished(room){
         );
 
     if(
-        remaining.length<=1
+        remaining.length <= 1
     ){
 
         if(
-            remaining.length===1
+            remaining.length === 1
         ){
 
             const last =
                 remaining[0];
 
-            last.hasWon=true;
+            last.hasWon = true;
 
             last.rank =
                 room.rank++;
-
         }
 
-        room.finished=true;
+        room.finished = true;
 
-        room.canRoll=false;
+        room.canRoll = false;
 
-        room.pendingRolls=[];
+        room.pendingRoll = null;
 
-        room.rollPermissionIndex=-1;
+        sendMessage(
+            room,
+            '🏆 Game finished!'
+        );
 
         return true;
-
     }
 
     return false;
-
 }
 
 
@@ -615,29 +490,27 @@ function startRoom(
         return;
     }
 
-    room.sockets=[
+    room.sockets = [
         ...sockets
     ];
 
-    room.players=[];
+    room.players = [];
 
-    room.started=true;
+    room.started = true;
 
-    room.finished=false;
+    room.finished = false;
 
-    room.active=0;
+    room.active = 0;
 
-    room.pendingRolls=[];
+    room.pendingRoll = null;
 
-    room.canRoll=true;
+    room.canRoll = true;
 
-    room.rollPermissionIndex=-1;
-
-    room.rank=1;
+    room.rank = 1;
 
 
     sockets.forEach(
-        (socket,index)=>{
+        (socket, index) => {
 
             const playerId =
                 index;
@@ -657,21 +530,21 @@ function startRoom(
             );
 
             socket.emit(
-                "assignPlayer",
+                'assignPlayer',
                 {
-                    playerId,
+                    playerId:
+                        playerId,
 
                     playerName:
                         NAMES[playerId]
                 }
             );
-
         }
     );
 
 
     io.to(roomId).emit(
-        "gameStart",
+        'gameStart',
         {
             players:
                 room.players.map(
@@ -684,11 +557,11 @@ function startRoom(
 
     sendMessage(
         room,
-        "🎮 Match started! Blue goes first."
+        '🎮 Match started! Blue goes first.'
     );
 
-    sendState(room);
 
+    sendState(room);
 }
 
 
@@ -709,25 +582,23 @@ function closeRoom(
     }
 
     io.to(roomId).emit(
-        "roomClosed",
+        'roomClosed',
         message ||
-        "Room closed."
+        'Room closed.'
     );
 
     room.sockets.forEach(
-        socket=>{
+        socket => {
 
             socket.leave(roomId);
 
-            socket.data.roomId=null;
+            socket.data.roomId = null;
 
-            socket.data.playerId=null;
-
+            socket.data.playerId = null;
         }
     );
 
     rooms.delete(roomId);
-
 }
 
 
@@ -736,11 +607,11 @@ function closeRoom(
 ========================================================= */
 
 io.on(
-    "connection",
-    socket=>{
+    'connection',
+    socket => {
 
         console.log(
-            "Connected:",
+            'Connected:',
             socket.id
         );
 
@@ -750,8 +621,8 @@ io.on(
         ================================================= */
 
         socket.on(
-            "joinGame",
-            numberOfPlayers=>{
+            'joinGame',
+            numberOfPlayers => {
 
                 const count =
                     Number(
@@ -764,24 +635,26 @@ io.on(
                 ){
 
                     socket.emit(
-                        "roomError",
-                        "Invalid player count."
+                        'roomError',
+                        'Invalid player count.'
                     );
 
                     return;
-
                 }
+
 
                 removeFromQueues(
                     socket.id
                 );
 
+
                 queues[count].push(
                     socket
                 );
 
+
                 socket.emit(
-                    "systemMessage",
+                    'systemMessage',
                     `Waiting for ${
                         count -
                         queues[count].length
@@ -790,7 +663,7 @@ io.on(
 
 
                 if(
-                    queues[count].length>=count
+                    queues[count].length >= count
                 ){
 
                     const matched =
@@ -800,10 +673,12 @@ io.on(
                                 count
                             );
 
+
                     const roomId =
-                        "pub_" +
+                        'pub_' +
                         makeRoomCode()
                             .toLowerCase();
+
 
                     const room =
                         makeRoom(
@@ -812,18 +687,18 @@ io.on(
                             false
                         );
 
+
                     rooms.set(
                         roomId,
                         room
                     );
 
+
                     startRoom(
                         roomId,
                         matched
                     );
-
                 }
-
             }
         );
 
@@ -833,8 +708,8 @@ io.on(
         ================================================= */
 
         socket.on(
-            "createPrivateGame",
-            numberOfPlayers=>{
+            'createPrivateGame',
+            numberOfPlayers => {
 
                 const count =
                     Number(
@@ -847,20 +722,22 @@ io.on(
                 ){
 
                     socket.emit(
-                        "roomError",
-                        "Invalid player count."
+                        'roomError',
+                        'Invalid player count.'
                     );
 
                     return;
-
                 }
+
 
                 removeFromQueues(
                     socket.id
                 );
 
+
                 const roomId =
                     makeRoomCode();
+
 
                 const room =
                     makeRoom(
@@ -869,14 +746,17 @@ io.on(
                         true
                     );
 
+
                 rooms.set(
                     roomId,
                     room
                 );
 
+
                 room.sockets.push(
                     socket
                 );
+
 
                 socket.data.roomId =
                     roomId;
@@ -886,16 +766,17 @@ io.on(
 
                 socket.join(roomId);
 
+
                 socket.emit(
-                    "privateRoomCreated",
+                    'privateRoomCreated',
                     roomId
                 );
 
+
                 sendMessage(
                     room,
-                    `Room created. Share code ${roomId}.`
+                    `Room created. Share code ${roomId}. Waiting for players (1/${count})...`
                 );
-
             }
         );
 
@@ -905,62 +786,66 @@ io.on(
         ================================================= */
 
         socket.on(
-            "joinPrivateGame",
-            rawCode=>{
+            'joinPrivateGame',
+            rawCode => {
 
                 const roomId =
                     String(
-                        rawCode || ""
+                        rawCode || ''
                     )
                     .trim()
                     .toUpperCase();
 
+
                 const room =
                     rooms.get(roomId);
+
 
                 if(!room){
 
                     socket.emit(
-                        "roomError",
-                        "Room code not found!"
+                        'roomError',
+                        'Room code not found!'
                     );
 
                     return;
-
                 }
+
 
                 if(room.started){
 
                     socket.emit(
-                        "roomError",
-                        "Game has already started!"
+                        'roomError',
+                        'Game has already started!'
                     );
 
                     return;
-
                 }
 
+
                 if(
-                    room.sockets.length>=
+                    room.sockets.length >=
                     room.maxPlayers
                 ){
 
                     socket.emit(
-                        "roomError",
-                        "Room is full!"
+                        'roomError',
+                        'Room is full!'
                     );
 
                     return;
-
                 }
+
 
                 removeFromQueues(
                     socket.id
                 );
 
+
                 room.sockets.push(
                     socket
                 );
+
 
                 socket.data.roomId =
                     roomId;
@@ -970,14 +855,15 @@ io.on(
 
                 socket.join(roomId);
 
+
                 sendMessage(
                     room,
-                    `Player joined (${room.sockets.length}/${room.maxPlayers}).`
+                    `Player joined (${room.sockets.length}/${room.maxPlayers})...`
                 );
 
 
                 if(
-                    room.sockets.length===
+                    room.sockets.length ===
                     room.maxPlayers
                 ){
 
@@ -985,23 +871,22 @@ io.on(
                         roomId,
                         room.sockets
                     );
-
                 }
-
             }
         );
 
 
         /* =================================================
-           ROLL
+           DICE ROLL
         ================================================= */
 
         socket.on(
-            "requestRoll",
-            ()=>{
+            'requestRoll',
+            () => {
 
                 const room =
                     getRoom(socket);
+
 
                 if(
                     !room ||
@@ -1011,202 +896,127 @@ io.on(
                     return;
                 }
 
+
                 const player =
                     getCurrentPlayer(room);
+
 
                 if(!player){
                     return;
                 }
 
+
                 if(
                     Number(
                         socket.data.playerId
-                    )!==player.id
+                    ) !== player.id
                 ){
 
                     socket.emit(
-                        "actionError",
-                        "It is not your turn."
+                        'actionError',
+                        'It is not your turn.'
                     );
 
                     return;
-
                 }
 
-
-                if(!room.canRoll){
-
-                    socket.emit(
-                        "actionError",
-                        "Roll is not available yet."
-                    );
-
-                    return;
-
-                }
-
-
-                /*
-                   If a 4/8 die gave the permission
-                   to roll again, mark that permission
-                   as used.
-                */
 
                 if(
-                    room.rollPermissionIndex>=0 &&
-                    room.pendingRolls[
-                        room.rollPermissionIndex
-                    ]
+                    !room.canRoll ||
+                    room.pendingRoll !== null
                 ){
 
-                    room.pendingRolls[
-                        room.rollPermissionIndex
-                    ].extraAvailable=false;
+                    socket.emit(
+                        'actionError',
+                        'You cannot roll right now.'
+                    );
 
+                    return;
                 }
 
 
-                room.rollPermissionIndex=-1;
-
-
-                const value =
+                const roll =
                     DICE_VALUES[
                         Math.floor(
-                            Math.random()*
+                            Math.random() *
                             DICE_VALUES.length
                         )
                     ];
 
 
-                player.lastRoll=value;
+                room.pendingRoll =
+                    roll;
 
-
-                const die={
-
-                    id:
-                        `${Date.now()}_${Math.random()}`,
-
-                    value,
-
-                    extraAvailable:
-                        value===4 ||
-                        value===8
-
-                };
-
-
-                room.pendingRolls.push(
-                    die
-                );
-
-
-                /*
-                   The new 4/8 itself allows
-                   another roll.
-                */
-
-                if(
-                    value===4 ||
-                    value===8
-                ){
-
-                    room.canRoll=true;
-
-                    room.rollPermissionIndex =
-                        room.pendingRolls.length-1;
-
-                }else{
-
-                    room.canRoll=false;
-
-                    room.rollPermissionIndex=-1;
-
-                }
+                room.canRoll = false;
 
 
                 io.to(room.id).emit(
-                    "diceRolled",
+                    'diceRolled',
                     {
-
                         playerId:
                             player.id,
 
-                        value,
-
-                        rollId:
-                            die.id,
-
-                        extraAvailable:
-                            die.extraAvailable
-
+                        value:
+                            roll
                     }
                 );
 
 
-                /*
-                   If no pawn can use this
-                   particular die, consume it.
-                */
+                /* -----------------------------------------
+                   NO VALID MOVE
+                ----------------------------------------- */
 
                 if(
                     !hasValidMove(
                         player,
-                        value
+                        roll
                     )
                 ){
 
-                    room.pendingRolls.pop();
+                    room.pendingRoll =
+                        null;
 
+
+                    /*
+                       4 / 8 gives another roll
+                       even when no pawn can move.
+                    */
 
                     if(
-                        die.extraAvailable
+                        roll === 4 ||
+                        roll === 8
                     ){
 
-                        room.canRoll=true;
+                        room.canRoll = true;
 
-                        room.rollPermissionIndex=-1;
 
                         sendMessage(
                             room,
-                            `${player.name} rolled ${value}. No valid move — roll again!`
+                            `${player.name} rolled ${roll}. No valid move — extra roll!`
                         );
 
-                        sendState(room);
-
-                        return;
-
-                    }
-
-
-                    if(
-                        room.pendingRolls.length
-                    ){
-
-                        room.canRoll=false;
 
                         sendState(room);
 
                         return;
-
                     }
 
 
-                    room.canRoll=false;
+                    sendMessage(
+                        room,
+                        `${player.name} rolled ${roll}. No valid move.`
+                    );
+
 
                     room.active =
                         nextActive(room);
 
-                    room.canRoll=true;
+                    room.canRoll = true;
 
-                    room.rollPermissionIndex=-1;
-
-                    sendMessage(
-                        room,
-                        `${player.name} had no valid move.`
-                    );
 
                     const next =
                         getCurrentPlayer(room);
+
 
                     if(next){
 
@@ -1214,23 +1024,22 @@ io.on(
                             room,
                             `${next.name}'s turn.`
                         );
-
                     }
+
 
                     sendState(room);
 
                     return;
-
                 }
 
 
                 sendMessage(
                     room,
-                    `${player.name} rolled ${value}.`
+                    `${player.name} rolled ${roll}. Tap a pawn.`
                 );
 
-                sendState(room);
 
+                sendState(room);
             }
         );
 
@@ -1240,11 +1049,12 @@ io.on(
         ================================================= */
 
         socket.on(
-            "requestMove",
-            data=>{
+            'requestMove',
+            data => {
 
                 const room =
                     getRoom(socket);
+
 
                 if(
                     !room ||
@@ -1260,6 +1070,7 @@ io.on(
                         data?.playerId
                     );
 
+
                 const pawnIndex =
                     Number(
                         data?.pawnIndex
@@ -1274,76 +1085,34 @@ io.on(
                     !player ||
                     Number(
                         socket.data.playerId
-                    )!==playerId ||
-                    player.id!==playerId
+                    ) !== playerId ||
+                    player.id !== playerId
                 ){
 
                     socket.emit(
-                        "actionError",
-                        "You cannot control this player."
+                        'actionError',
+                        'You cannot control this player.'
                     );
 
                     return;
-
-                }
-
-
-                const rollId =
-                    String(
-                        data?.rollId || ""
-                    );
-
-
-                /*
-                   Find the exact selected
-                   dice number.
-                */
-
-                let rollIndex =
-                    room.pendingRolls.findIndex(
-                        die =>
-                            String(
-                                die.id
-                            )===
-                            rollId
-                    );
-
-
-                /*
-                   Compatibility fallback.
-                */
-
-                if(
-                    rollIndex<0 &&
-                    room.pendingRolls.length===1
-                ){
-
-                    rollIndex=0;
-
                 }
 
 
                 if(
-                    rollIndex<0
+                    room.pendingRoll === null
                 ){
 
                     socket.emit(
-                        "actionError",
-                        "Choose a dice number first."
+                        'actionError',
+                        'Roll the dice first.'
                     );
 
                     return;
-
                 }
 
-
-                const die =
-                    room.pendingRolls[
-                        rollIndex
-                    ];
 
                 const roll =
-                    die.value;
+                    room.pendingRoll;
 
 
                 if(
@@ -1355,135 +1124,261 @@ io.on(
                 ){
 
                     socket.emit(
-                        "actionError",
-                        "That pawn cannot move that far."
+                        'actionError',
+                        'That pawn cannot move that far.'
                     );
 
                     return;
-
                 }
 
 
                 const from =
                     player.pawns[pawnIndex];
 
+
                 const to =
-                    from+roll;
+                    from + roll;
 
 
-                /*
-                   Remove exactly the
-                   selected dice.
-                */
+                /* -----------------------------------------
+                   MOVE PAWN
+                ----------------------------------------- */
 
-                room.pendingRolls.splice(
-                    rollIndex,
-                    1
-                );
+                player.pawns[pawnIndex] =
+                    to;
 
+                room.pendingRoll =
+                    null;
 
-                room.canRoll=false;
-
-                room.rollPermissionIndex=-1;
+                room.canRoll =
+                    false;
 
 
-                player.pawns[pawnIndex]=to;
-
-
-                /*
+                /* =================================================
                    CAPTURE
-                */
+                   
+                   IMPORTANT:
+                   ONLY ONE OPPONENT PAWN IS CAPTURED.
+                   
+                   Even if several opponent pawns are stacked
+                   on the same board cell, this loop stops after
+                   the FIRST pawn is captured.
+                ================================================= */
 
-                const captured =
-                    performCapture(
-                        room,
-                        player,
-                        to
-                    );
+                let captureHappened =
+                    false;
 
-                const captureHappened =
-                    captured.length>0;
+                const captured = [];
 
 
-                if(captureHappened){
+                const boardCell =
+                    PATHS[
+                        player.id
+                    ][to];
 
-                    player.hasKilled=true;
 
+                if(
+                    to < 24 &&
+                    !SAFE.includes(boardCell)
+                ){
+
+                    for(
+                        const opponent of room.players
+                    ){
+
+                        if(
+                            opponent.id ===
+                            player.id
+                        ){
+                            continue;
+                        }
+
+
+                        if(
+                            opponent.hasWon
+                        ){
+                            continue;
+                        }
+
+
+                        for(
+                            let j = 0;
+                            j < 4;
+                            j++
+                        ){
+
+                            const step =
+                                opponent.pawns[j];
+
+
+                            if(
+                                step >= 24
+                            ){
+                                continue;
+                            }
+
+
+                            const opponentCell =
+                                PATHS[
+                                    opponent.id
+                                ][step];
+
+
+                            if(
+                                opponentCell ===
+                                boardCell
+                            ){
+
+                                /*
+                                   CAPTURE ONLY ONE PAWN
+                                */
+
+                                opponent.pawns[j] =
+                                    0;
+
+
+                                captured.push({
+                                    playerId:
+                                        opponent.id,
+
+                                    pawnIndex:
+                                        j
+                                });
+
+
+                                captureHappened =
+                                    true;
+
+
+                                /*
+                                   STOP IMMEDIATELY.
+                                   No second/third/fourth pawn
+                                   can be captured by this move.
+                                */
+
+                                break;
+                            }
+                        }
+
+
+                        /*
+                           If one pawn has already been captured,
+                           stop checking other opponents too.
+                        */
+
+                        if(
+                            captureHappened
+                        ){
+                            break;
+                        }
+                    }
                 }
 
 
-                /*
+                if(
+                    captureHappened
+                ){
+
+                    player.hasKilled =
+                        true;
+                }
+
+
+                /* =================================================
                    HOME
-                */
+                ================================================= */
 
                 const reachedHome =
-                    to===24;
+                    to === 24;
 
-
-                /*
-                   PLAYER FINISH
-                */
 
                 if(
                     player.pawns.every(
                         step =>
-                            step===24
+                            step === 24
                     )
                 ){
 
-                    player.hasWon=true;
+                    player.hasWon =
+                        true;
 
                     player.rank =
                         room.rank++;
+
 
                     sendMessage(
                         room,
                         `🏆 ${player.name} finished in position ${player.rank}!`
                     );
+                }
 
+
+                /* =================================================
+                   EXTRA TURN
+                ================================================= */
+
+                let extraTurn =
+                    false;
+
+
+                /*
+                   4 / 8 extra roll
+                */
+
+                if(
+                    roll === 4 ||
+                    roll === 8
+                ){
+
+                    extraTurn =
+                        true;
                 }
 
 
                 /*
-                   EXTRA TURN
-
-                   die.extraAvailable means:
-                   this particular 4/8 has not
-                   already been used to roll again.
-
-                   Capture/home always gives
-                   a fresh extra roll.
+                   Capture extra roll
                 */
 
-                let extraTurn =
-                    !!die.extraAvailable;
+                if(
+                    captureHappened
+                ){
 
-
-                if(captureHappened){
-                    extraTurn=true;
+                    extraTurn =
+                        true;
                 }
 
+
+                /*
+                   HOME extra roll
+                */
 
                 if(
                     reachedHome &&
                     !player.hasWon
                 ){
 
-                    extraTurn=true;
-
-                }
-
-
-                if(player.hasWon){
-
-                    extraTurn=false;
-
+                    extraTurn =
+                        true;
                 }
 
 
                 /*
-                   GAME END
+                   Finished player does not
+                   receive an extra roll.
                 */
+
+                if(
+                    player.hasWon
+                ){
+
+                    extraTurn =
+                        false;
+                }
+
+
+                /* =================================================
+                   GAME END
+                ================================================= */
 
                 if(
                     player.hasWon
@@ -1493,33 +1388,34 @@ io.on(
                         room
                     );
 
-                    extraTurn=false;
-
+                    extraTurn =
+                        false;
                 }
 
 
-                /*
-                   Continue same turn if:
-                   - extra roll
-                   OR
-                   - banked dice remain
-                */
+                /* =================================================
+                   NEXT TURN
+                ================================================= */
 
                 if(
                     !room.finished
                 ){
 
-                    if(extraTurn){
+                    if(
+                        extraTurn
+                    ){
 
-                        room.canRoll=true;
+                        room.canRoll =
+                            true;
 
-                        room.rollPermissionIndex=-1;
 
-                        if(captureHappened){
+                        if(
+                            captureHappened
+                        ){
 
                             sendMessage(
                                 room,
-                                `${player.name} captured a pawn — roll again!`
+                                `${player.name} captured a pawn — extra roll!`
                             );
 
                         }else if(
@@ -1529,83 +1425,74 @@ io.on(
 
                             sendMessage(
                                 room,
-                                `${player.name} reached HOME — roll again!`
+                                `${player.name} reached HOME — extra roll!`
                             );
 
                         }else{
 
                             sendMessage(
                                 room,
-                                `${player.name} used ${roll} — roll again!`
+                                `${player.name} rolled ${roll} — extra roll!`
                             );
-
                         }
-
-                    }else if(
-                        room.pendingRolls.length>0
-                    ){
-
-                        room.canRoll=false;
-
-                        sendMessage(
-                            room,
-                            `${player.name} has another dice available.`
-                        );
 
                     }else{
 
                         room.active =
                             nextActive(room);
 
-                        room.canRoll=true;
+                        room.canRoll =
+                            true;
 
-                        room.rollPermissionIndex=-1;
 
-                        const next =
-                            getCurrentPlayer(room);
+                        const nextPlayer =
+                            getCurrentPlayer(
+                                room
+                            );
 
-                        if(next){
+
+                        if(nextPlayer){
 
                             sendMessage(
                                 room,
-                                `${next.name}'s turn.`
+                                `${nextPlayer.name}'s turn.`
                             );
-
                         }
-
                     }
-
                 }
 
 
-                /*
-                   MOVE RESULT
-                */
+                /* =================================================
+                   SEND MOVE RESULT
+                ================================================= */
 
                 io.to(room.id).emit(
-                    "moveResult",
+                    'moveResult',
                     {
 
-                        playerId,
+                        playerId:
+                            playerId,
 
-                        pawnIndex,
+                        pawnIndex:
+                            pawnIndex,
 
-                        from,
+                        from:
+                            from,
 
-                        to,
+                        to:
+                            to,
 
-                        roll,
+                        roll:
+                            roll,
 
-                        rollId:
-                            die.id,
+                        captured:
+                            captured,
 
-                        captured,
-
-                        extraTurn,
+                        extraTurn:
+                            extraTurn,
 
                         finished:
                             room.finished
-
                     }
                 );
 
@@ -1613,14 +1500,14 @@ io.on(
                 sendState(room);
 
 
-                if(room.finished){
+                if(
+                    room.finished
+                ){
 
                     io.to(room.id).emit(
-                        "gameFinished"
+                        'gameFinished'
                     );
-
                 }
-
             }
         );
 
@@ -1630,95 +1517,151 @@ io.on(
         ================================================= */
 
         socket.on(
-            "sendChatMessage",
-            data=>{
+            'sendChatMessage',
+            data => {
 
                 const room =
                     getRoom(socket);
+
 
                 if(!room){
                     return;
                 }
 
+
                 const player =
                     room.players.find(
                         p =>
-                            p.id===
+                            p.id ===
                             socket.data.playerId
                     );
+
 
                 if(!player){
                     return;
                 }
 
+
                 const text =
                     String(
-                        data?.text || ""
+                        data?.text || ''
                     )
                     .trim()
                     .slice(0,300);
+
 
                 if(!text){
                     return;
                 }
 
-                io.to(room.id).emit(
-                    "receiveChatMessage",
-                    {
 
+                io.to(room.id).emit(
+                    'receiveChatMessage',
+                    {
                         name:
                             player.name,
 
-                        text
-
+                        text:
+                            text
                     }
                 );
+            }
+        );
+
+
+        /* =================================================
+           VOICE / MICROPHONE
+           
+           WebRTC signaling only.
+           The actual microphone is handled by index.html.
+        ================================================= */
+
+        function sendVoicePeers(){
+
+            const room =
+                getRoom(socket);
+
+
+            if(!room){
+                return;
+            }
+
+
+            const peers =
+                room.sockets
+                    .filter(
+                        s =>
+                            s &&
+                            s !== socket &&
+                            s.connected
+                    )
+                    .map(
+                        s =>
+                            s.id
+                    );
+
+
+            socket.emit(
+                'voicePeers',
+                peers
+            );
+        }
+
+
+        /*
+           Original event
+        */
+
+        socket.on(
+            'voiceJoin',
+            () => {
+
+                sendVoicePeers();
+
+            }
+        );
+
+
+        /*
+           Supported alias for the newer
+           WebRTC client.
+        */
+
+        socket.on(
+            'voiceReady',
+            () => {
+
+                sendVoicePeers();
+
+            }
+        );
+
+
+        /*
+           Send current peers again if requested.
+        */
+
+        socket.on(
+            'voiceGetPeers',
+            () => {
+
+                sendVoicePeers();
 
             }
         );
 
 
         /* =================================================
-           VOICE
+           VOICE SIGNAL
         ================================================= */
 
         socket.on(
-            "voiceJoin",
-            ()=>{
+            'voiceSignal',
+            data => {
 
                 const room =
                     getRoom(socket);
 
-                if(!room){
-                    return;
-                }
-
-                const peers =
-                    room.sockets
-                        .filter(
-                            s =>
-                                s !== socket
-                        )
-                        .map(
-                            s =>
-                                s.id
-                        );
-
-                socket.emit(
-                    "voicePeers",
-                    peers
-                );
-
-            }
-        );
-
-
-        socket.on(
-            "voiceSignal",
-            data=>{
-
-                const room =
-                    getRoom(socket);
 
                 if(
                     !room ||
@@ -1728,30 +1671,32 @@ io.on(
                     return;
                 }
 
+
                 const target =
                     room.sockets.find(
                         s =>
-                            s.id===
+                            s &&
+                            s.id ===
                             data.to
                     );
 
-                if(target){
 
-                    target.emit(
-                        "voiceSignal",
-                        {
-
-                            from:
-                                socket.id,
-
-                            data:
-                                data.data
-
-                        }
-                    );
-
+                if(!target){
+                    return;
                 }
 
+
+                target.emit(
+                    'voiceSignal',
+                    {
+
+                        from:
+                            socket.id,
+
+                        data:
+                            data.data
+                    }
+                );
             }
         );
 
@@ -1761,30 +1706,38 @@ io.on(
         ================================================= */
 
         socket.on(
-            "disconnect",
-            ()=>{
+            'disconnect',
+            () => {
 
                 console.log(
-                    "Disconnected:",
+                    'Disconnected:',
                     socket.id
                 );
+
 
                 removeFromQueues(
                     socket.id
                 );
 
+
                 const room =
                     getRoom(socket);
+
 
                 if(!room){
                     return;
                 }
 
+
+                /*
+                   If someone leaves a live
+                   multiplayer game, close it.
+                */
+
                 closeRoom(
                     room.id,
-                    "A player disconnected. The match has ended."
+                    'A player disconnected. The match has ended.'
                 );
-
             }
         );
 
@@ -1799,9 +1752,11 @@ io.on(
 const PORT =
     process.env.PORT || 3000;
 
+
 server.listen(
     PORT,
-    ()=>{
+    () => {
+
         console.log(
             `Ludo Twist server running on port ${PORT}`
         );
