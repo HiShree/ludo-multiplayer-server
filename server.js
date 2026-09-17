@@ -358,9 +358,7 @@ function hasValidMove(
 
 
 /* =========================================================
-   CAPTURE
-   ONLY ONE OPPONENT PAWN
-   IS CAPTURED AT A TIME
+   BOARD POSITION
 ========================================================= */
 
 function getBoardCell(
@@ -374,6 +372,12 @@ function getBoardCell(
 
 }
 
+
+/* =========================================================
+   CAPTURE
+   ONLY ONE OPPONENT PAWN IS
+   CAPTURED PER MOVE
+========================================================= */
 
 function performCapture(
     room,
@@ -401,12 +405,15 @@ function performCapture(
 
 
     /*
-       IMPORTANT:
+       Search opponents one by one.
 
-       Only ONE opponent pawn is captured.
+       As soon as ONE pawn is found,
+       capture it and immediately return.
 
-       We stop immediately after finding
-       the first opponent pawn on this cell.
+       Therefore:
+       2 opponent pawns = 1 captured
+       3 opponent pawns = 1 captured
+       4 opponent pawns = 1 captured
     */
 
     for(
@@ -456,13 +463,6 @@ function performCapture(
                         i
 
                 });
-
-                /*
-                   STOP BOTH LOOPS.
-
-                   This guarantees that one move
-                   can capture only one pawn.
-                */
 
                 return captured;
 
@@ -1655,7 +1655,7 @@ io.on(
 
         /* =================================================
            VOICE CHAT
-========================================================= */
+        ================================================= */
 
         socket.on(
             "voiceJoin",
@@ -1668,6 +1668,7 @@ io.on(
                     return;
                 }
 
+
                 const peers =
                     room.sockets
                         .filter(
@@ -1679,14 +1680,16 @@ io.on(
                                 s.id
                         );
 
+
                 socket.emit(
                     "voicePeers",
                     peers
                 );
 
+
                 /*
-                   Tell existing players that a new
-                   voice participant is available.
+                   Notify current voice users that
+                   this socket is now participating.
                 */
 
                 socket.to(room.id).emit(
@@ -1698,14 +1701,6 @@ io.on(
         );
 
 
-        /*
-           Voice leave.
-
-           This lets the other players close the
-           WebRTC connection when the microphone
-           is switched off.
-        */
-
         socket.on(
             "voiceLeave",
             ()=>{
@@ -1716,6 +1711,7 @@ io.on(
                 if(!room){
                     return;
                 }
+
 
                 socket.to(room.id).emit(
                     "voicePeerLeft",
@@ -1742,12 +1738,14 @@ io.on(
                     return;
                 }
 
+
                 const target =
                     room.sockets.find(
                         s =>
                             s.id===
                             data.to
                     );
+
 
                 if(target){
 
@@ -1783,22 +1781,20 @@ io.on(
                     socket.id
                 );
 
+
                 removeFromQueues(
                     socket.id
                 );
 
+
                 const room =
                     getRoom(socket);
+
 
                 if(!room){
                     return;
                 }
 
-
-                /*
-                   Tell voice peers immediately so
-                   WebRTC connections are cleaned up.
-                */
 
                 socket.to(room.id).emit(
                     "voicePeerLeft",
