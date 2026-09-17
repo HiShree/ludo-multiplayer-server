@@ -359,6 +359,8 @@ function hasValidMove(
 
 /* =========================================================
    CAPTURE
+   ONLY ONE OPPONENT PAWN
+   IS CAPTURED AT A TIME
 ========================================================= */
 
 function getBoardCell(
@@ -397,57 +399,78 @@ function performCapture(
         return captured;
     }
 
-    room.players.forEach(
-        opponent=>{
 
-            if(
-                opponent.id===
-                player.id ||
-                opponent.hasWon
-            ){
-                return;
+    /*
+       IMPORTANT:
+
+       Only ONE opponent pawn is captured.
+
+       We stop immediately after finding
+       the first opponent pawn on this cell.
+    */
+
+    for(
+        const opponent of room.players
+    ){
+
+        if(
+            opponent.id===
+            player.id ||
+            opponent.hasWon
+        ){
+            continue;
+        }
+
+        for(
+            let i=0;
+            i<4;
+            i++
+        ){
+
+            const step =
+                opponent.pawns[i];
+
+            if(step>=24){
+                continue;
             }
 
-            for(
-                let i=0;
-                i<4;
-                i++
+            const opponentCell =
+                getBoardCell(
+                    opponent.id,
+                    step
+                );
+
+            if(
+                opponentCell===
+                cell
             ){
 
-                const step =
-                    opponent.pawns[i];
+                opponent.pawns[i]=0;
 
-                if(step>=24){
-                    continue;
-                }
+                captured.push({
 
-                const opponentCell =
-                    getBoardCell(
+                    playerId:
                         opponent.id,
-                        step
-                    );
 
-                if(
-                    opponentCell===
-                    cell
-                ){
+                    pawnIndex:
+                        i
 
-                    opponent.pawns[i]=0;
+                });
 
-                    captured.push({
-                        playerId:
-                            opponent.id,
+                /*
+                   STOP BOTH LOOPS.
 
-                        pawnIndex:
-                            i
-                    });
+                   This guarantees that one move
+                   can capture only one pawn.
+                */
 
-                }
+                return captured;
 
             }
 
         }
-    );
+
+    }
 
     return captured;
 
@@ -468,10 +491,16 @@ function getPublicState(room){
         pendingRolls:
             room.pendingRolls.map(
                 die=>({
-                    id:die.id,
-                    value:die.value,
+
+                    id:
+                        die.id,
+
+                    value:
+                        die.value,
+
                     extraAvailable:
                         die.extraAvailable
+
                 })
             ),
 
@@ -1033,7 +1062,6 @@ io.on(
 
                 }
 
-
                 if(!room.canRoll){
 
                     socket.emit(
@@ -1045,12 +1073,6 @@ io.on(
 
                 }
 
-
-                /*
-                   If a 4/8 die gave the permission
-                   to roll again, mark that permission
-                   as used.
-                */
 
                 if(
                     room.rollPermissionIndex>=0 &&
@@ -1064,7 +1086,6 @@ io.on(
                     ].extraAvailable=false;
 
                 }
-
 
                 room.rollPermissionIndex=-1;
 
@@ -1099,11 +1120,6 @@ io.on(
                     die
                 );
 
-
-                /*
-                   The new 4/8 itself allows
-                   another roll.
-                */
 
                 if(
                     value===4 ||
@@ -1142,11 +1158,6 @@ io.on(
                     }
                 );
 
-
-                /*
-                   If no pawn can use this
-                   particular die, consume it.
-                */
 
                 if(
                     !hasValidMove(
@@ -1294,11 +1305,6 @@ io.on(
                     );
 
 
-                /*
-                   Find the exact selected
-                   dice number.
-                */
-
                 let rollIndex =
                     room.pendingRolls.findIndex(
                         die =>
@@ -1308,10 +1314,6 @@ io.on(
                             rollId
                     );
 
-
-                /*
-                   Compatibility fallback.
-                */
 
                 if(
                     rollIndex<0 &&
@@ -1371,28 +1373,21 @@ io.on(
                     from+roll;
 
 
-                /*
-                   Remove exactly the
-                   selected dice.
-                */
-
                 room.pendingRolls.splice(
                     rollIndex,
                     1
                 );
 
-
                 room.canRoll=false;
 
                 room.rollPermissionIndex=-1;
 
-
                 player.pawns[pawnIndex]=to;
 
 
-                /*
+                /* =================================================
                    CAPTURE
-                */
+                ================================================= */
 
                 const captured =
                     performCapture(
@@ -1412,17 +1407,17 @@ io.on(
                 }
 
 
-                /*
+                /* =================================================
                    HOME
-                */
+                ================================================= */
 
                 const reachedHome =
                     to===24;
 
 
-                /*
+                /* =================================================
                    PLAYER FINISH
-                */
+                ================================================= */
 
                 if(
                     player.pawns.every(
@@ -1444,16 +1439,9 @@ io.on(
                 }
 
 
-                /*
+                /* =================================================
                    EXTRA TURN
-
-                   die.extraAvailable means:
-                   this particular 4/8 has not
-                   already been used to roll again.
-
-                   Capture/home always gives
-                   a fresh extra roll.
-                */
+                ================================================= */
 
                 let extraTurn =
                     !!die.extraAvailable;
@@ -1475,15 +1463,13 @@ io.on(
 
 
                 if(player.hasWon){
-
                     extraTurn=false;
-
                 }
 
 
-                /*
+                /* =================================================
                    GAME END
-                */
+                ================================================= */
 
                 if(
                     player.hasWon
@@ -1497,13 +1483,6 @@ io.on(
 
                 }
 
-
-                /*
-                   Continue same turn if:
-                   - extra roll
-                   OR
-                   - banked dice remain
-                */
 
                 if(
                     !room.finished
@@ -1577,10 +1556,6 @@ io.on(
 
                 }
 
-
-                /*
-                   MOVE RESULT
-                */
 
                 io.to(room.id).emit(
                     "moveResult",
@@ -1679,8 +1654,8 @@ io.on(
 
 
         /* =================================================
-           VOICE
-        ================================================= */
+           VOICE CHAT
+========================================================= */
 
         socket.on(
             "voiceJoin",
@@ -1709,6 +1684,44 @@ io.on(
                     peers
                 );
 
+                /*
+                   Tell existing players that a new
+                   voice participant is available.
+                */
+
+                socket.to(room.id).emit(
+                    "voicePeerJoined",
+                    socket.id
+                );
+
+            }
+        );
+
+
+        /*
+           Voice leave.
+
+           This lets the other players close the
+           WebRTC connection when the microphone
+           is switched off.
+        */
+
+        socket.on(
+            "voiceLeave",
+            ()=>{
+
+                const room =
+                    getRoom(socket);
+
+                if(!room){
+                    return;
+                }
+
+                socket.to(room.id).emit(
+                    "voicePeerLeft",
+                    socket.id
+                );
+
             }
         );
 
@@ -1723,7 +1736,8 @@ io.on(
                 if(
                     !room ||
                     !data ||
-                    !data.to
+                    !data.to ||
+                    !data.data
                 ){
                     return;
                 }
@@ -1779,6 +1793,18 @@ io.on(
                 if(!room){
                     return;
                 }
+
+
+                /*
+                   Tell voice peers immediately so
+                   WebRTC connections are cleaned up.
+                */
+
+                socket.to(room.id).emit(
+                    "voicePeerLeft",
+                    socket.id
+                );
+
 
                 closeRoom(
                     room.id,
