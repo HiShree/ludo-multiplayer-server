@@ -7,9 +7,9 @@ const app = express();
 
 const server = http.createServer(app);
 
-const io = new Server(server, {
-    cors: {
-        origin: "*"
+const io = new Server(server,{
+    cors:{
+        origin:"*"
     }
 });
 
@@ -24,21 +24,21 @@ app.use(
    LUDO TWIST SERVER
 ========================================================= */
 
-const COLORS = [
+const COLORS=[
     "#2397ff",
     "#ff5969",
     "#35d97f",
     "#ffad16"
 ];
 
-const NAMES = [
+const NAMES=[
     "Blue",
     "Red",
     "Green",
     "Yellow"
 ];
 
-const PATHS = [
+const PATHS=[
 
     [
         10,15,20,21,22,23,24,
@@ -63,7 +63,7 @@ const PATHS = [
 
 ];
 
-const SAFE = [
+const SAFE=[
     2,
     10,
     12,
@@ -71,7 +71,7 @@ const SAFE = [
     22
 ];
 
-const DICE_VALUES = [
+const DICE_VALUES=[
     1,1,
     2,2,
     3,3,
@@ -84,13 +84,13 @@ const DICE_VALUES = [
    QUEUES / ROOMS
 ========================================================= */
 
-const queues = {
-    2: [],
-    3: [],
-    4: []
+const queues={
+    2:[],
+    3:[],
+    4:[]
 };
 
-const rooms = new Map();
+const rooms=new Map();
 
 
 /* =========================================================
@@ -176,14 +176,14 @@ function makeRoom(
 
 function getRoom(socket){
 
-    const roomId =
+    const roomId=
         socket.data.roomId;
 
     if(!roomId){
         return null;
     }
 
-    return rooms.get(roomId) || null;
+    return rooms.get(roomId)||null;
 
 }
 
@@ -204,19 +204,17 @@ function getCurrentPlayer(room){
 }
 
 
-function removeFromQueues(
-    socketId
-){
+function removeFromQueues(socketId){
 
     for(
         const count of [2,3,4]
     ){
 
-        queues[count] =
+        queues[count]=
             queues[count].filter(
-                socket =>
+                socket=>
                     socket &&
-                    socket.id !== socketId
+                    socket.id!==socketId
             );
 
     }
@@ -230,7 +228,7 @@ function makeRoomCode(){
 
     do{
 
-        code =
+        code=
             Math.random()
                 .toString(36)
                 .slice(2,8)
@@ -258,30 +256,36 @@ function nextActive(room){
         return 0;
     }
 
+
     for(
         let step=1;
         step<=room.players.length;
         step++
     ){
 
-        const index =
+        const index=
             (
                 room.active+
                 step
             )%
             room.players.length;
 
-        const player =
+
+        const player=
             room.players[index];
+
 
         if(
             player &&
             !player.hasWon
         ){
+
             return index;
+
         }
 
     }
+
 
     return room.active;
 
@@ -321,17 +325,28 @@ function isValidMove(
         return false;
     }
 
-    const step =
+    if(
+        !Number.isInteger(roll) ||
+        roll<1
+    ){
+        return false;
+    }
+
+
+    const step=
         player.pawns[pawnIndex];
+
 
     if(step>=24){
         return false;
     }
 
-    const maximum =
+
+    const maximum=
         player.hasKilled
         ? 24
         : 15;
+
 
     return (
         step+roll<=maximum
@@ -381,21 +396,25 @@ function performCapture(
 
     const captured=[];
 
+
     if(to>=24){
         return captured;
     }
 
-    const cell =
+
+    const cell=
         getBoardCell(
             player.id,
             to
         );
+
 
     if(
         SAFE.includes(cell)
     ){
         return captured;
     }
+
 
     room.players.forEach(
         opponent=>{
@@ -408,24 +427,28 @@ function performCapture(
                 return;
             }
 
+
             for(
                 let i=0;
                 i<4;
                 i++
             ){
 
-                const step =
+                const step=
                     opponent.pawns[i];
+
 
                 if(step>=24){
                     continue;
                 }
 
-                const opponentCell =
+
+                const opponentCell=
                     getBoardCell(
                         opponent.id,
                         step
                     );
+
 
                 if(
                     opponentCell===
@@ -434,12 +457,15 @@ function performCapture(
 
                     opponent.pawns[i]=0;
 
+
                     captured.push({
+
                         playerId:
                             opponent.id,
 
                         pawnIndex:
                             i
+
                     });
 
                 }
@@ -448,6 +474,7 @@ function performCapture(
 
         }
     );
+
 
     return captured;
 
@@ -468,10 +495,16 @@ function getPublicState(room){
         pendingRolls:
             room.pendingRolls.map(
                 die=>({
-                    id:die.id,
-                    value:die.value,
+
+                    id:
+                        die.id,
+
+                    value:
+                        die.value,
+
                     extraAvailable:
                         die.extraAvailable
+
                 })
             ),
 
@@ -527,6 +560,7 @@ function sendState(room){
         return;
     }
 
+
     io.to(room.id).emit(
         "gameState",
         getPublicState(room)
@@ -544,10 +578,271 @@ function sendMessage(
         return;
     }
 
+
     io.to(room.id).emit(
         "systemMessage",
         message
     );
+
+}
+
+
+/* =========================================================
+   AUTOMATIC NO-MOVE HANDLER
+========================================================= */
+
+/*
+   Remove all pending dice that cannot
+   move any pawn.
+
+   Returns true if the turn should
+   continue with an extra roll.
+*/
+
+function dismissImpossibleDice(room,player){
+
+    if(
+        !room ||
+        !player
+    ){
+        return false;
+    }
+
+
+    /*
+       First remove impossible dice
+       one at a time.
+
+       A 4/8 which cannot move still
+       gives its extra roll.
+    */
+
+    while(room.pendingRolls.length){
+
+        const possibleIndex=
+            room.pendingRolls.findIndex(
+                die=>
+                    hasValidMove(
+                        player,
+                        die.value
+                    )
+            );
+
+
+        /*
+           A possible move exists.
+           Keep the remaining dice.
+        */
+
+        if(possibleIndex>=0){
+
+            room.canRoll=false;
+
+            room.rollPermissionIndex=-1;
+
+            return false;
+
+        }
+
+
+        /*
+           No dice can move any pawn.
+           Look for an unused 4/8.
+        */
+
+        const extraIndex=
+            room.pendingRolls.findIndex(
+                die=>
+                    die.extraAvailable
+            );
+
+
+        if(extraIndex>=0){
+
+            const extraDie=
+                room.pendingRolls[
+                    extraIndex
+                ];
+
+
+            room.pendingRolls.splice(
+                extraIndex,
+                1
+            );
+
+
+            room.rollPermissionIndex=-1;
+
+            room.canRoll=true;
+
+
+            sendMessage(
+                room,
+                `${player.name} rolled ${extraDie.value}. No valid move — roll again!`
+            );
+
+
+            return true;
+
+        }
+
+
+        /*
+           Nothing can move and no extra
+           roll remains.
+        */
+
+        room.pendingRolls=[];
+
+        room.rollPermissionIndex=-1;
+
+        room.canRoll=false;
+
+
+        return false;
+
+    }
+
+
+    room.canRoll=false;
+
+    return false;
+
+}
+
+
+/*
+   Check after a roll/move whether the
+   current player is completely stuck.
+*/
+
+function dismissTurnIfNoMove(room){
+
+    if(
+        !room ||
+        room.finished
+    ){
+        return false;
+    }
+
+
+    const player=
+        getCurrentPlayer(room);
+
+
+    if(!player){
+        return false;
+    }
+
+
+    if(player.hasWon){
+        return false;
+    }
+
+
+    if(
+        room.pendingRolls.length===0
+    ){
+        return false;
+    }
+
+
+    const anyMove=
+        room.pendingRolls.some(
+            die=>
+                hasValidMove(
+                    player,
+                    die.value
+                )
+        );
+
+
+    if(anyMove){
+        return false;
+    }
+
+
+    /*
+       If one of the remaining dice
+       can grant an extra roll, use it.
+    */
+
+    const extraIndex=
+        room.pendingRolls.findIndex(
+            die=>
+                die.extraAvailable
+        );
+
+
+    if(extraIndex>=0){
+
+        const extraDie=
+            room.pendingRolls[
+                extraIndex
+            ];
+
+
+        room.pendingRolls.splice(
+            extraIndex,
+            1
+        );
+
+
+        room.rollPermissionIndex=-1;
+
+        room.canRoll=true;
+
+
+        sendMessage(
+            room,
+            `${player.name} had no valid move with ${extraDie.value} — roll again!`
+        );
+
+
+        return true;
+
+    }
+
+
+    /*
+       Completely dismiss the turn.
+    */
+
+    room.pendingRolls=[];
+
+    room.rollPermissionIndex=-1;
+
+    room.canRoll=false;
+
+
+    sendMessage(
+        room,
+        `${player.name} has no possible move. Turn skipped.`
+    );
+
+
+    room.active=
+        nextActive(room);
+
+
+    room.canRoll=true;
+
+
+    const next=
+        getCurrentPlayer(room);
+
+
+    if(next){
+
+        sendMessage(
+            room,
+            `${next.name}'s turn.`
+        );
+
+    }
+
+
+    return true;
 
 }
 
@@ -558,11 +853,12 @@ function sendMessage(
 
 function checkGameFinished(room){
 
-    const remaining =
+    const remaining=
         room.players.filter(
-            player =>
+            player=>
                 !player.hasWon
         );
+
 
     if(
         remaining.length<=1
@@ -572,15 +868,16 @@ function checkGameFinished(room){
             remaining.length===1
         ){
 
-            const last =
+            const last=
                 remaining[0];
 
             last.hasWon=true;
 
-            last.rank =
+            last.rank=
                 room.rank++;
 
         }
+
 
         room.finished=true;
 
@@ -590,9 +887,11 @@ function checkGameFinished(room){
 
         room.rollPermissionIndex=-1;
 
+
         return true;
 
     }
+
 
     return false;
 
@@ -608,12 +907,14 @@ function startRoom(
     sockets
 ){
 
-    const room =
+    const room=
         rooms.get(roomId);
+
 
     if(!room){
         return;
     }
+
 
     room.sockets=[
         ...sockets
@@ -639,16 +940,19 @@ function startRoom(
     sockets.forEach(
         (socket,index)=>{
 
-            const playerId =
+            const playerId=
                 index;
 
-            socket.data.roomId =
+
+            socket.data.roomId=
                 roomId;
 
-            socket.data.playerId =
+            socket.data.playerId=
                 playerId;
 
+
             socket.join(roomId);
+
 
             room.players.push(
                 makePlayer(
@@ -656,13 +960,16 @@ function startRoom(
                 )
             );
 
+
             socket.emit(
                 "assignPlayer",
                 {
+
                     playerId,
 
                     playerName:
                         NAMES[playerId]
+
                 }
             );
 
@@ -673,11 +980,13 @@ function startRoom(
     io.to(roomId).emit(
         "gameStart",
         {
+
             players:
                 room.players.map(
-                    player =>
+                    player=>
                         player.id
                 )
+
         }
     );
 
@@ -686,6 +995,7 @@ function startRoom(
         room,
         "🎮 Match started! Blue goes first."
     );
+
 
     sendState(room);
 
@@ -701,18 +1011,21 @@ function closeRoom(
     message
 ){
 
-    const room =
+    const room=
         rooms.get(roomId);
+
 
     if(!room){
         return;
     }
 
+
     io.to(roomId).emit(
         "roomClosed",
-        message ||
+        message||
         "Room closed."
     );
+
 
     room.sockets.forEach(
         socket=>{
@@ -725,6 +1038,7 @@ function closeRoom(
 
         }
     );
+
 
     rooms.delete(roomId);
 
@@ -753,14 +1067,14 @@ io.on(
             "joinGame",
             numberOfPlayers=>{
 
-                const count =
+                const count=
                     Number(
                         numberOfPlayers
                     );
 
+
                 if(
-                    ![2,3,4]
-                    .includes(count)
+                    ![2,3,4].includes(count)
                 ){
 
                     socket.emit(
@@ -772,18 +1086,21 @@ io.on(
 
                 }
 
+
                 removeFromQueues(
                     socket.id
                 );
+
 
                 queues[count].push(
                     socket
                 );
 
+
                 socket.emit(
                     "systemMessage",
                     `Waiting for ${
-                        count -
+                        count-
                         queues[count].length
                     } more player(s)...`
                 );
@@ -793,29 +1110,33 @@ io.on(
                     queues[count].length>=count
                 ){
 
-                    const matched =
+                    const matched=
                         queues[count]
                             .splice(
                                 0,
                                 count
                             );
 
-                    const roomId =
-                        "pub_" +
+
+                    const roomId=
+                        "pub_"+
                         makeRoomCode()
                             .toLowerCase();
 
-                    const room =
+
+                    const room=
                         makeRoom(
                             roomId,
                             count,
                             false
                         );
 
+
                     rooms.set(
                         roomId,
                         room
                     );
+
 
                     startRoom(
                         roomId,
@@ -836,14 +1157,14 @@ io.on(
             "createPrivateGame",
             numberOfPlayers=>{
 
-                const count =
+                const count=
                     Number(
                         numberOfPlayers
                     );
 
+
                 if(
-                    ![2,3,4]
-                    .includes(count)
+                    ![2,3,4].includes(count)
                 ){
 
                     socket.emit(
@@ -855,41 +1176,50 @@ io.on(
 
                 }
 
+
                 removeFromQueues(
                     socket.id
                 );
 
-                const roomId =
+
+                const roomId=
                     makeRoomCode();
 
-                const room =
+
+                const room=
                     makeRoom(
                         roomId,
                         count,
                         true
                     );
 
+
                 rooms.set(
                     roomId,
                     room
                 );
 
+
                 room.sockets.push(
                     socket
                 );
 
-                socket.data.roomId =
+
+                socket.data.roomId=
                     roomId;
 
-                socket.data.playerId =
+                socket.data.playerId=
                     null;
 
+
                 socket.join(roomId);
+
 
                 socket.emit(
                     "privateRoomCreated",
                     roomId
                 );
+
 
                 sendMessage(
                     room,
@@ -908,15 +1238,17 @@ io.on(
             "joinPrivateGame",
             rawCode=>{
 
-                const roomId =
+                const roomId=
                     String(
-                        rawCode || ""
+                        rawCode||""
                     )
                     .trim()
                     .toUpperCase();
 
-                const room =
+
+                const room=
                     rooms.get(roomId);
+
 
                 if(!room){
 
@@ -929,6 +1261,7 @@ io.on(
 
                 }
 
+
                 if(room.started){
 
                     socket.emit(
@@ -939,6 +1272,7 @@ io.on(
                     return;
 
                 }
+
 
                 if(
                     room.sockets.length>=
@@ -954,21 +1288,26 @@ io.on(
 
                 }
 
+
                 removeFromQueues(
                     socket.id
                 );
+
 
                 room.sockets.push(
                     socket
                 );
 
-                socket.data.roomId =
+
+                socket.data.roomId=
                     roomId;
 
-                socket.data.playerId =
+                socket.data.playerId=
                     null;
 
+
                 socket.join(roomId);
+
 
                 sendMessage(
                     room,
@@ -1000,8 +1339,9 @@ io.on(
             "requestRoll",
             ()=>{
 
-                const room =
+                const room=
                     getRoom(socket);
+
 
                 if(
                     !room ||
@@ -1011,12 +1351,15 @@ io.on(
                     return;
                 }
 
-                const player =
+
+                const player=
                     getCurrentPlayer(room);
+
 
                 if(!player){
                     return;
                 }
+
 
                 if(
                     Number(
@@ -1047,9 +1390,9 @@ io.on(
 
 
                 /*
-                   If a 4/8 die gave the permission
-                   to roll again, mark that permission
-                   as used.
+                   If a previous 4/8 gave
+                   permission to roll again,
+                   consume that permission.
                 */
 
                 if(
@@ -1069,7 +1412,7 @@ io.on(
                 room.rollPermissionIndex=-1;
 
 
-                const value =
+                const value=
                     DICE_VALUES[
                         Math.floor(
                             Math.random()*
@@ -1100,11 +1443,6 @@ io.on(
                 );
 
 
-                /*
-                   The new 4/8 itself allows
-                   another roll.
-                */
-
                 if(
                     value===4 ||
                     value===8
@@ -1112,7 +1450,7 @@ io.on(
 
                     room.canRoll=true;
 
-                    room.rollPermissionIndex =
+                    room.rollPermissionIndex=
                         room.pendingRolls.length-1;
 
                 }else{
@@ -1144,8 +1482,9 @@ io.on(
 
 
                 /*
-                   If no pawn can use this
-                   particular die, consume it.
+                   If this dice cannot move
+                   any pawn, handle it using
+                   the exact dice object.
                 */
 
                 if(
@@ -1155,8 +1494,34 @@ io.on(
                     )
                 ){
 
-                    room.pendingRolls.pop();
+                    /*
+                       Remove exactly this die.
+                    */
 
+                    const index=
+                        room.pendingRolls.findIndex(
+                            d=>
+                                d.id===
+                                die.id
+                        );
+
+
+                    if(index>=0){
+
+                        room.pendingRolls.splice(
+                            index,
+                            1
+                        );
+
+                    }
+
+
+                    room.rollPermissionIndex=-1;
+
+
+                    /*
+                       4 / 8 gets another roll.
+                    */
 
                     if(
                         die.extraAvailable
@@ -1164,12 +1529,12 @@ io.on(
 
                         room.canRoll=true;
 
-                        room.rollPermissionIndex=-1;
 
                         sendMessage(
                             room,
                             `${player.name} rolled ${value}. No valid move — roll again!`
                         );
+
 
                         sendState(room);
 
@@ -1178,9 +1543,22 @@ io.on(
                     }
 
 
-                    if(
-                        room.pendingRolls.length
-                    ){
+                    /*
+                       Check if another banked
+                       dice can actually move.
+                    */
+
+                    const anotherMove=
+                        room.pendingRolls.some(
+                            d=>
+                                hasValidMove(
+                                    player,
+                                    d.value
+                                )
+                        );
+
+
+                    if(anotherMove){
 
                         room.canRoll=false;
 
@@ -1191,22 +1569,33 @@ io.on(
                     }
 
 
+                    /*
+                       Absolutely no pawn can move.
+                       Automatically skip turn.
+                    */
+
+                    room.pendingRolls=[];
+
                     room.canRoll=false;
 
-                    room.active =
+                    room.rollPermissionIndex=-1;
+
+
+                    sendMessage(
+                        room,
+                        `${player.name} had no valid move. Turn skipped.`
+                    );
+
+
+                    room.active=
                         nextActive(room);
 
                     room.canRoll=true;
 
-                    room.rollPermissionIndex=-1;
 
-                    sendMessage(
-                        room,
-                        `${player.name} had no valid move.`
-                    );
-
-                    const next =
+                    const next=
                         getCurrentPlayer(room);
+
 
                     if(next){
 
@@ -1216,6 +1605,7 @@ io.on(
                         );
 
                     }
+
 
                     sendState(room);
 
@@ -1228,6 +1618,7 @@ io.on(
                     room,
                     `${player.name} rolled ${value}.`
                 );
+
 
                 sendState(room);
 
@@ -1243,8 +1634,9 @@ io.on(
             "requestMove",
             data=>{
 
-                const room =
+                const room=
                     getRoom(socket);
+
 
                 if(
                     !room ||
@@ -1255,18 +1647,19 @@ io.on(
                 }
 
 
-                const playerId =
+                const playerId=
                     Number(
                         data?.playerId
                     );
 
-                const pawnIndex =
+
+                const pawnIndex=
                     Number(
                         data?.pawnIndex
                     );
 
 
-                const player =
+                const player=
                     getCurrentPlayer(room);
 
 
@@ -1288,30 +1681,21 @@ io.on(
                 }
 
 
-                const rollId =
+                const rollId=
                     String(
-                        data?.rollId || ""
+                        data?.rollId||""
                     );
 
 
-                /*
-                   Find the exact selected
-                   dice number.
-                */
-
-                let rollIndex =
+                let rollIndex=
                     room.pendingRolls.findIndex(
-                        die =>
+                        die=>
                             String(
                                 die.id
                             )===
                             rollId
                     );
 
-
-                /*
-                   Compatibility fallback.
-                */
 
                 if(
                     rollIndex<0 &&
@@ -1323,9 +1707,7 @@ io.on(
                 }
 
 
-                if(
-                    rollIndex<0
-                ){
+                if(rollIndex<0){
 
                     socket.emit(
                         "actionError",
@@ -1337,12 +1719,13 @@ io.on(
                 }
 
 
-                const die =
+                const die=
                     room.pendingRolls[
                         rollIndex
                     ];
 
-                const roll =
+
+                const roll=
                     die.value;
 
 
@@ -1364,17 +1747,13 @@ io.on(
                 }
 
 
-                const from =
+                const from=
                     player.pawns[pawnIndex];
 
-                const to =
+
+                const to=
                     from+roll;
 
-
-                /*
-                   Remove exactly the
-                   selected dice.
-                */
 
                 room.pendingRolls.splice(
                     rollIndex,
@@ -1394,14 +1773,15 @@ io.on(
                    CAPTURE
                 */
 
-                const captured =
+                const captured=
                     performCapture(
                         room,
                         player,
                         to
                     );
 
-                const captureHappened =
+
+                const captureHappened=
                     captured.length>0;
 
 
@@ -1416,25 +1796,26 @@ io.on(
                    HOME
                 */
 
-                const reachedHome =
+                const reachedHome=
                     to===24;
 
 
                 /*
-                   PLAYER FINISH
+                   FINISH
                 */
 
                 if(
                     player.pawns.every(
-                        step =>
+                        step=>
                             step===24
                     )
                 ){
 
                     player.hasWon=true;
 
-                    player.rank =
+                    player.rank=
                         room.rank++;
+
 
                     sendMessage(
                         room,
@@ -1446,16 +1827,9 @@ io.on(
 
                 /*
                    EXTRA TURN
-
-                   die.extraAvailable means:
-                   this particular 4/8 has not
-                   already been used to roll again.
-
-                   Capture/home always gives
-                   a fresh extra roll.
                 */
 
-                let extraTurn =
+                let extraTurn=
                     !!die.extraAvailable;
 
 
@@ -1475,9 +1849,7 @@ io.on(
 
 
                 if(player.hasWon){
-
                     extraTurn=false;
-
                 }
 
 
@@ -1485,9 +1857,7 @@ io.on(
                    GAME END
                 */
 
-                if(
-                    player.hasWon
-                ){
+                if(player.hasWon){
 
                     checkGameFinished(
                         room
@@ -1498,22 +1868,14 @@ io.on(
                 }
 
 
-                /*
-                   Continue same turn if:
-                   - extra roll
-                   OR
-                   - banked dice remain
-                */
-
-                if(
-                    !room.finished
-                ){
+                if(!room.finished){
 
                     if(extraTurn){
 
                         room.canRoll=true;
 
                         room.rollPermissionIndex=-1;
+
 
                         if(captureHappened){
 
@@ -1545,24 +1907,86 @@ io.on(
                         room.pendingRolls.length>0
                     ){
 
-                        room.canRoll=false;
+                        /*
+                           Before waiting for another
+                           dice, make sure at least one
+                           remaining dice can actually
+                           move something.
+                        */
 
-                        sendMessage(
-                            room,
-                            `${player.name} has another dice available.`
-                        );
+                        const possible=
+                            room.pendingRolls.some(
+                                d=>
+                                    hasValidMove(
+                                        player,
+                                        d.value
+                                    )
+                            );
+
+
+                        if(!possible){
+
+                            /*
+                               Nothing else can move.
+                               Dismiss the turn.
+                            */
+
+                            room.pendingRolls=[];
+
+                            room.canRoll=false;
+
+                            room.rollPermissionIndex=-1;
+
+
+                            sendMessage(
+                                room,
+                                `${player.name} has no possible move. Turn skipped.`
+                            );
+
+
+                            room.active=
+                                nextActive(room);
+
+                            room.canRoll=true;
+
+
+                            const next=
+                                getCurrentPlayer(room);
+
+
+                            if(next){
+
+                                sendMessage(
+                                    room,
+                                    `${next.name}'s turn.`
+                                );
+
+                            }
+
+                        }else{
+
+                            room.canRoll=false;
+
+                            sendMessage(
+                                room,
+                                `${player.name} has another dice available.`
+                            );
+
+                        }
 
                     }else{
 
-                        room.active =
+                        room.active=
                             nextActive(room);
 
                         room.canRoll=true;
 
                         room.rollPermissionIndex=-1;
 
-                        const next =
+
+                        const next=
                             getCurrentPlayer(room);
+
 
                         if(next){
 
@@ -1633,34 +2057,47 @@ io.on(
             "sendChatMessage",
             data=>{
 
-                const room =
+                const room=
                     getRoom(socket);
+
 
                 if(!room){
                     return;
                 }
 
-                const player =
+
+                const player=
                     room.players.find(
-                        p =>
+                        p=>
                             p.id===
                             socket.data.playerId
                     );
+
 
                 if(!player){
                     return;
                 }
 
-                const text =
+
+                const text=
                     String(
-                        data?.text || ""
+                        data?.text||""
                     )
                     .trim()
                     .slice(0,300);
 
+
                 if(!text){
                     return;
                 }
+
+
+                /*
+                   Only actual player chat
+                   enters the chat box.
+                   Server/system messages
+                   never enter this event.
+                */
 
                 io.to(room.id).emit(
                     "receiveChatMessage",
@@ -1686,23 +2123,26 @@ io.on(
             "voiceJoin",
             ()=>{
 
-                const room =
+                const room=
                     getRoom(socket);
+
 
                 if(!room){
                     return;
                 }
 
-                const peers =
+
+                const peers=
                     room.sockets
                         .filter(
-                            s =>
-                                s !== socket
+                            s=>
+                                s!==socket
                         )
                         .map(
-                            s =>
+                            s=>
                                 s.id
                         );
+
 
                 socket.emit(
                     "voicePeers",
@@ -1717,8 +2157,9 @@ io.on(
             "voiceSignal",
             data=>{
 
-                const room =
+                const room=
                     getRoom(socket);
+
 
                 if(
                     !room ||
@@ -1728,12 +2169,14 @@ io.on(
                     return;
                 }
 
-                const target =
+
+                const target=
                     room.sockets.find(
-                        s =>
+                        s=>
                             s.id===
                             data.to
                     );
+
 
                 if(target){
 
@@ -1757,6 +2200,44 @@ io.on(
 
 
         /* =================================================
+           INTENTIONAL LEAVE
+        ================================================= */
+
+        socket.on(
+            "leaveRoom",
+            ()=>{
+
+                removeFromQueues(
+                    socket.id
+                );
+
+
+                const room=
+                    getRoom(socket);
+
+
+                if(!room){
+                    return;
+                }
+
+
+                /*
+                   Keep the same existing
+                   behavior as disconnect:
+                   if a player leaves, the
+                   online match ends for everyone.
+                */
+
+                closeRoom(
+                    room.id,
+                    "A player left the match. The match has ended."
+                );
+
+            }
+        );
+
+
+        /* =================================================
            DISCONNECT
         ================================================= */
 
@@ -1769,16 +2250,20 @@ io.on(
                     socket.id
                 );
 
+
                 removeFromQueues(
                     socket.id
                 );
 
-                const room =
+
+                const room=
                     getRoom(socket);
+
 
                 if(!room){
                     return;
                 }
+
 
                 closeRoom(
                     room.id,
@@ -1796,8 +2281,9 @@ io.on(
    START SERVER
 ========================================================= */
 
-const PORT =
-    process.env.PORT || 3000;
+const PORT=
+    process.env.PORT||3000;
+
 
 server.listen(
     PORT,
