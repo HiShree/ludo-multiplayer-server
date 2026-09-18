@@ -397,57 +397,74 @@ function performCapture(
         return captured;
     }
 
-    room.players.forEach(
-        opponent=>{
 
-            if(
-                opponent.id===
-                player.id ||
-                opponent.hasWon
-            ){
-                return;
+    /*
+       ONLY ONE PAWN IS CAPTURED.
+
+       If several opponent pawns are standing
+       on the same board square, only the first
+       matching pawn is returned HOME.
+    */
+
+    for(
+        const opponent of room.players
+    ){
+
+        if(
+            opponent.id===
+            player.id ||
+            opponent.hasWon
+        ){
+            continue;
+        }
+
+        for(
+            let i=0;
+            i<4;
+            i++
+        ){
+
+            const step =
+                opponent.pawns[i];
+
+            if(step>=24){
+                continue;
             }
 
-            for(
-                let i=0;
-                i<4;
-                i++
+            const opponentCell =
+                getBoardCell(
+                    opponent.id,
+                    step
+                );
+
+            if(
+                opponentCell===
+                cell
             ){
 
-                const step =
-                    opponent.pawns[i];
+                opponent.pawns[i]=0;
 
-                if(step>=24){
-                    continue;
-                }
+                captured.push({
 
-                const opponentCell =
-                    getBoardCell(
+                    playerId:
                         opponent.id,
-                        step
-                    );
 
-                if(
-                    opponentCell===
-                    cell
-                ){
+                    pawnIndex:
+                        i
 
-                    opponent.pawns[i]=0;
+                });
 
-                    captured.push({
-                        playerId:
-                            opponent.id,
+                /*
+                   STOP AFTER ONE CAPTURE.
+                */
 
-                        pawnIndex:
-                            i
-                    });
-
-                }
+                return captured;
 
             }
 
         }
-    );
+
+    }
 
     return captured;
 
@@ -468,10 +485,16 @@ function getPublicState(room){
         pendingRolls:
             room.pendingRolls.map(
                 die=>({
-                    id:die.id,
-                    value:die.value,
+
+                    id:
+                        die.id,
+
+                    value:
+                        die.value,
+
                     extraAvailable:
                         die.extraAvailable
+
                 })
             ),
 
@@ -659,10 +682,12 @@ function startRoom(
             socket.emit(
                 "assignPlayer",
                 {
+
                     playerId,
 
                     playerName:
                         NAMES[playerId]
+
                 }
             );
 
@@ -673,11 +698,13 @@ function startRoom(
     io.to(roomId).emit(
         "gameStart",
         {
+
             players:
                 room.players.map(
                     player =>
                         player.id
                 )
+
         }
     );
 
@@ -1047,9 +1074,8 @@ io.on(
 
 
                 /*
-                   If a 4/8 die gave the permission
-                   to roll again, mark that permission
-                   as used.
+                   Consume the previous
+                   4/8 extra-roll permission.
                 */
 
                 if(
@@ -1101,8 +1127,7 @@ io.on(
 
 
                 /*
-                   The new 4/8 itself allows
-                   another roll.
+                   4 and 8 allow another roll.
                 */
 
                 if(
@@ -1144,8 +1169,7 @@ io.on(
 
 
                 /*
-                   If no pawn can use this
-                   particular die, consume it.
+                   No valid move.
                 */
 
                 if(
@@ -1294,11 +1318,6 @@ io.on(
                     );
 
 
-                /*
-                   Find the exact selected
-                   dice number.
-                */
-
                 let rollIndex =
                     room.pendingRolls.findIndex(
                         die =>
@@ -1390,9 +1409,9 @@ io.on(
                 player.pawns[pawnIndex]=to;
 
 
-                /*
+                /* =================================================
                    CAPTURE
-                */
+                ================================================= */
 
                 const captured =
                     performCapture(
@@ -1412,17 +1431,17 @@ io.on(
                 }
 
 
-                /*
+                /* =================================================
                    HOME
-                */
+                ================================================= */
 
                 const reachedHome =
                     to===24;
 
 
-                /*
+                /* =================================================
                    PLAYER FINISH
-                */
+                ================================================= */
 
                 if(
                     player.pawns.every(
@@ -1447,12 +1466,13 @@ io.on(
                 /*
                    EXTRA TURN
 
-                   die.extraAvailable means:
-                   this particular 4/8 has not
-                   already been used to roll again.
+                   4/8 = extra roll
 
-                   Capture/home always gives
-                   a fresh extra roll.
+                   Capture = extra roll
+
+                   HOME = extra roll
+
+                   Finished player = no extra roll
                 */
 
                 let extraTurn =
@@ -1481,9 +1501,9 @@ io.on(
                 }
 
 
-                /*
+                /* =================================================
                    GAME END
-                */
+                ================================================= */
 
                 if(
                     player.hasWon
@@ -1498,12 +1518,9 @@ io.on(
                 }
 
 
-                /*
-                   Continue same turn if:
-                   - extra roll
-                   OR
-                   - banked dice remain
-                */
+                /* =================================================
+                   CONTINUE TURN
+                ================================================= */
 
                 if(
                     !room.finished
@@ -1578,9 +1595,9 @@ io.on(
                 }
 
 
-                /*
+                /* =================================================
                    MOVE RESULT
-                */
+                ================================================= */
 
                 io.to(room.id).emit(
                     "moveResult",
@@ -1602,6 +1619,15 @@ io.on(
                         captured,
 
                         extraTurn,
+
+                        /*
+                           NEW:
+                           lets the client trigger
+                           the winning animation.
+                        */
+
+                        playerWon:
+                            player.hasWon,
 
                         finished:
                             room.finished
@@ -1679,7 +1705,7 @@ io.on(
 
 
         /* =================================================
-           VOICE
+           VOICE CHAT
         ================================================= */
 
         socket.on(
@@ -1693,11 +1719,20 @@ io.on(
                     return;
                 }
 
+                /*
+                   Send only connected players
+                   from the SAME room.
+                */
+
                 const peers =
                     room.sockets
                         .filter(
                             s =>
-                                s !== socket
+                                s &&
+                                s !== socket &&
+                                s.connected &&
+                                s.data.roomId===
+                                socket.data.roomId
                         )
                         .map(
                             s =>
@@ -1728,29 +1763,38 @@ io.on(
                     return;
                 }
 
+                /*
+                   Only allow signaling to a
+                   player in the same room.
+                */
+
                 const target =
                     room.sockets.find(
                         s =>
+                            s &&
                             s.id===
-                            data.to
+                            data.to &&
+                            s.connected &&
+                            s.data.roomId===
+                            socket.data.roomId
                     );
 
-                if(target){
-
-                    target.emit(
-                        "voiceSignal",
-                        {
-
-                            from:
-                                socket.id,
-
-                            data:
-                                data.data
-
-                        }
-                    );
-
+                if(!target){
+                    return;
                 }
+
+                target.emit(
+                    "voiceSignal",
+                    {
+
+                        from:
+                            socket.id,
+
+                        data:
+                            data.data
+
+                    }
+                );
 
             }
         );
