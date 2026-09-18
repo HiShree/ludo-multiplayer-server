@@ -16,47 +16,25 @@
 
 <style>
 
-/* =========================================================
-   GLOBAL
-========================================================= */
-
 *{
     box-sizing:border-box;
     -webkit-tap-highlight-color:transparent;
 }
 
-html,
-body{
+html,body{
     margin:0;
     padding:0;
     width:100%;
     min-height:100%;
-    font-family:
-        "Segoe UI",
-        Arial,
-        sans-serif;
+    font-family:"Segoe UI",Arial,sans-serif;
 }
 
 body{
     color:#fff;
     background:
-        radial-gradient(
-            circle at 20% 0%,
-            #4b76d1 0,
-            transparent 35%
-        ),
-        radial-gradient(
-            circle at 100% 100%,
-            #6a3fa0 0,
-            transparent 40%
-        ),
-        linear-gradient(
-            145deg,
-            #102653,
-            #1f4386 48%,
-            #30245f
-        );
-
+        radial-gradient(circle at 20% 0%,#4b76d1 0,transparent 35%),
+        radial-gradient(circle at 100% 100%,#6a3fa0 0,transparent 40%),
+        linear-gradient(145deg,#102653,#1f4386 48%,#30245f);
     min-height:100vh;
     padding:
         max(12px,env(safe-area-inset-top))
@@ -64,8 +42,7 @@ body{
         max(18px,env(safe-area-inset-bottom));
 }
 
-button,
-input{
+button,input{
     font:inherit;
 }
 
@@ -82,11 +59,6 @@ button:active{
     display:none!important;
 }
 
-
-/* =========================================================
-   APP
-========================================================= */
-
 #app{
     width:100%;
     max-width:540px;
@@ -94,9 +66,7 @@ button:active{
 }
 
 
-/* =========================================================
-   HOME / FIRST PAGE
-========================================================= */
+/* HOME */
 
 #home{
     min-height:calc(100vh - 30px);
@@ -115,26 +85,18 @@ button:active{
     width:88px;
     height:88px;
     margin:auto;
-
     display:flex;
     align-items:center;
     justify-content:center;
-
     font-size:58px;
-
     border-radius:28px;
-
     background:
-        linear-gradient(
-            145deg,
-            rgba(255,255,255,.25),
-            rgba(255,255,255,.08)
-        );
-
+        linear-gradient(145deg,
+        rgba(255,255,255,.25),
+        rgba(255,255,255,.08));
     box-shadow:
         0 18px 40px rgba(0,0,0,.25),
         inset 0 1px 0 rgba(255,255,255,.3);
-
     animation:floatDice 3s ease-in-out infinite;
 }
 
@@ -153,9 +115,7 @@ button:active{
     line-height:1;
     font-weight:900;
     letter-spacing:-2px;
-
-    text-shadow:
-        0 5px 20px rgba(0,0,0,.3);
+    text-shadow:0 5px 20px rgba(0,0,0,.3);
 }
 
 .hero h1 span{
@@ -179,9 +139,6 @@ button:active{
     font-weight:700;
 }
 
-
-/* Main mode cards */
-
 .modeGrid{
     display:grid;
     grid-template-columns:1fr 1fr;
@@ -192,24 +149,16 @@ button:active{
 .modeCard{
     min-height:150px;
     padding:18px 14px;
-
     border-radius:24px;
-
     color:white;
-
     background:
-        linear-gradient(
-            145deg,
-            rgba(255,255,255,.20),
-            rgba(255,255,255,.07)
-        );
-
+        linear-gradient(145deg,
+        rgba(255,255,255,.20),
+        rgba(255,255,255,.07));
     border:1px solid rgba(255,255,255,.16);
-
     box-shadow:
         0 15px 35px rgba(0,0,0,.18),
         inset 0 1px 0 rgba(255,255,255,.15);
-
     transition:.2s;
 }
 
@@ -234,47 +183,31 @@ button:active{
     line-height:1.35;
 }
 
-
-/* Online wide card */
-
 .onlineCard{
     grid-column:1/-1;
     min-height:115px;
-
     display:flex;
     align-items:center;
     gap:15px;
-
     text-align:left;
-
     background:
-        linear-gradient(
-            135deg,
-            rgba(62,155,255,.35),
-            rgba(93,62,200,.30)
-        );
+        linear-gradient(135deg,
+        rgba(62,155,255,.35),
+        rgba(93,62,200,.30));
 }
 
 .onlineCard .modeIcon{
     margin:0;
 }
 
-
-/* Private */
-
 .privateCard{
     grid-column:1/-1;
     min-height:100px;
-
     display:flex;
     align-items:center;
     gap:15px;
-
     text-align:left;
 }
-
-
-/* Footer */
 
 .homeFooter{
     text-align:center;
@@ -284,27 +217,18 @@ button:active{
 }
 
 
-/* =========================================================
-   MENUS
-========================================================= */
+/* MENUS */
 
 .menuBox{
     margin-top:12px;
     padding:18px;
-
     border-radius:28px;
-
     background:
-        linear-gradient(
-            145deg,
-            rgba(255,255,255,.16),
-            rgba(255,255,255,.06)
-        );
-
+        linear-gradient(145deg,
+        rgba(255,255,255,.16),
+        rgba(255,255,255,.06));
     border:1px solid rgba(255,255,255,.14);
-
-    box-shadow:
-        0 18px 45px rgba(0,0,0,.22);
+    box-shadow:0 18px 45px rgba(0,0,0,.22);
 }
 
 .menuTitle{
@@ -318,48 +242,27 @@ button:active{
     width:100%;
     min-height:56px;
     margin:8px 0;
-
     border-radius:17px;
-
     color:white;
     font-weight:800;
-
     background:
-        linear-gradient(
-            135deg,
-            #4285f4,
-            #6257d9
-        );
-
-    box-shadow:
-        0 7px 18px rgba(0,0,0,.18);
+        linear-gradient(135deg,#4285f4,#6257d9);
+    box-shadow:0 7px 18px rgba(0,0,0,.18);
 }
 
 .menuButton.green{
     background:
-        linear-gradient(
-            135deg,
-            #20c997,
-            #16a085
-        );
+        linear-gradient(135deg,#20c997,#16a085);
 }
 
 .menuButton.orange{
     background:
-        linear-gradient(
-            135deg,
-            #ffb02e,
-            #ff7043
-        );
+        linear-gradient(135deg,#ffb02e,#ff7043);
 }
 
 .menuButton.red{
     background:
-        linear-gradient(
-            135deg,
-            #ff5964,
-            #e93457
-        );
+        linear-gradient(135deg,#ff5964,#e93457);
 }
 
 .backButton{
@@ -367,9 +270,7 @@ button:active{
 }
 
 
-/* =========================================================
-   GAME HEADER
-========================================================= */
+/* GAME HEADER */
 
 #gameScreen{
     width:100%;
@@ -385,7 +286,6 @@ button:active{
     align-items:center;
     justify-content:center;
     gap:8px;
-
     font-size:clamp(30px,8vw,42px);
     font-weight:900;
     letter-spacing:-1px;
@@ -405,25 +305,17 @@ button:active{
 .topButton{
     min-height:51px;
     border-radius:17px;
-
     background:rgba(255,255,255,.88);
     color:#253b68;
-
     font-weight:900;
     font-size:14px;
-
-    box-shadow:
-        0 7px 18px rgba(0,0,0,.13);
+    box-shadow:0 7px 18px rgba(0,0,0,.13);
 }
 
 .leaveButton{
     color:white;
     background:
-        linear-gradient(
-            135deg,
-            #ff5964,
-            #ef304c
-        );
+        linear-gradient(135deg,#ff5964,#ef304c);
 }
 
 .identity{
@@ -441,9 +333,7 @@ button:active{
 }
 
 
-/* =========================================================
-   PLAYER PANELS
-========================================================= */
+/* PLAYERS */
 
 .playersGrid{
     display:grid;
@@ -455,19 +345,14 @@ button:active{
 .playerCard{
     min-width:0;
     padding:10px;
-
     border-radius:20px;
-
     background:rgba(255,255,255,.10);
-
     border:2px solid transparent;
-
     transition:.2s;
 }
 
 .playerCard.active{
     border-color:white;
-
     box-shadow:
         0 0 0 2px rgba(255,255,255,.08),
         0 8px 25px rgba(0,0,0,.15);
@@ -483,18 +368,12 @@ button:active{
     width:100%;
     min-height:54px;
     margin-top:6px;
-
     border-radius:16px;
-
     color:white;
-
     background:
-        linear-gradient(
-            145deg,
-            rgba(41,132,232,.85),
-            rgba(51,102,190,.8)
-        );
-
+        linear-gradient(145deg,
+        rgba(41,132,232,.85),
+        rgba(51,102,190,.8));
     font-size:20px;
     font-weight:900;
 }
@@ -520,9 +399,7 @@ button:active{
 }
 
 
-/* =========================================================
-   DICE BANK
-========================================================= */
+/* DICE */
 
 .diceArea{
     margin:10px 0 11px;
@@ -547,113 +424,68 @@ button:active{
 .rollChoice{
     min-width:55px;
     height:43px;
-
     border-radius:14px;
-
     background:
-        linear-gradient(
-            135deg,
-            #ffffff,
-            #dce7ff
-        );
-
+        linear-gradient(135deg,#ffffff,#dce7ff);
     color:#254278;
-
     font-size:17px;
     font-weight:900;
-
-    box-shadow:
-        0 5px 15px rgba(0,0,0,.18);
+    box-shadow:0 5px 15px rgba(0,0,0,.18);
 }
 
 .rollChoice.selected{
     background:
-        linear-gradient(
-            135deg,
-            #ffd84d,
-            #ff9f2e
-        );
-
+        linear-gradient(135deg,#ffd84d,#ff9f2e);
     color:#432d00;
-
     transform:translateY(-2px);
-
-    box-shadow:
-        0 7px 18px rgba(255,190,50,.35);
+    box-shadow:0 7px 18px rgba(255,190,50,.35);
 }
 
 .rollAgain{
     min-width:130px;
     height:43px;
-
     border-radius:14px;
-
     color:white;
     font-weight:900;
-
     background:
-        linear-gradient(
-            135deg,
-            #22c997,
-            #168f76
-        );
+        linear-gradient(135deg,#22c997,#168f76);
 }
 
 
-/* =========================================================
-   BOARD
-========================================================= */
+/* BOARD */
 
 .boardWrap{
     width:100%;
     max-width:520px;
     margin:0 auto;
-
     padding:4px;
-
     border-radius:25px;
-
     background:
-        linear-gradient(
-            145deg,
-            rgba(255,255,255,.25),
-            rgba(255,255,255,.08)
-        );
-
-    box-shadow:
-        0 18px 40px rgba(0,0,0,.28);
+        linear-gradient(145deg,
+        rgba(255,255,255,.25),
+        rgba(255,255,255,.08));
+    box-shadow:0 18px 40px rgba(0,0,0,.28);
 }
 
 #board{
     width:100%;
     aspect-ratio:1/1;
-
     display:grid;
     grid-template-columns:repeat(5,1fr);
     grid-template-rows:repeat(5,1fr);
-
     overflow:hidden;
-
     border-radius:21px;
-
     background:#eef2f8;
 }
 
 .cell{
     position:relative;
-
     border:1px solid #111;
-
     display:flex;
     align-items:center;
     justify-content:center;
-
     background:
-        linear-gradient(
-            145deg,
-            #ffffff,
-            #edf1f6
-        );
+        linear-gradient(145deg,#ffffff,#edf1f6);
 }
 
 .cell.safe{
@@ -679,11 +511,7 @@ button:active{
 
 .cell.home{
     background:
-        linear-gradient(
-            135deg,
-            #72aee8,
-            #9cc8f4
-        );
+        linear-gradient(135deg,#72aee8,#9cc8f4);
 }
 
 .arrow{
@@ -695,16 +523,19 @@ button:active{
 }
 
 
-/* Pawn */
+/* PAWNS */
 
 .pawn{
     position:absolute;
 
-    width:44%;
+    /*
+       Normal size is controlled by
+       pawnPosition().
+    */
+    width:32%;
+
     aspect-ratio:1;
-
     border-radius:50%;
-
     border:3px solid white;
 
     box-shadow:
@@ -721,15 +552,13 @@ button:active{
 }
 
 .pawn.movable{
-    animation:
-        pawnPulse .8s infinite alternate;
+    animation:pawnPulse .8s infinite alternate;
 }
 
 @keyframes pawnPulse{
     from{
         transform:scale(1);
-        box-shadow:
-            0 5px 10px rgba(0,0,0,.3);
+        box-shadow:0 5px 10px rgba(0,0,0,.3);
     }
     to{
         transform:scale(1.13);
@@ -740,19 +569,13 @@ button:active{
 }
 
 
-/* =========================================================
-   CHAT
-========================================================= */
+/* CHAT */
 
 #communication{
     margin-top:14px;
     padding:15px;
-
     border-radius:23px;
-
-    background:
-        rgba(8,29,68,.48);
-
+    background:rgba(8,29,68,.48);
     border:1px solid rgba(255,255,255,.08);
 }
 
@@ -765,11 +588,8 @@ button:active{
 .chatMessages{
     height:105px;
     overflow-y:auto;
-
     padding:9px;
-
     border-radius:15px;
-
     background:rgba(0,0,0,.15);
 }
 
@@ -793,14 +613,10 @@ button:active{
 .chatControls input{
     width:100%;
     min-width:0;
-
     border:0;
     outline:none;
-
     border-radius:13px;
-
     padding:0 12px;
-
     color:white;
     background:rgba(255,255,255,.13);
 }
@@ -823,28 +639,21 @@ button:active{
 
 @keyframes micPulse{
     50%{
-        box-shadow:
-            0 0 0 7px rgba(255,71,87,.15);
+        box-shadow:0 0 0 7px rgba(255,71,87,.15);
     }
 }
 
 
-/* =========================================================
-   MODALS
-========================================================= */
+/* MODALS */
 
 .modal{
     position:fixed;
     inset:0;
-
     display:flex;
     align-items:center;
     justify-content:center;
-
     padding:18px;
-
     background:rgba(0,0,0,.62);
-
     z-index:100;
 }
 
@@ -852,20 +661,11 @@ button:active{
     width:min(100%,430px);
     max-height:85vh;
     overflow:auto;
-
     padding:22px;
-
     border-radius:25px;
-
     background:
-        linear-gradient(
-            145deg,
-            #263f75,
-            #172d59
-        );
-
-    box-shadow:
-        0 25px 60px rgba(0,0,0,.4);
+        linear-gradient(145deg,#263f75,#172d59);
+    box-shadow:0 25px 60px rgba(0,0,0,.4);
 }
 
 .modalBox h2{
@@ -882,40 +682,23 @@ button:active{
     width:100%;
     height:50px;
     margin-top:10px;
-
     border-radius:15px;
-
     color:white;
     background:#3f70d0;
     font-weight:900;
 }
 
-
-/* =========================================================
-   ROOM CODE
-========================================================= */
-
 .roomCode{
     padding:14px;
-
     margin:10px 0;
-
     text-align:center;
-
     border-radius:15px;
-
     background:rgba(255,255,255,.1);
-
     font-size:25px;
     letter-spacing:4px;
     font-weight:900;
     color:#ffd84d;
 }
-
-
-/* =========================================================
-   RESPONSIVE
-========================================================= */
 
 @media(max-width:380px){
 
@@ -960,18 +743,11 @@ button:active{
 
 <div id="app">
 
-
-<!-- =======================================================
-     HOME PAGE
-======================================================= -->
-
 <section id="home">
 
     <div class="hero">
 
-        <div class="heroDice">
-            🎲
-        </div>
+        <div class="heroDice">🎲</div>
 
         <h1>
             Ludo <span>Twist</span>
@@ -986,7 +762,6 @@ button:active{
         </div>
 
     </div>
-
 
     <div class="modeGrid">
 
@@ -1005,7 +780,6 @@ button:active{
 
         </button>
 
-
         <button class="modeCard"
                 onclick="openOnlineMenu()">
 
@@ -1020,7 +794,6 @@ button:active{
             </div>
 
         </button>
-
 
         <button class="modeCard onlineCard"
                 onclick="openPrivateMenu()">
@@ -1041,7 +814,6 @@ button:active{
 
     </div>
 
-
     <div class="homeFooter">
         Ludo Twist • Mobile Edition
     </div>
@@ -1049,12 +821,7 @@ button:active{
 </section>
 
 
-<!-- =======================================================
-     LOCAL MENU
-======================================================= -->
-
-<section id="localMenu"
-         class="hidden">
+<section id="localMenu" class="hidden">
 
     <div class="menuBox">
 
@@ -1092,12 +859,7 @@ button:active{
 </section>
 
 
-<!-- =======================================================
-     ONLINE MENU
-======================================================= -->
-
-<section id="onlineMenu"
-         class="hidden">
+<section id="onlineMenu" class="hidden">
 
     <div class="menuBox">
 
@@ -1130,12 +892,7 @@ button:active{
 </section>
 
 
-<!-- =======================================================
-     PRIVATE MENU
-======================================================= -->
-
-<section id="privateMenu"
-         class="hidden">
+<section id="privateMenu" class="hidden">
 
     <div class="menuBox">
 
@@ -1193,12 +950,7 @@ button:active{
 </section>
 
 
-<!-- =======================================================
-     GAME
-======================================================= -->
-
-<section id="gameScreen"
-         class="hidden">
+<section id="gameScreen" class="hidden">
 
     <div class="gameHeader">
 
@@ -1206,7 +958,6 @@ button:active{
             <span class="brandDice">🎲</span>
             <span>Ludo Twist</span>
         </div>
-
 
         <div class="topButtons">
 
@@ -1227,48 +978,33 @@ button:active{
 
         </div>
 
+        <div id="identity" class="identity"></div>
 
-        <div id="identity"
-             class="identity">
-        </div>
-
-        <div id="status"
-             class="status">
+        <div id="status" class="status">
             Ready!
         </div>
 
     </div>
 
-
-    <div id="playersGrid"
-         class="playersGrid">
-    </div>
-
+    <div id="playersGrid" class="playersGrid"></div>
 
     <div class="diceArea">
 
-        <div id="diceLabel"
-             class="diceLabel">
+        <div id="diceLabel" class="diceLabel">
             Available dice: 0
         </div>
 
-        <div id="rollChoices"
-             class="rollChoices">
-        </div>
+        <div id="rollChoices" class="rollChoices"></div>
 
     </div>
-
 
     <div class="boardWrap">
 
-        <div id="board">
-        </div>
+        <div id="board"></div>
 
     </div>
 
-
-    <div id="communication"
-         class="hidden">
+    <div id="communication" class="hidden">
 
         <div class="chatTitle">
             💬 Chat
@@ -1302,9 +1038,7 @@ button:active{
 </section>
 
 
-<!-- =======================================================
-     SETTINGS
-======================================================= -->
+<!-- SETTINGS -->
 
 <div id="settingsModal"
      class="modal hidden">
@@ -1320,6 +1054,37 @@ button:active{
             🔊 Sound: ON
         </button>
 
+        <div style="
+            display:grid;
+            grid-template-columns:1fr 1fr;
+            gap:8px;
+            margin-top:8px;
+        ">
+
+            <button
+                class="menuButton"
+                onclick="changeVolume(-0.1)">
+                🔉 Volume −
+            </button>
+
+            <button
+                class="menuButton"
+                onclick="changeVolume(0.1)">
+                🔊 Volume +
+            </button>
+
+        </div>
+
+        <div id="volumeLabel"
+             style="
+                text-align:center;
+                margin-top:8px;
+                color:#d5e1fa;
+                font-weight:800;
+             ">
+            Volume: 60%
+        </div>
+
         <button
             class="closeButton"
             onclick="closeModals()">
@@ -1331,9 +1096,7 @@ button:active{
 </div>
 
 
-<!-- =======================================================
-     HELP
-======================================================= -->
+<!-- HELP -->
 
 <div id="helpModal"
      class="modal hidden">
@@ -1342,9 +1105,7 @@ button:active{
 
         <h2>❓ How to Play</h2>
 
-        <p>
-            🎲 Roll the dice to get a number.
-        </p>
+        <p>🎲 Roll the dice to get a number.</p>
 
         <p>
             🔢 If you have more than one available number,
@@ -1384,9 +1145,7 @@ button:active{
 </div>
 
 
-<!-- =======================================================
-     ROOM MODAL
-======================================================= -->
+<!-- ROOM -->
 
 <div id="roomModal"
      class="modal hidden">
@@ -1429,24 +1188,24 @@ const socket =
 
 
 /* =========================================================
-   GAME CONSTANTS
+   CONSTANTS
 ========================================================= */
 
-const COLORS = [
+const COLORS=[
     "#2397ff",
     "#ff5969",
     "#35d97f",
     "#ffad16"
 ];
 
-const NAMES = [
+const NAMES=[
     "Blue",
     "Red",
     "Green",
     "Yellow"
 ];
 
-const PATHS = [
+const PATHS=[
 
     [
         10,15,20,21,22,23,24,
@@ -1471,7 +1230,7 @@ const PATHS = [
 
 ];
 
-const SAFE = [
+const SAFE=[
     2,
     10,
     12,
@@ -1479,7 +1238,7 @@ const SAFE = [
     22
 ];
 
-const DICE_VALUES = [
+const DICE_VALUES=[
     1,1,
     2,2,
     3,3,
@@ -1492,35 +1251,37 @@ const DICE_VALUES = [
    STATE
 ========================================================= */
 
-let players = [];
+let players=[];
 
-let active = 0;
+let active=0;
 
-let pendingRolls = [];
+let pendingRolls=[];
 
-let selectedRollIndex = 0;
+let selectedRollIndex=0;
 
-let canRoll = true;
+let canRoll=true;
 
-let rollPermissionIndex = -1;
+let rollPermissionIndex=-1;
 
-let animating = false;
+let animating=false;
 
-let online = false;
+let online=false;
 
-let myId = null;
+let myId=null;
 
-let sound = true;
+let sound=true;
 
-let audioCtx = null;
+let volume=.60;
 
-let botTimer = null;
+let audioCtx=null;
 
-let currentRank = 1;
+let botTimer=null;
 
-let gameToken = 0;
+let currentRank=1;
 
-let pendingState = null;
+let gameToken=0;
+
+let pendingState=null;
 
 
 /* =========================================================
@@ -1575,6 +1336,7 @@ function hideAllPages(){
 
 }
 
+
 function backHome(){
 
     clearTimeout(botTimer);
@@ -1587,6 +1349,7 @@ function backHome(){
 
 }
 
+
 function openLocalMenu(){
 
     hideAllPages();
@@ -1597,6 +1360,7 @@ function openLocalMenu(){
 
 }
 
+
 function openOnlineMenu(){
 
     hideAllPages();
@@ -1606,6 +1370,7 @@ function openOnlineMenu(){
         .classList.remove("hidden");
 
 }
+
 
 function openPrivateMenu(){
 
@@ -1624,20 +1389,20 @@ function openPrivateMenu(){
 
 function setupPanels(){
 
-    const grid =
+    const grid=
         document.getElementById("playersGrid");
 
     grid.innerHTML="";
 
     players.forEach(player=>{
 
-        const card =
+        const card=
             document.createElement("div");
 
-        card.id =
+        card.id=
             `playerCard-${player.id}`;
 
-        card.className =
+        card.className=
             `playerCard ${
                 ["blue","red","green","yellow"][player.id]
             }`;
@@ -1658,7 +1423,7 @@ function setupPanels(){
 
         grid.appendChild(card);
 
-        const dice =
+        const dice=
             card.querySelector("button");
 
         dice.onclick=()=>{
@@ -1676,14 +1441,14 @@ function setupPanels(){
 
 function boardStatic(){
 
-    const board =
+    const board=
         document.getElementById("board");
 
     board.innerHTML="";
 
     for(let i=0;i<25;i++){
 
-        const cell =
+        const cell=
             document.createElement("div");
 
         cell.className="cell";
@@ -1711,6 +1476,7 @@ function boardStatic(){
         }
 
         if(i===12){
+
             cell.classList.add("home");
 
             cell.innerHTML=
@@ -1719,23 +1485,23 @@ function boardStatic(){
                     color:#315c91;
                     font-size:13px;
                 ">HOME</span>`;
+
         }
 
-        if(
-            [10,22,14,2].includes(i)
-        ){
+        if([10,22,14,2].includes(i)){
 
-            const arrow =
+            const arrow=
                 document.createElement("span");
 
             arrow.className="arrow";
 
-            if(i===10) arrow.textContent="↓";
-            if(i===22) arrow.textContent="→";
-            if(i===14) arrow.textContent="↑";
-            if(i===2) arrow.textContent="←";
+            if(i===10)arrow.textContent="↓";
+            if(i===22)arrow.textContent="→";
+            if(i===14)arrow.textContent="↑";
+            if(i===2)arrow.textContent="←";
 
             cell.appendChild(arrow);
+
         }
 
         board.appendChild(cell);
@@ -1755,34 +1521,44 @@ function pawnPosition(
     step
 ){
 
-    const cellIndex =
+    const cellIndex=
         PATHS[playerId][step];
 
-    const cell =
+    const cell=
         document.getElementById(
             `cell-${cellIndex}`
         );
 
     if(!cell)return;
 
-    const pawn =
+
+    const pawn=
         document.createElement("div");
 
     pawn.className="pawn";
 
     pawn.dataset.player=playerId;
+
     pawn.dataset.pawn=pawnIndex;
 
-    pawn.style.background =
+    pawn.style.background=
         COLORS[playerId];
 
-    const sameCell =
+
+    /*
+       Find every pawn in this same
+       board cell.
+
+       HOME pawns are included too.
+    */
+
+    const sameCell=
         players.flatMap(p=>
             p.pawns.map(
                 (s,i)=>({
                     p:p.id,
-                    i,
-                    s
+                    i:i,
+                    s:s
                 })
             )
         ).filter(x=>
@@ -1790,59 +1566,118 @@ function pawnPosition(
             PATHS[x.p][x.s]===cellIndex
         );
 
-    let position =
+
+    let position=
         sameCell.findIndex(
             x=>
                 x.p===playerId &&
                 x.i===pawnIndex
         );
 
+
     if(position<0){
         position=0;
     }
 
-    const offsets=[
-        [-22,-22],
-        [22,-22],
-        [-22,22],
-        [22,22]
-    ];
 
-    const off =
-        offsets[position%4];
+    /*
+       Up to four pawns:
+       large 2x2 layout.
+    */
 
-    pawn.style.left =
-        `calc(50% + ${off[0]}% - 22%)`;
+    if(sameCell.length<=4){
 
-    pawn.style.top =
-        `calc(50% + ${off[1]}% - 22%)`;
+        const positions=[
+            [10,10],
+            [60,10],
+            [10,60],
+            [60,60]
+        ];
 
-    const movable =
+        const pos=
+            positions[position%4];
+
+        pawn.style.width="32%";
+
+        pawn.style.left=
+            `${pos[0]}%`;
+
+        pawn.style.top=
+            `${pos[1]}%`;
+
+    }
+
+
+    /*
+       More than four:
+       compact 4x4 layout.
+
+       Supports up to 16 pawns in
+       the same box without putting
+       them directly on top of each
+       other.
+    */
+
+    else{
+
+        const col=
+            position%4;
+
+        const row=
+            Math.floor(position/4);
+
+        pawn.style.width="22%";
+
+        pawn.style.left=
+            `${2+col*24}%`;
+
+        pawn.style.top=
+            `${2+row*24}%`;
+
+        pawn.style.borderWidth="2px";
+
+    }
+
+
+    const selectedRoll=
+        getSelectedRoll();
+
+
+    const movable=
         playerId===active &&
         !players[playerId]?.bot &&
         pendingRolls.length>0 &&
+        selectedRoll!==null &&
         canMove(
             players[playerId],
             pawnIndex,
-            getSelectedRoll()
+            selectedRoll
         );
+
 
     if(
         movable &&
         !online
     ){
+
         pawn.classList.add("movable");
+
     }
+
 
     if(
         movable &&
         online &&
         playerId===myId
     ){
+
         pawn.classList.add("movable");
+
     }
 
+
     cell.appendChild(pawn);
+
 
     if(
         movable &&
@@ -1901,9 +1736,7 @@ function renderBoard(){
 
 function getSelectedRoll(){
 
-    if(
-        !pendingRolls.length
-    ){
+    if(!pendingRolls.length){
         return null;
     }
 
@@ -1911,12 +1744,15 @@ function getSelectedRoll(){
         selectedRollIndex>=
         pendingRolls.length
     ){
+
         selectedRollIndex=0;
+
     }
 
     return pendingRolls[
         selectedRollIndex
     ].value;
+
 }
 
 
@@ -1933,7 +1769,52 @@ function selectRoll(index){
 
     render();
 
-    playTone(700,0.06);
+    playTone(700,.06);
+
+}
+
+
+/* =========================================================
+   TURN CHECK
+========================================================= */
+
+function isCurrentHumanTurn(){
+
+    const current=
+        players[active];
+
+    if(!current){
+        return false;
+    }
+
+    if(online){
+        return current.id===myId;
+    }
+
+    return !current.bot;
+}
+
+
+function hasAnyPossibleMove(){
+
+    const player=
+        players[active];
+
+    if(
+        !player ||
+        player.hasWon
+    ){
+        return false;
+    }
+
+    return pendingRolls.some(
+        die=>
+            hasValidMove(
+                player,
+                die.value
+            )
+    );
+
 }
 
 
@@ -1943,37 +1824,39 @@ function selectRoll(index){
 
 function renderRollChoices(){
 
-    const area =
+    const area=
         document.getElementById(
             "rollChoices"
         );
 
-    const label =
+    const label=
         document.getElementById(
             "diceLabel"
         );
 
     area.innerHTML="";
 
-    label.textContent =
+    label.textContent=
         `Available dice: ${pendingRolls.length}`;
+
 
     pendingRolls.forEach(
         (die,index)=>{
 
-            const button =
+            const button=
                 document.createElement("button");
 
-            button.className =
-                "rollChoice";
+            button.className="rollChoice";
 
-            if(
-                index===selectedRollIndex
-            ){
-                button.classList.add("selected");
+            if(index===selectedRollIndex){
+
+                button.classList.add(
+                    "selected"
+                );
+
             }
 
-            button.innerHTML =
+            button.innerHTML=
                 `🎲 ${die.value}`;
 
             button.onclick=()=>{
@@ -1987,37 +1870,28 @@ function renderRollChoices(){
 
 
     /*
-       Extra roll button.
+       Only the player whose turn it is
+       can see/use Roll Dice.
     */
 
     if(
         canRoll &&
-        (
-            !online ||
-            myId===players[active]?.id
-        ) &&
-        active===myId ||
-        (
-            !online &&
-            active>=0 &&
-            !players[active]?.bot
-        )
+        isCurrentHumanTurn() &&
+        !animating
     ){
 
-        const button =
+        const button=
             document.createElement("button");
 
         button.className="rollAgain";
 
-        button.textContent =
+        button.textContent=
             pendingRolls.length
             ? "🔄 Roll Again"
             : "🎲 Roll Dice";
 
         button.onclick=()=>{
-
             rollDice(active);
-
         };
 
         area.appendChild(button);
@@ -2039,7 +1913,8 @@ function render(){
             card.classList.remove("active");
         });
 
-    const activeCard =
+
+    const activeCard=
         document.getElementById(
             `playerCard-${active}`
         );
@@ -2051,27 +1926,27 @@ function render(){
 
     players.forEach(player=>{
 
-        const button =
+        const button=
             document.getElementById(
                 `dice-${player.id}`
             );
 
         if(!button)return;
 
+
         if(player.lastRoll!==null){
 
-            button.textContent =
+            button.textContent=
                 `🎲 ${player.lastRoll}`;
 
         }else{
 
-            button.textContent =
-                "🎲";
+            button.textContent="🎲";
 
         }
 
 
-        const allowed =
+        const allowed=
             player.id===active &&
             canRoll &&
             !animating &&
@@ -2100,49 +1975,54 @@ function render(){
 
 function updateStatus(){
 
-    const status =
-        document.getElementById(
-            "status"
-        );
+    const status=
+        document.getElementById("status");
 
-    const current =
+    const current=
         players[active];
 
     if(!current){
+
+        if(online){
+            return;
+        }
+
         status.textContent="Ready!";
+
         return;
+
     }
 
 
     if(animating){
+
         status.textContent="Moving...";
+
         return;
+
     }
 
 
-    if(
-        pendingRolls.length>0
-    ){
+    if(pendingRolls.length>0){
 
-        if(
-            canRoll
-        ){
+        if(canRoll){
 
-            status.textContent =
+            status.textContent=
                 `${current.name}'s turn — roll again or choose a dice`;
 
         }else{
 
-            status.textContent =
+            status.textContent=
                 `${current.name}'s turn — choose a dice and tap a pawn`;
 
         }
 
         return;
+
     }
 
 
-    status.textContent =
+    status.textContent=
         `${current.name}'s turn — roll the dice`;
 
 }
@@ -2182,16 +2062,17 @@ function startBase(){
 
 
 /* =========================================================
-   LOCAL GAME
+   LOCAL
 ========================================================= */
 
 function startLocal(count){
 
     online=false;
 
-    myId=0;
+    myId=null;
 
     players=[];
+
 
     if(count===1){
 
@@ -2219,6 +2100,7 @@ function startLocal(count){
 
     }
 
+
     active=0;
 
     hideAllPages();
@@ -2233,7 +2115,7 @@ function startLocal(count){
 
     document
         .getElementById("identity")
-        .textContent =
+        .textContent=
         count===1
         ? "You are Blue • Bot is Red"
         : `Local ${count} Player Game`;
@@ -2246,7 +2128,7 @@ function startLocal(count){
 
 
 /* =========================================================
-   PUBLIC ONLINE
+   ONLINE
 ========================================================= */
 
 function joinPublic(count){
@@ -2258,13 +2140,16 @@ function joinPublic(count){
         );
 
         return;
+
     }
+
 
     online=true;
 
     myId=null;
 
     players=[];
+
 
     hideAllPages();
 
@@ -2278,13 +2163,14 @@ function joinPublic(count){
 
     document
         .getElementById("identity")
-        .textContent =
+        .textContent=
         "Connecting to match...";
 
     document
         .getElementById("status")
-        .textContent =
+        .textContent=
         "Searching for players...";
+
 
     socket.emit(
         "joinGame",
@@ -2294,20 +2180,21 @@ function joinPublic(count){
 }
 
 
-/* =========================================================
-   PRIVATE
-========================================================= */
-
 function createPrivate(count){
 
     if(!socket){
+
         alert("Server unavailable.");
+
         return;
+
     }
+
 
     online=true;
 
     myId=null;
+
 
     hideAllPages();
 
@@ -2321,8 +2208,9 @@ function createPrivate(count){
 
     document
         .getElementById("identity")
-        .textContent =
+        .textContent=
         "Creating private room...";
+
 
     socket.emit(
         "createPrivateGame",
@@ -2334,14 +2222,13 @@ function createPrivate(count){
 
 function joinPrivate(){
 
-    const code =
+    const code=
         document
-            .getElementById(
-                "roomCodeInput"
-            )
+            .getElementById("roomCodeInput")
             .value
             .trim()
             .toUpperCase();
+
 
     if(!code){
 
@@ -2350,7 +2237,9 @@ function joinPrivate(){
         );
 
         return;
+
     }
+
 
     if(!socket){
 
@@ -2359,11 +2248,14 @@ function joinPrivate(){
         );
 
         return;
+
     }
+
 
     online=true;
 
     myId=null;
+
 
     hideAllPages();
 
@@ -2377,8 +2269,9 @@ function joinPrivate(){
 
     document
         .getElementById("identity")
-        .textContent =
+        .textContent=
         "Joining private room...";
+
 
     socket.emit(
         "joinPrivateGame",
@@ -2411,10 +2304,29 @@ function canMove(
 
     if(player.hasWon)return false;
 
-    const step =
+    if(!Number.isInteger(pawnIndex)){
+        return false;
+    }
+
+    if(
+        pawnIndex<0 ||
+        pawnIndex>3
+    ){
+        return false;
+    }
+
+    if(
+        !Number.isInteger(roll)
+    ){
+        return false;
+    }
+
+    const step=
         player.pawns[pawnIndex];
 
-    if(step>=24)return false;
+    if(step>=24){
+        return false;
+    }
 
     return (
         step+roll<=
@@ -2442,23 +2354,20 @@ function hasValidMove(
 
 
 /* =========================================================
-   ROLL DICE
+   ROLL
 ========================================================= */
 
 function rollDice(playerId){
 
     if(animating)return;
 
-    if(
-        playerId!==active
-    ){
-        return;
-    }
+    if(playerId!==active)return;
 
-    const player =
+    const player=
         players[playerId];
 
     if(!player)return;
+
 
     if(
         online &&
@@ -2467,12 +2376,15 @@ function rollDice(playerId){
         return;
     }
 
+
     if(!canRoll){
         return;
     }
 
 
     if(online){
+
+        if(!socket)return;
 
         socket.emit(
             "requestRoll"
@@ -2484,9 +2396,9 @@ function rollDice(playerId){
 
 
     /*
-       If an existing die gave the
-       extra-roll permission, consume
-       that permission now.
+       Consume the permission created
+       by the previous 4/8 if the
+       player chooses to roll again.
     */
 
     if(
@@ -2502,10 +2414,11 @@ function rollDice(playerId){
 
     }
 
+
     rollPermissionIndex=-1;
 
 
-    const value =
+    const value=
         DICE_VALUES[
             Math.floor(
                 Math.random()*
@@ -2533,7 +2446,9 @@ function applyLocalRoll(
 
     player.lastRoll=value;
 
+
     const die={
+
         id:
             `${Date.now()}_${Math.random()}`,
 
@@ -2542,18 +2457,15 @@ function applyLocalRoll(
         extraAvailable:
             value===4 ||
             value===8
+
     };
+
 
     pendingRolls.push(die);
 
-    selectedRollIndex =
+    selectedRollIndex=
         pendingRolls.length-1;
 
-
-    /*
-       New 4 / 8 allows another
-       roll immediately.
-    */
 
     if(
         value===4 ||
@@ -2562,7 +2474,7 @@ function applyLocalRoll(
 
         canRoll=true;
 
-        rollPermissionIndex =
+        rollPermissionIndex=
             pendingRolls.length-1;
 
     }else{
@@ -2580,8 +2492,12 @@ function applyLocalRoll(
 
 
     /*
-       If the rolled number has no
-       possible move, consume it.
+       No pawn can use this particular
+       dice.
+
+       Store the exact die ID so a later
+       roll cannot cause the wrong dice
+       to be dismissed.
     */
 
     if(
@@ -2591,22 +2507,25 @@ function applyLocalRoll(
         )
     ){
 
-        setTimeout(()=>{
+        const noMoveDieId=
+            die.id;
 
-            consumeNoMoveLocal(
-                pendingRolls.length-1
-            );
-
-        },450);
+        setTimeout(
+            ()=>{
+                consumeNoMoveLocalById(
+                    noMoveDieId
+                );
+            },
+            450
+        );
 
         return;
+
     }
 
 
     if(player.bot){
-
         botAct();
-
     }
 
 }
@@ -2615,6 +2534,22 @@ function applyLocalRoll(
 /* =========================================================
    NO MOVE
 ========================================================= */
+
+function consumeNoMoveLocalById(dieId){
+
+    const index=
+        pendingRolls.findIndex(
+            die=>die.id===dieId
+        );
+
+    if(index<0){
+        return;
+    }
+
+    consumeNoMoveLocal(index);
+
+}
+
 
 function consumeNoMoveLocal(index){
 
@@ -2625,11 +2560,13 @@ function consumeNoMoveLocal(index){
         return;
     }
 
-    const die =
+
+    const die=
         pendingRolls[index];
 
-    const hadExtra =
-        die.extraAvailable;
+    const hadExtra=
+        !!die.extraAvailable;
+
 
     pendingRolls.splice(
         index,
@@ -2641,44 +2578,58 @@ function consumeNoMoveLocal(index){
         selectedRollIndex>=
         pendingRolls.length
     ){
+
         selectedRollIndex=
             Math.max(
                 0,
                 pendingRolls.length-1
             );
+
     }
 
+
+    /*
+       If this dice was the dice
+       currently giving the extra
+       permission, remove that
+       permission before deciding
+       what happens next.
+    */
 
     rollPermissionIndex=-1;
 
 
-    if(hadExtra){
+    const player=
+        players[active];
 
-        canRoll=true;
-
-        /*
-           The extra opportunity has
-           not been used yet.
-        */
-
-        render();
-
-        if(players[active]?.bot){
-            botAct();
-        }
-
+    if(!player){
         return;
-
     }
 
 
-    if(pendingRolls.length){
+    /*
+       First check whether another
+       banked dice can actually move
+       any pawn.
+    */
+
+    const anotherMoveExists=
+        pendingRolls.some(
+            d=>
+                hasValidMove(
+                    player,
+                    d.value
+                )
+        );
+
+
+    if(anotherMoveExists){
 
         canRoll=false;
 
         render();
 
-        if(players[active]?.bot){
+        if(player.bot){
             botAct();
         }
 
@@ -2687,12 +2638,50 @@ function consumeNoMoveLocal(index){
     }
 
 
+    /*
+       A 4/8 with no possible move
+       still grants its extra roll.
+    */
+
+    if(hadExtra){
+
+        canRoll=true;
+
+        rollPermissionIndex=-1;
+
+        render();
+
+        if(player.bot){
+            botAct();
+        }
+
+        return;
+
+    }
+
+
+    /*
+       Nothing remaining can move and
+       there is no extra roll.
+
+       Dismiss the turn automatically.
+    */
+
+    pendingRolls=[];
+
+    selectedRollIndex=0;
+
+    rollPermissionIndex=-1;
+
     canRoll=false;
 
     render();
 
+
     setTimeout(
-        nextLocalTurn,
+        ()=>{
+            nextLocalTurn();
+        },
         450
     );
 
@@ -2710,9 +2699,8 @@ function requestMove(
 
     if(animating)return;
 
-    if(playerId!==active){
-        return;
-    }
+    if(playerId!==active)return;
+
 
     if(
         online &&
@@ -2721,15 +2709,19 @@ function requestMove(
         return;
     }
 
-    if(
-        pendingRolls.length===0
-    ){
+
+    if(!pendingRolls.length){
         return;
     }
 
 
-    const roll =
+    const roll=
         getSelectedRoll();
+
+    if(roll===null){
+        return;
+    }
+
 
     if(
         !canMove(
@@ -2744,23 +2736,29 @@ function requestMove(
 
     if(online){
 
+        const die=
+            pendingRolls[
+                selectedRollIndex
+            ];
+
+        if(!die)return;
+
+
         socket.emit(
             "requestMove",
             {
-                playerId:
-                    playerId,
 
-                pawnIndex:
-                    pawnIndex,
+                playerId:playerId,
 
-                rollId:
-                    pendingRolls[
-                        selectedRollIndex
-                    ].id
+                pawnIndex:pawnIndex,
+
+                rollId:die.id
+
             }
         );
 
         return;
+
     }
 
 
@@ -2785,10 +2783,11 @@ function moveLocal(
 
     if(animating)return;
 
-    const player =
+    const player=
         players[playerId];
 
     if(!player)return;
+
 
     if(
         rollIndex<0 ||
@@ -2798,16 +2797,16 @@ function moveLocal(
     }
 
 
-    const die =
+    const die=
         pendingRolls[rollIndex];
 
-    const roll =
+    const roll=
         die.value;
 
-    const from =
+    const from=
         player.pawns[pawnIndex];
 
-    const to =
+    const to=
         from+roll;
 
 
@@ -2821,11 +2820,6 @@ function moveLocal(
         return;
     }
 
-
-    /*
-       Remove exactly the selected
-       dice number.
-    */
 
     pendingRolls.splice(
         rollIndex,
@@ -2887,11 +2881,10 @@ function animateLocalMove(
     done
 ){
 
-    if(
-        from>=to
-    ){
+    if(from>=to){
 
         done();
+
         return;
 
     }
@@ -2901,11 +2894,13 @@ function animateLocalMove(
 
     const token=gameToken;
 
+
     function step(){
 
         if(token!==gameToken){
             return;
         }
+
 
         current++;
 
@@ -2914,6 +2909,7 @@ function animateLocalMove(
         renderBoard();
 
         playMoveSound();
+
 
         if(current<to){
 
@@ -2933,6 +2929,7 @@ function animateLocalMove(
 
     }
 
+
     step();
 
 }
@@ -2950,7 +2947,7 @@ function finishLocalMove(
     die
 ){
 
-    const boardCell =
+    const boardCell=
         PATHS[
             player.id
         ][to];
@@ -2958,10 +2955,6 @@ function finishLocalMove(
 
     let capture=false;
 
-
-    /*
-       Capture.
-    */
 
     if(
         to<24 &&
@@ -2979,23 +2972,26 @@ function finishLocalMove(
                     return;
                 }
 
+
                 for(
                     let i=0;
                     i<4;
                     i++
                 ){
 
-                    const step =
+                    const step=
                         opponent.pawns[i];
 
                     if(step>=24){
                         continue;
                     }
 
-                    const opponentCell =
+
+                    const opponentCell=
                         PATHS[
                             opponent.id
                         ][step];
+
 
                     if(
                         opponentCell===
@@ -3025,13 +3021,9 @@ function finishLocalMove(
     }
 
 
-    const reachedHome =
+    const reachedHome=
         to===24;
 
-
-    /*
-       Finished.
-    */
 
     if(
         player.pawns.every(
@@ -3047,32 +3039,14 @@ function finishLocalMove(
     }
 
 
-    /*
-       Extra roll.
+    let extra=
+        !!die.extraAvailable;
 
-       IMPORTANT:
-       If this particular 4/8 was
-       already used to obtain another
-       roll, its extra permission is
-       already consumed.
-
-       Therefore only die.extraAvailable
-       can grant another roll here.
-    */
-
-    let extra=false;
-
-    if(
-        die.extraAvailable
-    ){
-
-        extra=true;
-
-    }
 
     if(capture){
         extra=true;
     }
+
 
     if(
         reachedHome &&
@@ -3090,6 +3064,7 @@ function finishLocalMove(
     if(player.hasWon){
 
         render();
+
 
         if(
             players.filter(
@@ -3110,7 +3085,9 @@ function finishLocalMove(
 
             });
 
+
             render();
+
 
             setTimeout(
                 ()=>{
@@ -3124,6 +3101,7 @@ function finishLocalMove(
             return;
 
         }
+
 
         setTimeout(
             nextLocalTurn,
@@ -3143,6 +3121,7 @@ function finishLocalMove(
 
         render();
 
+
         if(player.bot){
             botAct();
         }
@@ -3152,18 +3131,47 @@ function finishLocalMove(
     }
 
 
-    /*
-       If other banked dice remain,
-       continue using them.
-    */
+    if(pendingRolls.length>0){
 
-    if(
-        pendingRolls.length>0
-    ){
+        /*
+           Important:
+           If remaining dice cannot move
+           any pawn, don't leave the turn
+           stuck.
+        */
+
+        if(
+            !pendingRolls.some(
+                d=>
+                    hasValidMove(
+                        player,
+                        d.value
+                    )
+            )
+        ){
+
+            pendingRolls=[];
+
+            selectedRollIndex=0;
+
+            canRoll=false;
+
+            render();
+
+            setTimeout(
+                nextLocalTurn,
+                400
+            );
+
+            return;
+
+        }
+
 
         canRoll=false;
 
         render();
+
 
         if(player.bot){
             botAct();
@@ -3203,14 +3211,16 @@ function nextLocalTurn(){
         step++
     ){
 
-        const index =
+        const index=
             (
                 active+
                 step
             )%
             players.length;
 
+
         if(
+            players[index] &&
             !players[index].hasWon
         ){
 
@@ -3231,6 +3241,8 @@ function nextLocalTurn(){
 
     canRoll=true;
 
+    animating=false;
+
     render();
 
     botAct();
@@ -3246,8 +3258,10 @@ function botAct(){
 
     clearTimeout(botTimer);
 
-    const bot =
+
+    const bot=
         players[active];
+
 
     if(
         !bot ||
@@ -3258,14 +3272,9 @@ function botAct(){
     }
 
 
-    /*
-       If bot has an extra-roll
-       permission, roll again first.
-    */
-
     if(canRoll){
 
-        botTimer =
+        botTimer=
             setTimeout(
                 ()=>{
                     rollDice(bot.id);
@@ -3278,15 +3287,14 @@ function botAct(){
     }
 
 
-    if(
-        pendingRolls.length===0
-    ){
+    if(!pendingRolls.length){
 
         canRoll=true;
 
         render();
 
-        botTimer =
+
+        botTimer=
             setTimeout(
                 ()=>{
                     rollDice(bot.id);
@@ -3298,15 +3306,6 @@ function botAct(){
 
     }
 
-
-    /*
-       Find legal dice/pawns.
-
-       Prefer:
-       1. Capture
-       2. HOME
-       3. Highest useful movement
-    */
 
     const choices=[];
 
@@ -3325,23 +3324,18 @@ function botAct(){
                         )
                     ){
 
-                        const to =
+                        const to=
                             step+
                             die.value;
 
-                        const cell =
-                            PATHS[
-                                bot.id
-                            ][to];
-
-                        let score =
+                        let score=
                             die.value;
 
-                        if(
-                            to===24
-                        ){
+
+                        if(to===24){
                             score+=100;
                         }
+
 
                         if(
                             wouldCapture(
@@ -3351,6 +3345,7 @@ function botAct(){
                         ){
                             score+=70;
                         }
+
 
                         choices.push({
                             rollIndex,
@@ -3367,16 +3362,46 @@ function botAct(){
     );
 
 
-    if(
-        choices.length===0
-    ){
+    if(!choices.length){
 
-        botTimer =
+        /*
+           All remaining dice are useless.
+           Dismiss them rather than leaving
+           the bot turn stuck.
+        */
+
+        botTimer=
             setTimeout(
                 ()=>{
-                    consumeNoMoveLocal(
-                        0
-                    );
+
+                    const first=
+                        pendingRolls.findIndex(
+                            die=>
+                                !hasValidMove(
+                                    bot,
+                                    die.value
+                                )
+                        );
+
+                    if(first>=0){
+
+                        consumeNoMoveLocal(first);
+
+                    }else{
+
+                        pendingRolls=[];
+
+                        canRoll=false;
+
+                        render();
+
+                        setTimeout(
+                            nextLocalTurn,
+                            400
+                        );
+
+                    }
+
                 },
                 500
             );
@@ -3392,17 +3417,17 @@ function botAct(){
     );
 
 
-    const choice =
+    const choice=
         choices[0];
 
 
-    selectedRollIndex =
+    selectedRollIndex=
         choice.rollIndex;
 
     render();
 
 
-    botTimer =
+    botTimer=
         setTimeout(
             ()=>{
                 moveLocal(
@@ -3418,7 +3443,7 @@ function botAct(){
 
 
 /* =========================================================
-   BOT CAPTURE CHECK
+   BOT CAPTURE
 ========================================================= */
 
 function wouldCapture(
@@ -3430,10 +3455,12 @@ function wouldCapture(
         return false;
     }
 
-    const cell =
+
+    const cell=
         PATHS[
             player.id
         ][to];
+
 
     if(
         SAFE.includes(cell)
@@ -3452,6 +3479,7 @@ function wouldCapture(
             ){
                 return false;
             }
+
 
             return opponent.pawns.some(
                 step=>
@@ -3477,20 +3505,20 @@ function applyOnlineState(state){
     if(!state)return;
 
 
-    active =
-        Number(state.active) || 0;
+    active=
+        Number(state.active)||0;
 
 
-    canRoll =
+    canRoll=
         !!state.canRoll;
 
 
-    currentRank =
-        Number(state.rank) || 1;
+    currentRank=
+        Number(state.rank)||1;
 
 
-    players =
-        (state.players || [])
+    players=
+        (state.players||[])
         .map(p=>({
 
             ...p,
@@ -3498,18 +3526,18 @@ function applyOnlineState(state){
             bot:false,
 
             pawns:[
-                ...(p.pawns || [0,0,0,0])
+                ...(p.pawns||[0,0,0,0])
             ],
 
             lastRoll:
-                p.lastRoll ??
+                p.lastRoll??
                 null
 
         }));
 
 
-    pendingRolls =
-        (state.pendingRolls || [])
+    pendingRolls=
+        (state.pendingRolls||[])
         .map(die=>({
 
             id:die.id,
@@ -3553,14 +3581,15 @@ if(socket){
         "assignPlayer",
         data=>{
 
-            myId =
+            myId=
                 Number(
                     data.playerId
                 );
 
+
             document
                 .getElementById("identity")
-                .textContent =
+                .textContent=
                 `You are ${data.playerName}`;
 
         }
@@ -3573,7 +3602,7 @@ if(socket){
 
             document
                 .getElementById("status")
-                .textContent =
+                .textContent=
                 "Match started!";
 
         }
@@ -3581,8 +3610,8 @@ if(socket){
 
 
     /*
-       System messages are shown in
-       status only, NOT in chat.
+       System messages go ONLY into
+       the status area.
     */
 
     socket.on(
@@ -3591,7 +3620,7 @@ if(socket){
 
             document
                 .getElementById("status")
-                .textContent =
+                .textContent=
                 message;
 
         }
@@ -3606,8 +3635,9 @@ if(socket){
                 .getElementById(
                     "roomCodeDisplay"
                 )
-                .textContent =
+                .textContent=
                 code;
+
 
             document
                 .getElementById(
@@ -3639,7 +3669,7 @@ if(socket){
 
             document
                 .getElementById("status")
-                .textContent =
+                .textContent=
                 message;
 
         }
@@ -3650,29 +3680,29 @@ if(socket){
         "diceRolled",
         data=>{
 
-            if(
-                !players[
-                    Number(data.playerId)
-                ]
-            ){
+            const playerId=
+                Number(
+                    data.playerId
+                );
+
+
+            if(!players[playerId]){
                 return;
             }
 
-            const player =
-                players[
-                    Number(data.playerId)
-                ];
 
-            player.lastRoll =
+            const player=
+                players[playerId];
+
+
+            player.lastRoll=
                 Number(data.value);
 
 
-            if(
-                Number(data.playerId)===
-                active
-            ){
+            if(playerId===active){
 
                 const die={
+
                     id:
                         data.rollId ||
                         `${Date.now()}_${Math.random()}`,
@@ -3682,16 +3712,32 @@ if(socket){
 
                     extraAvailable:
                         !!data.extraAvailable
+
                 };
 
-                pendingRolls.push(
-                    die
-                );
 
-                selectedRollIndex =
+                /*
+                   Avoid duplicate dice if
+                   an unusual network sequence
+                   sends the same roll twice.
+                */
+
+                if(
+                    !pendingRolls.some(
+                        d=>d.id===die.id
+                    )
+                ){
+
+                    pendingRolls.push(die);
+
+                }
+
+
+                selectedRollIndex=
                     pendingRolls.length-1;
 
             }
+
 
             playDiceSound();
 
@@ -3705,20 +3751,19 @@ if(socket){
         "moveResult",
         data=>{
 
-            const p =
+            const p=
                 players[
-                    Number(
-                        data.playerId
-                    )
+                    Number(data.playerId)
                 ];
+
 
             if(!p){
                 return;
             }
 
 
-            pendingState =
-                null;
+            pendingState=null;
+
 
             animateOnlineMove(
                 p,
@@ -3742,9 +3787,7 @@ if(socket){
 
             }else{
 
-                applyOnlineState(
-                    state
-                );
+                applyOnlineState(state);
 
             }
 
@@ -3758,7 +3801,7 @@ if(socket){
 
             document
                 .getElementById("status")
-                .textContent =
+                .textContent=
                 "🏆 Game finished!";
 
         }
@@ -3771,7 +3814,7 @@ if(socket){
 
             alert(message);
 
-            leaveGame();
+            leaveGame(false);
 
         }
     );
@@ -3832,17 +3875,16 @@ function animateOnlineMove(
         return;
     }
 
+
     animating=true;
 
-    const token =
+
+    const token=
         gameToken;
 
 
-    /*
-       Temporarily animate the pawn.
-    */
-
     let current=from;
+
 
     player.pawns[pawnIndex]=from;
 
@@ -3855,6 +3897,7 @@ function animateOnlineMove(
             return;
         }
 
+
         current++;
 
         player.pawns[pawnIndex]=current;
@@ -3863,9 +3906,8 @@ function animateOnlineMove(
 
         playMoveSound();
 
-        if(
-            current<to
-        ){
+
+        if(current<to){
 
             setTimeout(
                 step,
@@ -3876,11 +3918,11 @@ function animateOnlineMove(
 
             setTimeout(
                 ()=>{
+
                     animating=false;
 
-                    if(
-                        pendingState
-                    ){
+
+                    if(pendingState){
 
                         applyOnlineState(
                             pendingState
@@ -3902,6 +3944,7 @@ function animateOnlineMove(
 
     }
 
+
     step();
 
 }
@@ -3916,22 +3959,27 @@ function addChatMessage(
     text
 ){
 
-    const box =
+    const box=
         document.getElementById(
             "chatMessages"
         );
 
-    const row =
+
+    const row=
         document.createElement("div");
+
 
     row.className="chatMessage";
 
-    row.innerHTML =
+
+    row.innerHTML=
         `<strong>${escapeHtml(name)}</strong>: ${escapeHtml(text)}`;
+
 
     box.appendChild(row);
 
-    box.scrollTop =
+
+    box.scrollTop=
         box.scrollHeight;
 
 }
@@ -3951,15 +3999,18 @@ function escapeHtml(text){
 
 function sendChat(){
 
-    const input =
+    const input=
         document.getElementById(
             "chatInput"
         );
 
-    const text =
+
+    const text=
         input.value.trim();
 
+
     if(!text)return;
+
 
     if(
         online &&
@@ -3975,6 +4026,7 @@ function sendChat(){
 
     }
 
+
     input.value="";
 
 }
@@ -3986,9 +4038,7 @@ document
         "keydown",
         event=>{
 
-            if(
-                event.key==="Enter"
-            ){
+            if(event.key==="Enter"){
                 sendChat();
             }
 
@@ -4004,6 +4054,8 @@ let localStream=null;
 
 const peerConnections={};
 
+const pendingIceCandidates={};
+
 
 async function toggleMic(){
 
@@ -4011,14 +4063,17 @@ async function toggleMic(){
         !online ||
         !socket
     ){
+
         alert(
             "Voice chat is available in online games."
         );
+
         return;
+
     }
 
 
-    const button =
+    const button=
         document.getElementById(
             "micBtn"
         );
@@ -4034,10 +4089,35 @@ async function toggleMic(){
                 }
             );
 
+
         localStream=null;
+
 
         button.classList.remove(
             "micActive"
+        );
+
+        button.textContent="🎤";
+
+
+        document
+            .getElementById("status")
+            .textContent=
+            "Microphone off";
+
+
+        return;
+
+    }
+
+
+    if(
+        !navigator.mediaDevices ||
+        !navigator.mediaDevices.getUserMedia
+    ){
+
+        alert(
+            "Your browser does not support microphone access."
         );
 
         return;
@@ -4047,26 +4127,79 @@ async function toggleMic(){
 
     try{
 
-        localStream =
+        localStream=
             await navigator
                 .mediaDevices
                 .getUserMedia({
-                    audio:true
+
+                    audio:{
+                        echoCancellation:true,
+                        noiseSuppression:true,
+                        autoGainControl:true
+                    }
+
                 });
+
 
         button.classList.add(
             "micActive"
         );
 
+        button.textContent="🎙️";
+
+
+        document
+            .getElementById("status")
+            .textContent=
+            "🎙️ Microphone on";
+
+
         socket.emit(
             "voiceJoin"
         );
 
+
     }catch(error){
 
-        alert(
-            "Microphone permission was not granted."
+        localStream=null;
+
+
+        button.classList.remove(
+            "micActive"
         );
+
+        button.textContent="🎤";
+
+
+        console.error(
+            "Microphone error:",
+            error
+        );
+
+
+        if(
+            error.name==="NotAllowedError"
+        ){
+
+            alert(
+                "Microphone permission was denied. Please allow microphone permission for this site in your browser settings."
+            );
+
+        }else if(
+            error.name==="NotFoundError"
+        ){
+
+            alert(
+                "No microphone was found on this device."
+            );
+
+        }else{
+
+            alert(
+                "Unable to start the microphone."
+            );
+
+        }
 
     }
 
@@ -4080,6 +4213,7 @@ async function startVoiceWithPeers(
     if(!localStream){
         return;
     }
+
 
     for(
         const peerId of peers
@@ -4103,52 +4237,65 @@ async function createPeer(
     if(
         peerConnections[peerId]
     ){
-        return peerConnections[peerId];
+
+        return peerConnections[
+            peerId
+        ];
+
     }
 
 
-    const pc =
+    const pc=
         new RTCPeerConnection({
+
             iceServers:[
                 {
                     urls:
                     "stun:stun.l.google.com:19302"
                 }
             ]
+
         });
 
 
     peerConnections[peerId]=pc;
+
+    pendingIceCandidates[peerId]=[];
 
 
     localStream
         ?.getTracks()
         .forEach(
             track=>{
+
                 pc.addTrack(
                     track,
                     localStream
                 );
+
             }
         );
 
 
-    pc.onicecandidate =
+    pc.onicecandidate=
         event=>{
 
             if(
-                event.candidate
+                event.candidate &&
+                socket
             ){
 
                 socket.emit(
                     "voiceSignal",
                     {
+
                         to:peerId,
 
                         data:{
                             candidate:
                                 event.candidate
                         }
+
                     }
                 );
 
@@ -4157,17 +4304,18 @@ async function createPeer(
         };
 
 
-    pc.ontrack =
+    pc.ontrack=
         event=>{
 
-            let audio =
+            let audio=
                 document.getElementById(
                     `audio-${peerId}`
                 );
 
+
             if(!audio){
 
-                audio =
+                audio=
                     document.createElement(
                         "audio"
                     );
@@ -4177,13 +4325,16 @@ async function createPeer(
 
                 audio.autoplay=true;
 
+                audio.playsInline=true;
+
                 document.body.appendChild(
                     audio
                 );
 
             }
 
-            audio.srcObject =
+
+            audio.srcObject=
                 event.streams[0];
 
         };
@@ -4191,21 +4342,24 @@ async function createPeer(
 
     if(initiator){
 
-        const offer =
+        const offer=
             await pc.createOffer();
 
         await pc.setLocalDescription(
             offer
         );
 
+
         socket.emit(
             "voiceSignal",
             {
+
                 to:peerId,
 
                 data:{
                     offer:offer
                 }
+
             }
         );
 
@@ -4226,65 +4380,140 @@ async function handleVoiceSignal(
     }
 
 
-    const peerId =
+    const peerId=
         message.from;
 
-    const data =
+    const data=
         message.data;
 
 
-    const pc =
+    const pc=
         await createPeer(
             peerId,
             false
         );
 
 
-    if(data.offer){
+    try{
 
-        await pc.setRemoteDescription(
-            data.offer
-        );
+        if(data.offer){
 
-        const answer =
-            await pc.createAnswer();
-
-        await pc.setLocalDescription(
-            answer
-        );
-
-        socket.emit(
-            "voiceSignal",
-            {
-                to:peerId,
-
-                data:{
-                    answer:answer
-                }
-            }
-        );
-
-    }
-
-
-    if(data.answer){
-
-        await pc.setRemoteDescription(
-            data.answer
-        );
-
-    }
-
-
-    if(data.candidate){
-
-        try{
-
-            await pc.addIceCandidate(
-                data.candidate
+            await pc.setRemoteDescription(
+                data.offer
             );
 
-        }catch(e){}
+
+            const answer=
+                await pc.createAnswer();
+
+
+            await pc.setLocalDescription(
+                answer
+            );
+
+
+            socket.emit(
+                "voiceSignal",
+                {
+
+                    to:peerId,
+
+                    data:{
+                        answer:answer
+                    }
+
+                }
+            );
+
+        }
+
+
+        if(data.answer){
+
+            await pc.setRemoteDescription(
+                data.answer
+            );
+
+        }
+
+
+        /*
+           ICE candidates can arrive before
+           the remote description. Keep them
+           temporarily and add them after
+           the description exists.
+        */
+
+        if(data.candidate){
+
+            if(
+                pc.remoteDescription &&
+                pc.remoteDescription.type
+            ){
+
+                await pc.addIceCandidate(
+                    data.candidate
+                );
+
+            }else{
+
+                if(
+                    !pendingIceCandidates[peerId]
+                ){
+
+                    pendingIceCandidates[peerId]=[];
+
+                }
+
+                pendingIceCandidates[
+                    peerId
+                ].push(
+                    data.candidate
+                );
+
+            }
+
+        }
+
+
+        if(
+            pc.remoteDescription &&
+            pendingIceCandidates[peerId]?.length
+        ){
+
+            const candidates=[
+                ...pendingIceCandidates[
+                    peerId
+                ]
+            ];
+
+            pendingIceCandidates[
+                peerId
+            ]=[];
+
+
+            for(
+                const candidate of candidates
+            ){
+
+                try{
+
+                    await pc.addIceCandidate(
+                        candidate
+                    );
+
+                }catch(e){}
+
+            }
+
+        }
+
+    }catch(error){
+
+        console.error(
+            "Voice signal error:",
+            error
+        );
 
     }
 
@@ -4292,18 +4521,14 @@ async function handleVoiceSignal(
 
 
 /* =========================================================
-   SETTINGS / HELP
+   SETTINGS
 ========================================================= */
 
 function openSettings(){
 
     document
-        .getElementById(
-            "settingsModal"
-        )
-        .classList.remove(
-            "hidden"
-        );
+        .getElementById("settingsModal")
+        .classList.remove("hidden");
 
 }
 
@@ -4311,12 +4536,8 @@ function openSettings(){
 function openHelp(){
 
     document
-        .getElementById(
-            "helpModal"
-        )
-        .classList.remove(
-            "hidden"
-        );
+        .getElementById("helpModal")
+        .classList.remove("hidden");
 
 }
 
@@ -4324,14 +4545,10 @@ function openHelp(){
 function closeModals(){
 
     document
-        .querySelectorAll(
-            ".modal"
-        )
+        .querySelectorAll(".modal")
         .forEach(
             modal=>{
-                modal.classList.add(
-                    "hidden"
-                );
+                modal.classList.add("hidden");
             }
         );
 
@@ -4342,12 +4559,71 @@ function toggleSound(){
 
     sound=!sound;
 
+
     document
         .getElementById("soundBtn")
-        .textContent =
+        .textContent=
         sound
         ? "🔊 Sound: ON"
         : "🔇 Sound: OFF";
+
+
+    if(sound){
+        playTone(700,.06);
+    }
+
+}
+
+
+function changeVolume(amount){
+
+    volume=
+        Math.max(
+            0,
+            Math.min(
+                1,
+                volume+amount
+            )
+        );
+
+
+    const label=
+        document.getElementById(
+            "volumeLabel"
+        );
+
+
+    if(label){
+
+        label.textContent=
+            `Volume: ${Math.round(volume*100)}%`;
+
+    }
+
+
+    /*
+       Volume greater than zero means
+       sound is available again.
+    */
+
+    if(
+        volume>0 &&
+        !sound
+    ){
+
+        sound=true;
+
+        document
+            .getElementById("soundBtn")
+            .textContent=
+            "🔊 Sound: ON";
+
+    }
+
+
+    if(volume>0){
+        playTone(700,.06);
+    }
 
 }
 
@@ -4361,34 +4637,61 @@ function playTone(
     duration
 ){
 
-    if(!sound){
+    if(
+        !sound ||
+        volume<=0
+    ){
         return;
     }
+
 
     try{
 
         if(!audioCtx){
 
-            audioCtx =
-                new (
+            audioCtx=
+                new(
                     window.AudioContext ||
                     window.webkitAudioContext
                 )();
 
         }
 
-        const oscillator =
+
+        if(
+            audioCtx.state==="suspended"
+        ){
+
+            audioCtx
+                .resume()
+                .catch(()=>{});
+
+        }
+
+
+        const oscillator=
             audioCtx.createOscillator();
 
-        const gain =
+        const gain=
             audioCtx.createGain();
 
-        oscillator.frequency.value =
+
+        oscillator.frequency.value=
             frequency;
 
         oscillator.type="sine";
 
-        gain.gain.value=.06;
+
+        const startVolume=
+            Math.max(
+                .001,
+                .10*volume
+            );
+
+
+        gain.gain.value=
+            startVolume;
+
 
         oscillator.connect(gain);
 
@@ -4396,13 +4699,16 @@ function playTone(
             audioCtx.destination
         );
 
+
         oscillator.start();
+
 
         gain.gain.exponentialRampToValueAtTime(
             .001,
             audioCtx.currentTime+
             duration
         );
+
 
         oscillator.stop(
             audioCtx.currentTime+
@@ -4453,15 +4759,35 @@ function playCaptureSound(){
    LEAVE
 ========================================================= */
 
-function leaveGame(){
+function leaveGame(
+    notifyServer=true
+){
 
     clearTimeout(botTimer);
 
     gameToken++;
 
+
+    /*
+       Tell the server when the user
+       intentionally leaves an online
+       room.
+    */
+
     if(
-        localStream
+        notifyServer &&
+        online &&
+        socket
     ){
+
+        socket.emit(
+            "leaveRoom"
+        );
+
+    }
+
+
+    if(localStream){
 
         localStream
             .getTracks()
@@ -4494,6 +4820,26 @@ function leaveGame(){
         delete peerConnections[key];
 
     }
+
+
+    for(
+        const key in pendingIceCandidates
+    ){
+
+        delete pendingIceCandidates[key];
+
+    }
+
+
+    document
+        .querySelectorAll(
+            "audio[id^='audio-']"
+        )
+        .forEach(
+            audio=>{
+                audio.remove();
+            }
+        );
 
 
     pendingRolls=[];
