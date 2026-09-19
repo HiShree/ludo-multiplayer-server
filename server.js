@@ -327,6 +327,8 @@ function getPublicState(
 
 function sendState(room) {
 
+  if (!room) return;
+
   for (const player of room.players) {
 
     io.to(player.id).emit(
@@ -348,6 +350,8 @@ function sendSystemMessage(
   room,
   message
 ) {
+
+  if (!room) return;
 
   io.to(room.id).emit(
     "systemMessage",
@@ -394,11 +398,6 @@ function leaveQueue(socketId) {
 }
 
 
-/*
-  Remove dead/disconnected sockets
-  from public queues.
-*/
-
 function cleanQueues() {
 
   for (const count of [2,3,4]) {
@@ -408,6 +407,29 @@ function cleanQueues() {
         socketId =>
           io.sockets.sockets.has(socketId)
       );
+  }
+}
+
+
+/*
+  Make sure the same socket does not
+  exist twice in a queue.
+*/
+
+function addToQueue(
+  socketId,
+  numberOfPlayers
+) {
+
+  leaveQueue(socketId);
+
+  if (
+    !queues[numberOfPlayers].includes(socketId)
+  ) {
+
+    queues[numberOfPlayers].push(
+      socketId
+    );
   }
 }
 
@@ -430,6 +452,27 @@ function closeRoom(
   }
 
   room.timers.clear();
+
+  /*
+    Remove players from the Socket.IO room.
+    This prevents an old private/public room
+    from mixing with a new room.
+  */
+
+  for (const player of room.players) {
+
+    const playerSocket =
+      io.sockets.sockets.get(
+        player.id
+      );
+
+    if (playerSocket) {
+
+      playerSocket.leave(
+        room.id
+      );
+    }
+  }
 
   io.to(room.id).emit(
     "roomClosed",
@@ -470,6 +513,10 @@ function startRoom(room) {
     room.players.length !==
     room.maxPlayers
   ) {
+    return;
+  }
+
+  if (room.started) {
     return;
   }
 
@@ -514,7 +561,7 @@ function startRoom(room) {
 
 
 /* =========================================================
-   PUBLIC MATCHMAKING
+   PUBLIC MULTIPLAYER
 ========================================================= */
 
 function joinPublicGame(
@@ -539,17 +586,18 @@ function joinPublicGame(
     return;
   }
 
+
   /*
-    IMPORTANT:
-    Remove this player from every
-    existing public queue first.
+    Always remove this socket from
+    every previous public queue.
   */
 
   leaveQueue(socket.id);
 
+
   /*
-    If the player is already inside
-    another room, close that room.
+    If this socket is already inside
+    a room, close that old room.
   */
 
   const oldRoom =
@@ -563,25 +611,27 @@ function joinPublicGame(
     );
   }
 
+
   /*
-    Remove disconnected players
-    from all queues.
+    Remove disconnected sockets.
   */
 
   cleanQueues();
 
+
   /*
-    Add this player to the selected
-    public matchmaking queue.
+    Add player to the requested queue.
   */
 
-  queues[numberOfPlayers].push(
-    socket.id
+  addToQueue(
+    socket.id,
+    numberOfPlayers
   );
 
+
   /*
-    Tell the player that matchmaking
-    is active.
+    Tell client that matchmaking
+    is waiting.
   */
 
   socket.emit(
@@ -589,9 +639,10 @@ function joinPublicGame(
     `Waiting for ${numberOfPlayers} players...`
   );
 
+
   /*
-    Clean queue again in case someone
-    disconnected immediately.
+    Clean again before creating
+    the room.
   */
 
   queues[numberOfPlayers] =
@@ -599,6 +650,7 @@ function joinPublicGame(
       socketId =>
         io.sockets.sockets.has(socketId)
     );
+
 
   /*
     Not enough players yet.
@@ -612,8 +664,10 @@ function joinPublicGame(
     return;
   }
 
+
   /*
-    Take exactly the required number.
+    Take exactly the requested
+    number of players.
   */
 
   const selected =
@@ -622,14 +676,16 @@ function joinPublicGame(
       numberOfPlayers
     );
 
+
   /*
-    Make a unique public room.
+    Create unique public room.
   */
 
   const roomId =
     `public_${numberOfPlayers}_${Date.now()}_${Math.random()
       .toString(36)
       .slice(2,10)}`;
+
 
   const room =
     makeRoom(
@@ -639,17 +695,15 @@ function joinPublicGame(
       null
     );
 
+
   rooms.set(
     room.id,
     room
   );
 
+
   /*
     Add players in queue order.
-    First = Blue
-    Second = Red
-    Third = Green
-    Fourth = Yellow
   */
 
   for (
@@ -666,9 +720,33 @@ function joinPublicGame(
         socketId
       );
 
+    /*
+      If a socket disappeared between
+      queue selection and room creation,
+      don't add it.
+    */
+
     if (!playerSocket) {
       continue;
     }
+
+
+    /*
+      Make sure this socket isn't
+      already inside another room.
+    */
+
+    const existingRoom =
+      findRoomByPlayer(socketId);
+
+    if (existingRoom) {
+
+      closeRoom(
+        existingRoom,
+        "The old room was closed."
+      );
+    }
+
 
     const player =
       makePlayer(
@@ -676,13 +754,16 @@ function joinPublicGame(
         index
       );
 
+
     room.players.push(
       player
     );
 
+
     playerSocket.join(
       room.id
     );
+
 
     playerSocket.emit(
       "assignPlayer",
@@ -706,9 +787,10 @@ function joinPublicGame(
     );
   }
 
+
   /*
-    Make sure all players actually
-    joined the room.
+    If someone disappeared,
+    don't start a broken room.
   */
 
   if (
@@ -721,12 +803,37 @@ function joinPublicGame(
       "Not enough players were available. Please try again."
     );
 
+    /*
+      Put remaining valid players
+      back into the correct queue.
+    */
+
+    for (const player of room.players) {
+
+      if (
+        io.sockets.sockets.has(
+          player.id
+        )
+      ) {
+
+        addToQueue(
+          player.id,
+          numberOfPlayers
+        );
+
+        io.to(player.id).emit(
+          "waiting",
+          `Waiting for ${numberOfPlayers} players...`
+        );
+      }
+    }
+
     return;
   }
 
+
   /*
-    Start only when every requested
-    player is present.
+    All players are present.
   */
 
   startRoom(room);
@@ -818,16 +925,17 @@ function createPrivateGame(
     return;
   }
 
+
   /*
-    Remove the creator from public
-    matchmaking queues.
+    Remove creator from every
+    public queue.
   */
 
   leaveQueue(socket.id);
 
+
   /*
-    If creator is already in a room,
-    close the old room.
+    Close any old room.
   */
 
   const oldRoom =
@@ -841,15 +949,18 @@ function createPrivateGame(
     );
   }
 
+
   /*
-    Generate a fresh 6-character code.
+    Generate a unique code.
   */
 
   const code =
     makeRoomCode();
 
+
   const roomId =
     `private_${code}`;
+
 
   const room =
     makeRoom(
@@ -859,13 +970,15 @@ function createPrivateGame(
       code
     );
 
+
   rooms.set(
     room.id,
     room
   );
 
+
   /*
-    Creator is always player 0 / Blue.
+    Creator is always Blue.
   */
 
   const player =
@@ -874,16 +987,19 @@ function createPrivateGame(
       0
     );
 
+
   room.players.push(
     player
   );
+
 
   socket.join(
     room.id
   );
 
+
   /*
-    Tell creator their player identity.
+    Assign identity.
   */
 
   socket.emit(
@@ -905,12 +1021,15 @@ function createPrivateGame(
 
       code,
 
+      roomCode: code,
+
       maxPlayers: numberOfPlayers
     }
   );
 
+
   /*
-    Show the private room code.
+    Send room code.
   */
 
   socket.emit(
@@ -930,8 +1049,9 @@ function createPrivateGame(
     }
   );
 
+
   /*
-    Send current waiting-room state.
+    Send waiting state.
   */
 
   sendState(room);
@@ -948,18 +1068,14 @@ function joinPrivateGame(
 ) {
 
   /*
-    Normalize the entered room code.
-    This allows:
-      abc123
-      ABC123
-      AbC123
-    to all work.
+    Normalize the code.
   */
 
   const code =
     String(rawCode || "")
       .trim()
       .toUpperCase();
+
 
   /*
     Empty code.
@@ -975,15 +1091,17 @@ function joinPrivateGame(
     return;
   }
 
+
   /*
-    Find the private room.
+    Find private room.
   */
 
   const room =
     findPrivateRoom(code);
 
+
   /*
-    Room doesn't exist.
+    Code does not exist.
   */
 
   if (!room) {
@@ -996,8 +1114,9 @@ function joinPrivateGame(
     return;
   }
 
+
   /*
-    Room has already started.
+    Game already started.
   */
 
   if (room.started) {
@@ -1010,8 +1129,9 @@ function joinPrivateGame(
     return;
   }
 
+
   /*
-    Room is full.
+    Room full.
   */
 
   if (
@@ -1027,15 +1147,17 @@ function joinPrivateGame(
     return;
   }
 
+
   /*
-    Remove this socket from public
-    matchmaking before joining private.
+    Remove from public queues.
   */
 
   leaveQueue(socket.id);
 
+
   /*
-    Close any different old room.
+    If socket is already in another
+    room, close that old room.
   */
 
   const oldRoom =
@@ -1052,38 +1174,37 @@ function joinPrivateGame(
     );
   }
 
+
   /*
-    Prevent duplicate player entry.
+    Check again in case the socket
+    was already in this room.
   */
 
   const alreadyInside =
-    room.players.some(
+    room.players.find(
       p => p.id === socket.id
     );
 
-  if (alreadyInside) {
 
-    const existing =
-      room.players.find(
-        p => p.id === socket.id
-      );
+  if (alreadyInside) {
 
     socket.join(
       room.id
     );
 
+
     socket.emit(
       "assignPlayer",
       {
-        playerId: existing.id,
+        playerId: alreadyInside.id,
 
-        index: existing.index,
+        index: alreadyInside.index,
 
-        name: existing.name,
+        name: alreadyInside.name,
 
-        playerName: existing.name,
+        playerName: alreadyInside.name,
 
-        color: existing.color,
+        color: alreadyInside.color,
 
         roomId: room.id,
 
@@ -1091,21 +1212,68 @@ function joinPrivateGame(
 
         code: room.code,
 
+        roomCode: room.code,
+
         maxPlayers: room.maxPlayers
       }
     );
+
 
     sendState(room);
 
     return;
   }
 
+
   /*
-    Assign the next available player index.
+    Find the first free player index.
   */
 
-  const index =
-    room.players.length;
+  const usedIndexes =
+    new Set(
+      room.players.map(
+        p => p.index
+      )
+    );
+
+
+  let index = -1;
+
+  for (
+    let i = 0;
+    i < room.maxPlayers;
+    i++
+  ) {
+
+    if (
+      !usedIndexes.has(i)
+    ) {
+
+      index = i;
+
+      break;
+    }
+  }
+
+
+  /*
+    Safety check.
+  */
+
+  if (index < 0) {
+
+    socket.emit(
+      "roomError",
+      "Room is full!"
+    );
+
+    return;
+  }
+
+
+  /*
+    Create player.
+  */
 
   const player =
     makePlayer(
@@ -1113,17 +1281,19 @@ function joinPrivateGame(
       index
     );
 
+
   room.players.push(
     player
   );
+
 
   socket.join(
     room.id
   );
 
+
   /*
-    Tell the joining player their
-    player information.
+    Assign identity.
   */
 
   socket.emit(
@@ -1145,12 +1315,16 @@ function joinPrivateGame(
 
       code: room.code,
 
+      roomCode: room.code,
+
       maxPlayers: room.maxPlayers
     }
   );
 
+
   /*
-    Tell everyone that a player joined.
+    Tell everyone that the player
+    joined.
   */
 
   sendSystemMessage(
@@ -1158,12 +1332,13 @@ function joinPrivateGame(
     `${player.name} joined the room.`
   );
 
+
   /*
-    Send updated room state to
-    every player.
+    Send updated state to everyone.
   */
 
   sendState(room);
+
 
   /*
     Start automatically when full.
@@ -2070,8 +2245,8 @@ io.on(
 
 
     /*
-      Compatibility with your existing
-      index.html.
+      Existing index.html uses
+      joinGame, so keep this.
     */
 
     socket.on(
