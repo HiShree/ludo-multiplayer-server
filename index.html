@@ -4677,14 +4677,15 @@ if(socket){
 
     socket.on(
         "privateRoomCreated",
-        code=>{
+        data=>{
+
+            const roomCode = typeof data === "object" ? (data.code || data.roomCode) : data;
 
             document
                 .getElementById(
                     "roomCodeDisplay"
                 )
-                .textContent=
-                code;
+                .textContent = roomCode;
 
 
             document
