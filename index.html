@@ -1681,9 +1681,11 @@ function setupPanels(){
                 `playerCard-${player.id}`;
 
 
+            const cIdx = player.index !== undefined ? player.index : player.id;
+
             card.className=
                 `playerCard ${
-                    ["blue","red","green","yellow"][player.index ?? player.id]
+                    ["blue","red","green","yellow"][cIdx % 4]
                 }`;
 
 
@@ -1710,7 +1712,7 @@ function setupPanels(){
 
 
             dice.onclick=()=>{
-                rollDice(player.index ?? player.id);
+                rollDice(cIdx);
             };
 
         }
@@ -1863,7 +1865,7 @@ function getPawnsOnCell(
     players.forEach(
         player=>{
 
-            const pIdx = player.index ?? player.id;
+            const pIdx = player.index !== undefined ? player.index : player.id;
 
             player.pawns.forEach(
                 (step,pawnIndex)=>{
@@ -1879,6 +1881,9 @@ function getPawnsOnCell(
                         result.push({
 
                             playerId:
+                                player.id,
+
+                            pIndex:
                                 pIdx,
 
                             pawnIndex:
@@ -1913,7 +1918,8 @@ function pawnPosition(
     step
 ){
 
-    const pIdx = players.find(p => p.id === playerId || p.index === playerId)?.index ?? playerId;
+    const matchedPlayer = players.find(p => p.id === playerId || p.index === playerId);
+    const pIdx = matchedPlayer ? (matchedPlayer.index !== undefined ? matchedPlayer.index : matchedPlayer.id) : playerId;
 
     if(
         !PATHS[pIdx] ||
@@ -1956,7 +1962,7 @@ function pawnPosition(
 
 
     pawn.style.background=
-        COLORS[pIdx];
+        COLORS[pIdx % COLORS.length];
 
     const sameCell=
         getPawnsOnCell(
@@ -1967,10 +1973,8 @@ function pawnPosition(
     let position=
         sameCell.findIndex(
             pawnData=>
-                pawnData.playerId===
-                pIdx &&
-                pawnData.pawnIndex===
-                pawnIndex
+                (pawnData.playerId === playerId || pawnData.pIndex === pIdx) &&
+                pawnData.pawnIndex === pawnIndex
         );
 
 
@@ -2041,9 +2045,9 @@ function pawnPosition(
 
     }
 
-    else if(total===4){
+    else{
 
-        pawn.style.width="28%";
+        pawn.style.width="26%";
 
 
         const positions=[
@@ -2055,7 +2059,7 @@ function pawnPosition(
 
 
         const pos=
-            positions[position];
+            positions[position % 4];
 
 
         pawn.style.left=
@@ -2067,136 +2071,17 @@ function pawnPosition(
 
     }
 
-    else if(total<=9){
-
-        pawn.style.width="22%";
-
-
-        const columns=3;
-
-        const rows=
-            Math.ceil(
-                total/columns
-            );
-
-
-        const col=
-            position%columns;
-
-
-        const row=
-            Math.floor(
-                position/columns
-            );
-
-
-        const x=
-            18+
-            col*
-            (
-                64/
-                Math.max(
-                    1,
-                    columns-1
-                )
-            );
-
-
-        const y=
-            18+
-            row*
-            (
-                64/
-                Math.max(
-                    1,
-                    rows-1
-                )
-            );
-
-
-        pawn.style.left=
-            `${x}%`;
-
-
-        pawn.style.top=
-            `${y}%`;
-
-    }
-
-    else{
-
-        pawn.style.width="17%";
-
-
-        const columns=4;
-
-
-        const rows=
-            Math.ceil(
-                total/columns
-            );
-
-
-        const col=
-            position%columns;
-
-
-        const row=
-            Math.floor(
-                position/columns
-            );
-
-
-        const x=
-            12+
-            col*
-            (
-                76/
-                Math.max(
-                    1,
-                    columns-1
-                )
-            );
-
-
-        const y=
-            12+
-            row*
-            (
-                76/
-                Math.max(
-                    1,
-                    rows-1
-                )
-            );
-
-
-        pawn.style.left=
-            `${x}%`;
-
-
-        pawn.style.top=
-            `${y}%`;
-
-
-        pawn.style.borderWidth=
-            "1px";
-
-    }
-
     const selectedRoll=
         getSelectedRoll();
 
 
-    const playerObj = players.find(p => p.id === playerId || p.index === playerId);
-    const lookupId = online ? playerObj?.id : pIdx;
+    const playerObj = matchedPlayer;
     const activeObj = players[active];
-    const activeLookupId = online ? activeObj?.id : active;
-
 
     const movable=
         playerObj &&
-        lookupId === activeLookupId &&
+        activeObj &&
+        (online ? playerObj.id === activeObj.id : playerObj.index === activeObj.index) &&
         !playerObj.bot &&
         pendingRolls.length>0 &&
         selectedRoll!==null &&
@@ -2207,74 +2092,34 @@ function pawnPosition(
         );
 
 
-    const botMovable=
-        playerObj &&
-        lookupId === activeLookupId &&
-        playerObj.bot &&
-        pendingRolls.length>0 &&
-        selectedRoll!==null &&
-        canMove(
-            playerObj,
-            pawnIndex,
-            selectedRoll
-        );
-
-
-    if(
-        movable &&
-        !online
-    ){
-
-        pawn.classList.add(
-            "movable"
-        );
-
-    }
-
-
-    if(
-        movable &&
-        online &&
-        playerObj?.id === myId
-    ){
-
-        pawn.classList.add(
-            "movable"
-        );
-
-    }
-
-    if(botMovable){
-        pawn.classList.remove(
-            "movable"
-        );
-    }
-
-
-    cell.appendChild(pawn);
-
     if(
         movable &&
         (
             !online ||
-            playerObj?.id === myId
+            playerObj.id === myId
         )
     ){
+
+        pawn.classList.add(
+            "movable"
+        );
 
         pawn.style.pointerEvents=
             "auto";
 
-
         pawn.onclick=()=>{
 
             requestMove(
-                pIdx,
+                online ? playerObj.id : pIdx,
                 pawnIndex
             );
 
         };
 
     }
+
+
+    cell.appendChild(pawn);
 
 }
 
@@ -2291,7 +2136,7 @@ function renderBoard(){
     players.forEach(
         player=>{
 
-            const pId = online ? player.id : player.index;
+            const pId = online ? player.id : (player.index !== undefined ? player.index : 0);
 
             player.pawns.forEach(
                 (step,pawnIndex)=>{
@@ -4889,7 +4734,7 @@ document
 
 
 /* =========================================================
-   VOICE CHAT (Optimized Mute/Unmute State)
+   VOICE CHAT
 ========================================================= */
 
 let localStream=null;
