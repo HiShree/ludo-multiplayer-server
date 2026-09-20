@@ -4889,7 +4889,7 @@ document
 
 
 /* =========================================================
-   VOICE CHAT
+   VOICE CHAT (Optimized Mute/Unmute State)
 ========================================================= */
 
 let localStream=null;
@@ -4920,40 +4920,25 @@ async function toggleMic(){
             "micBtn"
         );
 
+
     if(localStream){
+        const audioTrack = localStream.getAudioTracks()[0];
+        if(audioTrack){
+            audioTrack.enabled = !audioTrack.enabled;
 
-        localStream
-            .getTracks()
-            .forEach(
-                track=>{
-                    track.stop();
-                }
-            );
-
-
-        localStream=null;
-
-
-        button.classList.remove(
-            "micActive"
-        );
-
-
-        button.textContent=
-            "🎤";
-
-
-        document
-            .getElementById(
-                "status"
-            )
-            .textContent=
-            "Microphone off";
-
-
+            if(audioTrack.enabled){
+                button.classList.add("micActive");
+                button.textContent = "🎙️";
+                document.getElementById("status").textContent = "🎙️ Microphone on";
+            } else {
+                button.classList.remove("micActive");
+                button.textContent = "🔇";
+                document.getElementById("status").textContent = "🔇 Microphone muted";
+            }
+        }
         return;
-
     }
+
 
     if(
         !navigator.mediaDevices ||
