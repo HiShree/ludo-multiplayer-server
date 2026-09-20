@@ -3803,23 +3803,7 @@ function finishLocalMove(
 
     }
 
-    let extra=
-        !!die.extraAvailable;
-
-
-    if(capture){
-        extra=true;
-    }
-
-
-    if(
-        reachedHome &&
-        !player.hasWon
-    ){
-
-        extra=true;
-
-    }
+    let extra = die.value === 4 || die.value === 8 || capture || reachedHome;
 
 
     animating=false;
