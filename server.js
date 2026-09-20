@@ -90,6 +90,17 @@ function isValidMove(player, pawnIndex, roll) {
   return (step + roll <= maximum);
 }
 
+function hasAnyValidMove(player, pendingRollsList) {
+  if (!player || !pendingRollsList || pendingRollsList.length === 0) return false;
+  return pendingRollsList.some(rollObj => {
+    const r = Number(rollObj.value);
+    for (let i = 0; i < 4; i++) {
+      if (isValidMove(player, i, r)) return true;
+    }
+    return false;
+  });
+}
+
 function performCapture(room, player, toStep) {
   if (toStep >= HOME) return false;
 
@@ -486,7 +497,7 @@ function handleRequestRoll(socket, room) {
   pending.push(roll);
   player.lastRoll = value;
 
-  // Only allow another roll if 4 or 8 is rolled
+  // Set canRoll to true only if 4 or 8 is rolled
   room.canRoll = (value === 4 || value === 8);
 
   io.to(room.id).emit("diceRolled", {
@@ -499,23 +510,23 @@ function handleRequestRoll(socket, room) {
 
   sendState(room);
 
-  const validMoves = [];
-  for (let i = 0; i < 4; i++) {
-    if (isValidMove(player, i, value)) validMoves.push(i);
-  }
-
-  if (validMoves.length > 0) return;
-
-  const rollIndex = pending.findIndex(r => r.rollId === rollId);
-  if (rollIndex >= 0) pending.splice(rollIndex, 1);
-
-  if (value === 4 || value === 8) {
-    room.canRoll = true;
-    sendState(room);
-    sendSystemMessage(room, `${player.name} gets another roll.`);
+  // Check if this new roll or any pending rolls have valid moves
+  if (hasAnyValidMove(player, pending)) {
     return;
   }
 
+  // If no valid moves exist for any pending rolls:
+  pending.length = 0; // clear all unplayable rolls
+
+  if (value === 4 || value === 8) {
+    // Even if no move could be made, landing a 4 or 8 still grants another roll chance
+    room.canRoll = true;
+    sendState(room);
+    sendSystemMessage(room, `${player.name} has no valid move, but gets another roll.`);
+    return;
+  }
+
+  // No valid move and no extra roll chance -> end turn immediately
   room.canRoll = false;
   sendState(room);
   sendSystemMessage(room, `${player.name} has no valid move.`);
@@ -632,7 +643,6 @@ function handleRequestMove(socket, room, data) {
     return;
   }
 
-  // Extra turn conditions: rolled 4, rolled 8, captured opponent, or reached home
   const extra = roll === 4 || roll === 8 || captured || reachedHome;
 
   io.to(room.id).emit("moveResult", {
@@ -651,10 +661,14 @@ function handleRequestMove(socket, room, data) {
 
   if (extra) {
     room.canRoll = true;
-  } else if (pending.length > 0) {
-    room.canRoll = false;
   } else {
-    room.canRoll = false;
+    // If no extra chance, check if any other pending dice can be played
+    if (pending.length > 0 && hasAnyValidMove(player, pending)) {
+      room.canRoll = false;
+    } else {
+      room.canRoll = false;
+      pending.length = 0; // dismiss unplayable rolls
+    }
   }
 
   sendState(room);
@@ -664,10 +678,15 @@ function handleRequestMove(socket, room, data) {
     return;
   }
 
-  if (pending.length > 0) {
+  if (pending.length > 0 && hasAnyValidMove(player, pending)) {
     sendSystemMessage(room, `${player.name}: choose another dice.`);
     return;
   }
+
+  // Clear remaining unusable dice and pass turn if no moves left
+  room.pendingRolls.clear();
+  room.canRoll = false;
+  sendState(room);
 
   const version = ++room.turnVersion;
   schedule(room, () => {
