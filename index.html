@@ -1683,7 +1683,7 @@ function setupPanels(){
 
             card.className=
                 `playerCard ${
-                    ["blue","red","green","yellow"][player.id]
+                    ["blue","red","green","yellow"][player.index ?? player.id]
                 }`;
 
 
@@ -1710,7 +1710,7 @@ function setupPanels(){
 
 
             dice.onclick=()=>{
-                rollDice(player.id);
+                rollDice(player.index ?? player.id);
             };
 
         }
@@ -1863,31 +1863,23 @@ function getPawnsOnCell(
     players.forEach(
         player=>{
 
+            const pIdx = player.index ?? player.id;
+
             player.pawns.forEach(
                 (step,pawnIndex)=>{
-
-                    /*
-                       step 0 is the starting
-                       position.
-
-                       step 24 is HOME.
-
-                       HOME is deliberately
-                       included here.
-                    */
 
                     if(
                         step>=0 &&
                         step<=24 &&
-                        PATHS[player.id] &&
-                        PATHS[player.id][step]===
+                        PATHS[pIdx] &&
+                        PATHS[pIdx][step]===
                         cellIndex
                     ){
 
                         result.push({
 
                             playerId:
-                                player.id,
+                                pIdx,
 
                             pawnIndex:
                                 pawnIndex,
@@ -1921,8 +1913,10 @@ function pawnPosition(
     step
 ){
 
+    const pIdx = players.find(p => p.id === playerId || p.index === playerId)?.index ?? playerId;
+
     if(
-        !PATHS[playerId] ||
+        !PATHS[pIdx] ||
         !Number.isInteger(step) ||
         step<0 ||
         step>24
@@ -1932,7 +1926,7 @@ function pawnPosition(
 
 
     const cellIndex=
-        PATHS[playerId][step];
+        PATHS[pIdx][step];
 
 
     const cell=
@@ -1962,19 +1956,7 @@ function pawnPosition(
 
 
     pawn.style.background=
-        COLORS[playerId];
-
-
-    /*
-       Find ALL pawns that occupy this
-       actual board cell.
-
-       This includes:
-
-       • different players
-       • safe cells
-       • HOME
-    */
+        COLORS[pIdx];
 
     const sameCell=
         getPawnsOnCell(
@@ -1986,7 +1968,7 @@ function pawnPosition(
         sameCell.findIndex(
             pawnData=>
                 pawnData.playerId===
-                playerId &&
+                pIdx &&
                 pawnData.pawnIndex===
                 pawnIndex
         );
@@ -2001,12 +1983,6 @@ function pawnPosition(
         sameCell.length;
 
 
-    /*
-       ------------------------------------------------------
-       1 PAWN
-       ------------------------------------------------------
-    */
-
     if(total===1){
 
         pawn.style.width="38%";
@@ -2016,13 +1992,6 @@ function pawnPosition(
         pawn.style.top="50%";
 
     }
-
-
-    /*
-       ------------------------------------------------------
-       2 PAWNS
-       ------------------------------------------------------
-    */
 
     else if(total===2){
 
@@ -2046,13 +2015,6 @@ function pawnPosition(
             `${pos[1]}%`;
 
     }
-
-
-    /*
-       ------------------------------------------------------
-       3 PAWNS
-       ------------------------------------------------------
-    */
 
     else if(total===3){
 
@@ -2079,13 +2041,6 @@ function pawnPosition(
 
     }
 
-
-    /*
-       ------------------------------------------------------
-       4 PAWNS
-       ------------------------------------------------------
-    */
-
     else if(total===4){
 
         pawn.style.width="28%";
@@ -2111,13 +2066,6 @@ function pawnPosition(
             `${pos[1]}%`;
 
     }
-
-
-    /*
-       ------------------------------------------------------
-       5-9 PAWNS
-       ------------------------------------------------------
-    */
 
     else if(total<=9){
 
@@ -2174,13 +2122,6 @@ function pawnPosition(
             `${y}%`;
 
     }
-
-
-    /*
-       ------------------------------------------------------
-       10-16 PAWNS
-       ------------------------------------------------------
-    */
 
     else{
 
@@ -2243,40 +2184,37 @@ function pawnPosition(
 
     }
 
-
-    /*
-       MOVABLE PAWN
-    */
-
     const selectedRoll=
         getSelectedRoll();
 
 
-    const player=
-        players[playerId];
+    const playerObj = players.find(p => p.id === playerId || p.index === playerId);
+    const lookupId = online ? playerObj?.id : pIdx;
+    const activeObj = players[active];
+    const activeLookupId = online ? activeObj?.id : active;
 
 
     const movable=
-        player &&
-        playerId===active &&
-        !player.bot &&
+        playerObj &&
+        lookupId === activeLookupId &&
+        !playerObj.bot &&
         pendingRolls.length>0 &&
         selectedRoll!==null &&
         canMove(
-            player,
+            playerObj,
             pawnIndex,
             selectedRoll
         );
 
 
     const botMovable=
-        player &&
-        playerId===active &&
-        player.bot &&
+        playerObj &&
+        lookupId === activeLookupId &&
+        playerObj.bot &&
         pendingRolls.length>0 &&
         selectedRoll!==null &&
         canMove(
-            player,
+            playerObj,
             pawnIndex,
             selectedRoll
         );
@@ -2297,7 +2235,7 @@ function pawnPosition(
     if(
         movable &&
         online &&
-        playerId===myId
+        playerObj?.id === myId
     ){
 
         pawn.classList.add(
@@ -2305,12 +2243,6 @@ function pawnPosition(
         );
 
     }
-
-
-    /*
-       Bots are controlled automatically,
-       so they do not need a clickable pawn.
-    */
 
     if(botMovable){
         pawn.classList.remove(
@@ -2321,16 +2253,11 @@ function pawnPosition(
 
     cell.appendChild(pawn);
 
-
-    /*
-       Human pawn click.
-    */
-
     if(
         movable &&
         (
             !online ||
-            playerId===myId
+            playerObj?.id === myId
         )
     ){
 
@@ -2341,7 +2268,7 @@ function pawnPosition(
         pawn.onclick=()=>{
 
             requestMove(
-                playerId,
+                pIdx,
                 pawnIndex
             );
 
@@ -2364,11 +2291,13 @@ function renderBoard(){
     players.forEach(
         player=>{
 
+            const pId = online ? player.id : player.index;
+
             player.pawns.forEach(
                 (step,pawnIndex)=>{
 
                     pawnPosition(
-                        player.id,
+                        pId,
                         pawnIndex,
                         step
                     );
@@ -2550,11 +2479,6 @@ function renderRollChoices(){
         }
     );
 
-
-    /*
-       Human roll button.
-    */
-
     if(
         canRoll &&
         isCurrentHumanTurn() &&
@@ -2578,7 +2502,7 @@ function renderRollChoices(){
 
 
         button.onclick=()=>{
-            rollDice(active);
+            rollDice(online ? players[active]?.index : active);
         };
 
 
@@ -2608,9 +2532,11 @@ function render(){
         );
 
 
+    const activePlayer = players[active];
+    const activeCardId = online ? activePlayer?.id : active;
     const activeCard=
         document.getElementById(
-            `playerCard-${active}`
+            `playerCard-${activeCardId}`
         );
 
 
@@ -2626,9 +2552,10 @@ function render(){
     players.forEach(
         player=>{
 
+            const cardId = online ? player.id : player.index;
             const button=
                 document.getElementById(
-                    `dice-${player.id}`
+                    `dice-${cardId}`
                 );
 
 
@@ -2653,7 +2580,7 @@ function render(){
 
 
             const allowed=
-                player.id===active &&
+                (online ? player.id === activePlayer?.id : player.index === active) &&
                 canRoll &&
                 !animating &&
                 (
@@ -2870,12 +2797,6 @@ function startLocal(count){
 
 
     startBase();
-
-
-    /*
-       Only starts the bot if Blue
-       somehow isn't the active player.
-    */
 
     botAct();
 
@@ -3182,6 +3103,16 @@ function rollDice(playerId){
     }
 
 
+    if(online){
+        const curPlayer = players[active];
+        if(!curPlayer || curPlayer.id !== myId) return;
+        if(!canPanelRollCheck() && !canRoll) return;
+
+        socket.emit("requestRoll");
+        return;
+    }
+
+
     if(playerId!==active){
         return;
     }
@@ -3196,43 +3127,9 @@ function rollDice(playerId){
     }
 
 
-    if(
-        online &&
-        playerId!==myId
-    ){
-        return;
-    }
-
-
     if(!canRoll){
         return;
     }
-
-
-    /*
-       ONLINE
-    */
-
-    if(online){
-
-        if(!socket){
-            return;
-        }
-
-
-        socket.emit(
-            "requestRoll"
-        );
-
-
-        return;
-
-    }
-
-
-    /*
-       LOCAL
-    */
 
     if(
         rollPermissionIndex>=0 &&
@@ -3265,6 +3162,10 @@ function rollDice(playerId){
         value
     );
 
+}
+
+function canPanelRollCheck(){
+    return canRoll;
 }
 
 
@@ -3327,12 +3228,6 @@ function applyLocalRoll(
 
     render();
 
-
-    /*
-       No move for this specific
-       dice.
-    */
-
     if(
         !hasValidMove(
             player,
@@ -3359,18 +3254,6 @@ function applyLocalRoll(
         return;
 
     }
-
-
-    /*
-       IMPORTANT BOT FIX:
-
-       Do not immediately roll again
-       just because 4/8 was rolled.
-
-       The bot first uses a movable
-       pending dice. If no movable
-       dice remains, then it rolls again.
-    */
 
     if(player.bot){
 
@@ -3485,12 +3368,6 @@ function consumeNoMoveLocal(
 
     }
 
-
-    /*
-       4/8 with no valid move
-       still grants another roll.
-    */
-
     if(hadExtra){
 
         canRoll=true;
@@ -3509,12 +3386,6 @@ function consumeNoMoveLocal(
         return;
 
     }
-
-
-    /*
-       No usable dice and no
-       extra roll.
-    */
 
     pendingRolls=[];
 
@@ -3552,14 +3423,17 @@ function requestMove(
     }
 
 
-    if(playerId!==active){
+    const targetPlayer = online ? players.find(p => p.id === playerId || p.index === playerId) : players[playerId];
+    const targetIdx = online ? (targetPlayer?.index ?? playerId) : playerId;
+
+    if(targetIdx !== active && (!online || targetPlayer?.id !== players[active]?.id)){
         return;
     }
 
 
     if(
         online &&
-        playerId!==myId
+        targetPlayer?.id !== myId
     ){
         return;
     }
@@ -3581,7 +3455,7 @@ function requestMove(
 
     if(
         !canMove(
-            players[playerId],
+            targetPlayer,
             pawnIndex,
             roll
         )
@@ -3608,7 +3482,7 @@ function requestMove(
             {
 
                 playerId:
-                    playerId,
+                    targetPlayer.id,
 
                 pawnIndex:
                     pawnIndex,
@@ -3626,7 +3500,7 @@ function requestMove(
 
 
     moveLocal(
-        playerId,
+        targetIdx,
         pawnIndex,
         selectedRollIndex
     );
@@ -3829,18 +3703,14 @@ function finishLocalMove(
     die
 ){
 
+    const pIdx = player.index ?? players.indexOf(player);
     const boardCell=
         PATHS[
-            player.id
+            pIdx
         ][to];
 
 
     let capture=false;
-
-
-    /*
-       CAPTURE
-    */
 
     if(
         to<24 &&
@@ -3853,11 +3723,13 @@ function finishLocalMove(
                 if(
                     opponent.id===
                     player.id ||
+                    opponent.index === player.index ||
                     opponent.hasWon
                 ){
                     return;
                 }
 
+                const oppIdx = opponent.index ?? players.indexOf(opponent);
 
                 for(
                     let i=0;
@@ -3876,7 +3748,7 @@ function finishLocalMove(
 
                     const opponentCell=
                         PATHS[
-                            opponent.id
+                            oppIdx
                         ][step];
 
 
@@ -3888,6 +3760,7 @@ function finishLocalMove(
                         opponent.pawns[i]=0;
 
                         capture=true;
+                        break;
 
                     }
 
@@ -3911,11 +3784,6 @@ function finishLocalMove(
     const reachedHome=
         to===24;
 
-
-    /*
-       ALL FOUR HOME
-    */
-
     if(
         player.pawns.every(
             step=>
@@ -3934,11 +3802,6 @@ function finishLocalMove(
         );
 
     }
-
-
-    /*
-       EXTRA TURN
-    */
 
     let extra=
         !!die.extraAvailable;
@@ -3961,20 +3824,9 @@ function finishLocalMove(
 
     animating=false;
 
-
-    /*
-       PLAYER FINISHED
-    */
-
     if(player.hasWon){
 
         render();
-
-
-        /*
-           If only one player remains,
-           the match is finished.
-        */
 
         if(
             players.filter(
@@ -4027,11 +3879,6 @@ function finishLocalMove(
 
     }
 
-
-    /*
-       EXTRA TURN
-    */
-
     if(extra){
 
         canRoll=true;
@@ -4052,11 +3899,6 @@ function finishLocalMove(
         return;
 
     }
-
-
-    /*
-       REMAINING DICE
-    */
 
     if(
         pendingRolls.length>0
@@ -4111,11 +3953,6 @@ function finishLocalMove(
         return;
 
     }
-
-
-    /*
-       END TURN
-    */
 
     setTimeout(
         nextLocalTurn,
@@ -4210,18 +4047,6 @@ function botAct(){
         return;
     }
 
-
-    /*
-       ------------------------------------------------------
-       IMPORTANT BOT LOGIC
-       ------------------------------------------------------
-
-       If a usable dice is already available,
-       the bot MUST use it first.
-
-       This is especially important for 4/8.
-       */
-
     const choices=[];
 
 
@@ -4247,22 +4072,12 @@ function botAct(){
                         let score=
                             die.value;
 
-
-                        /*
-                           HOME is strongly preferred.
-                        */
-
                         if(to===24){
 
                             score+=
                                 1000;
 
                         }
-
-
-                        /*
-                           Capture is preferred.
-                        */
 
                         if(
                             wouldCapture(
@@ -4275,12 +4090,6 @@ function botAct(){
                                 500;
 
                         }
-
-
-                        /*
-                           Advance the furthest
-                           pawn slightly.
-                        */
 
                         score+=
                             to*
@@ -4307,13 +4116,6 @@ function botAct(){
 
         }
     );
-
-
-    /*
-       ------------------------------------------------------
-       IF A MOVE EXISTS, MAKE IT
-       ------------------------------------------------------
-    */
 
     if(
         choices.length>0
@@ -4342,7 +4144,7 @@ function botAct(){
                 ()=>{
 
                     moveLocal(
-                        bot.id,
+                        bot.index ?? bot.id,
                         choice.pawnIndex,
                         choice.rollIndex
                     );
@@ -4356,18 +4158,6 @@ function botAct(){
 
     }
 
-
-    /*
-       ------------------------------------------------------
-       NO USABLE PENDING DICE
-       ------------------------------------------------------
-
-       If there is an available 4/8 extra roll,
-       roll again.
-
-       Otherwise dismiss unusable dice.
-    */
-
     if(canRoll){
 
         botTimer=
@@ -4375,7 +4165,7 @@ function botAct(){
                 ()=>{
 
                     rollDice(
-                        bot.id
+                        bot.index ?? bot.id
                     );
 
                 },
@@ -4386,13 +4176,6 @@ function botAct(){
         return;
 
     }
-
-
-    /*
-       If no roll is available and there
-       are useless pending dice, dismiss
-       one of them.
-    */
 
     if(
         pendingRolls.length>0
@@ -4427,11 +4210,6 @@ function botAct(){
 
         }
 
-
-        /*
-           Safety fallback.
-        */
-
         pendingRolls=[];
 
         selectedRollIndex=0;
@@ -4445,7 +4223,7 @@ function botAct(){
             setTimeout(
                 ()=>{
                     rollDice(
-                        bot.id
+                        bot.index ?? bot.id
                     );
                 },
                 500
@@ -4469,10 +4247,10 @@ function wouldCapture(
         return false;
     }
 
-
+    const pIdx = player.index ?? players.indexOf(player);
     const cell=
         PATHS[
-            player.id
+            pIdx
         ][to];
 
 
@@ -4494,12 +4272,13 @@ function wouldCapture(
                 return false;
             }
 
+            const oppIdx = opponent.index ?? players.indexOf(opponent);
 
             return opponent.pawns.some(
                 step=>
                     step<24 &&
                     PATHS[
-                        opponent.id
+                        oppIdx
                     ][step]===
                     cell
             );
@@ -4568,7 +4347,7 @@ function applyOnlineState(
             die=>({
 
                 id:
-                    die.id,
+                    die.rollId || die.id,
 
                 value:
                     Number(
@@ -4596,6 +4375,7 @@ function applyOnlineState(
     }
 
 
+    setupPanels();
     render();
 
 }
@@ -4607,18 +4387,12 @@ function applyOnlineState(
 
 if(socket){
 
-    /*
-       PLAYER ASSIGNMENT
-    */
-
     socket.on(
         "assignPlayer",
         data=>{
 
             myId=
-                Number(
-                    data.playerId
-                );
+                data.playerId;
 
 
             document
@@ -4630,11 +4404,6 @@ if(socket){
 
         }
     );
-
-
-    /*
-       GAME START
-    */
 
     socket.on(
         "gameStart",
@@ -4650,12 +4419,6 @@ if(socket){
         }
     );
 
-
-    /*
-       SYSTEM MESSAGES
-       ONLY STATUS
-    */
-
     socket.on(
         "systemMessage",
         message=>{
@@ -4669,11 +4432,6 @@ if(socket){
 
         }
     );
-
-
-    /*
-       PRIVATE ROOM
-    */
 
     socket.on(
         "privateRoomCreated",
@@ -4699,11 +4457,6 @@ if(socket){
         }
     );
 
-
-    /*
-       ROOM ERROR
-    */
-
     socket.on(
         "roomError",
         message=>{
@@ -4717,11 +4470,6 @@ if(socket){
 
         }
     );
-
-
-    /*
-       ACTION ERROR
-    */
 
     socket.on(
         "actionError",
@@ -4737,23 +4485,16 @@ if(socket){
         }
     );
 
-
-    /*
-       DICE ROLLED
-    */
-
     socket.on(
         "diceRolled",
         data=>{
 
             const playerId=
-                Number(
-                    data.playerId
-                );
+                data.playerId;
 
 
             const player=
-                players[playerId];
+                players.find(p => p.id === playerId || p.index === data.playerIndex);
 
 
             if(!player){
@@ -4768,8 +4509,7 @@ if(socket){
 
 
             if(
-                playerId===
-                active
+                players[active]?.id === playerId || players[active]?.index === data.playerIndex
             ){
 
                 const die={
@@ -4817,21 +4557,16 @@ if(socket){
         }
     );
 
-
-    /*
-       MOVE RESULT
-    */
-
     socket.on(
         "moveResult",
         data=>{
 
             const p=
-                players[
-                    Number(
-                        data.playerId
-                    )
-                ];
+                players.find(
+                    player =>
+                        player.id === data.playerId ||
+                        player.index === data.playerIndex
+                );
 
 
             if(!p){
@@ -4859,11 +4594,6 @@ if(socket){
         }
     );
 
-
-    /*
-       GAME STATE
-    */
-
     socket.on(
         "gameState",
         state=>{
@@ -4884,11 +4614,6 @@ if(socket){
         }
     );
 
-
-    /*
-       GAME FINISHED
-    */
-
     socket.on(
         "gameFinished",
         ()=>{
@@ -4902,11 +4627,6 @@ if(socket){
 
         }
     );
-
-
-    /*
-       ROOM CLOSED
-    */
 
     socket.on(
         "roomClosed",
@@ -4924,11 +4644,6 @@ if(socket){
         }
     );
 
-
-    /*
-       PLAYER CHAT ONLY
-    */
-
     socket.on(
         "receiveChatMessage",
         data=>{
@@ -4941,11 +4656,6 @@ if(socket){
         }
     );
 
-
-    /*
-       VOICE
-    */
-
     socket.on(
         "voicePeers",
         peers=>{
@@ -4956,7 +4666,6 @@ if(socket){
 
         }
     );
-
 
     socket.on(
         "voiceSignal",
@@ -5230,11 +4939,6 @@ async function toggleMic(){
             "micBtn"
         );
 
-
-    /*
-       TURN MIC OFF
-    */
-
     if(localStream){
 
         localStream
@@ -5269,11 +4973,6 @@ async function toggleMic(){
         return;
 
     }
-
-
-    /*
-       CHECK SUPPORT
-    */
 
     if(
         !navigator.mediaDevices ||
@@ -5623,12 +5322,6 @@ async function handleVoiceSignal(
 
         }
 
-
-        /*
-           ICE candidates can arrive before
-           remote description.
-        */
-
         if(data.candidate){
 
             if(
@@ -5664,11 +5357,6 @@ async function handleVoiceSignal(
             }
 
         }
-
-
-        /*
-           Add queued ICE candidates.
-        */
 
         if(
             pc.remoteDescription &&
@@ -6187,12 +5875,6 @@ function leaveGame(
 
     gameToken++;
 
-
-    /*
-       Tell server about intentional
-       online leave.
-    */
-
     if(
         notifyServer &&
         online &&
@@ -6204,11 +5886,6 @@ function leaveGame(
         );
 
     }
-
-
-    /*
-       Stop microphone.
-    */
 
     if(localStream){
 
@@ -6224,11 +5901,6 @@ function leaveGame(
         localStream=null;
 
     }
-
-
-    /*
-       Close voice connections.
-    */
 
     Object.values(
         peerConnections
