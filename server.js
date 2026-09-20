@@ -485,6 +485,8 @@ function handleRequestRoll(socket, room) {
 
   pending.push(roll);
   player.lastRoll = value;
+
+  // Only allow another roll if 4 or 8 is rolled
   room.canRoll = (value === 4 || value === 8);
 
   io.to(room.id).emit("diceRolled", {
@@ -630,6 +632,7 @@ function handleRequestMove(socket, room, data) {
     return;
   }
 
+  // Extra turn conditions: rolled 4, rolled 8, captured opponent, or reached home
   const extra = roll === 4 || roll === 8 || captured || reachedHome;
 
   io.to(room.id).emit("moveResult", {
