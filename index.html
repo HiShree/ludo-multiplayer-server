@@ -1913,13 +1913,12 @@ function getPawnsOnCell(
 ========================================================= */
 
 function pawnPosition(
-    playerId,
+    player,
     pawnIndex,
     step
 ){
 
-    const matchedPlayer = players.find(p => p.id === playerId || p.index === playerId);
-    const pIdx = matchedPlayer ? (matchedPlayer.index !== undefined ? matchedPlayer.index : matchedPlayer.id) : playerId;
+    const pIdx = player.index !== undefined ? player.index : player.id;
 
     if(
         !PATHS[pIdx] ||
@@ -1954,15 +1953,14 @@ function pawnPosition(
 
 
     pawn.dataset.player=
-        playerId;
+        player.id;
 
 
     pawn.dataset.pawn=
         pawnIndex;
 
 
-    pawn.style.background=
-        COLORS[pIdx % COLORS.length];
+    pawn.style.background = player.color || COLORS[pIdx % COLORS.length];
 
     const sameCell=
         getPawnsOnCell(
@@ -1973,7 +1971,7 @@ function pawnPosition(
     let position=
         sameCell.findIndex(
             pawnData=>
-                (pawnData.playerId === playerId || pawnData.pIndex === pIdx) &&
+                (pawnData.playerId === player.id || pawnData.pIndex === pIdx) &&
                 pawnData.pawnIndex === pawnIndex
         );
 
@@ -2075,18 +2073,17 @@ function pawnPosition(
         getSelectedRoll();
 
 
-    const playerObj = matchedPlayer;
     const activeObj = players[active];
 
     const movable=
-        playerObj &&
+        player &&
         activeObj &&
-        (online ? playerObj.id === activeObj.id : playerObj.index === activeObj.index) &&
-        !playerObj.bot &&
+        (online ? player.id === activeObj.id : player.index === activeObj.index) &&
+        !player.bot &&
         pendingRolls.length>0 &&
         selectedRoll!==null &&
         canMove(
-            playerObj,
+            player,
             pawnIndex,
             selectedRoll
         );
@@ -2096,7 +2093,7 @@ function pawnPosition(
         movable &&
         (
             !online ||
-            playerObj.id === myId
+            player.id === myId
         )
     ){
 
@@ -2110,7 +2107,7 @@ function pawnPosition(
         pawn.onclick=()=>{
 
             requestMove(
-                online ? playerObj.id : pIdx,
+                online ? player.id : pIdx,
                 pawnIndex
             );
 
@@ -2136,13 +2133,11 @@ function renderBoard(){
     players.forEach(
         player=>{
 
-            const pId = online ? player.id : (player.index !== undefined ? player.index : 0);
-
             player.pawns.forEach(
                 (step,pawnIndex)=>{
 
                     pawnPosition(
-                        pId,
+                        player,
                         pawnIndex,
                         step
                     );
