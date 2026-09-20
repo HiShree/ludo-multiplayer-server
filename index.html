@@ -3228,12 +3228,9 @@ function applyLocalRoll(
 
     render();
 
-    if(
-        !hasValidMove(
-            player,
-            value
-        )
-    ){
+    const anotherMoveExists = pendingRolls.some(d => hasValidMove(player, d.value));
+
+    if(!anotherMoveExists){
 
         const noMoveDieId=
             die.id;
