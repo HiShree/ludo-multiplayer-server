@@ -497,7 +497,6 @@ function handleRequestRoll(socket, room) {
   pending.push(roll);
   player.lastRoll = value;
 
-  // Set canRoll to true only if 4 or 8 is rolled
   room.canRoll = (value === 4 || value === 8);
 
   io.to(room.id).emit("diceRolled", {
@@ -510,23 +509,19 @@ function handleRequestRoll(socket, room) {
 
   sendState(room);
 
-  // Check if this new roll or any pending rolls have valid moves
   if (hasAnyValidMove(player, pending)) {
     return;
   }
 
-  // If no valid moves exist for any pending rolls:
-  pending.length = 0; // clear all unplayable rolls
+  pending.length = 0; 
 
   if (value === 4 || value === 8) {
-    // Even if no move could be made, landing a 4 or 8 still grants another roll chance
     room.canRoll = true;
     sendState(room);
     sendSystemMessage(room, `${player.name} has no valid move, but gets another roll.`);
     return;
   }
 
-  // No valid move and no extra roll chance -> end turn immediately
   room.canRoll = false;
   sendState(room);
   sendSystemMessage(room, `${player.name} has no valid move.`);
@@ -662,12 +657,11 @@ function handleRequestMove(socket, room, data) {
   if (extra) {
     room.canRoll = true;
   } else {
-    // If no extra chance, check if any other pending dice can be played
     if (pending.length > 0 && hasAnyValidMove(player, pending)) {
       room.canRoll = false;
     } else {
       room.canRoll = false;
-      pending.length = 0; // dismiss unplayable rolls
+      pending.length = 0; 
     }
   }
 
@@ -683,7 +677,6 @@ function handleRequestMove(socket, room, data) {
     return;
   }
 
-  // Clear remaining unusable dice and pass turn if no moves left
   room.pendingRolls.clear();
   room.canRoll = false;
   sendState(room);
