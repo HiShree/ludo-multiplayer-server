@@ -2075,10 +2075,12 @@ function pawnPosition(
 
     const activeObj = players[active];
 
+    const isCurrentPlayersPawn = activeObj && (online ? player.id === activeObj.id : player.index === activeObj.index);
+
     const movable=
         player &&
         activeObj &&
-        (online ? player.id === activeObj.id : player.index === activeObj.index) &&
+        isCurrentPlayersPawn &&
         !player.bot &&
         pendingRolls.length>0 &&
         selectedRoll!==null &&
