@@ -497,6 +497,7 @@ function handleRequestRoll(socket, room) {
   pending.push(roll);
   player.lastRoll = value;
 
+  // Only allow rolling again if 4 or 8 is rolled. Otherwise, rolling closes the roll permission.
   room.canRoll = (value === 4 || value === 8);
 
   io.to(room.id).emit("diceRolled", {
@@ -638,6 +639,8 @@ function handleRequestMove(socket, room, data) {
     return;
   }
 
+  // Extra turn is ONLY given if the specific dice moved was a 4, an 8, a capture occurred, or reached home.
+  // Using a 1, 2, or 3 after previously rolling a 4/8 does NOT trigger an extra turn.
   const extra = roll === 4 || roll === 8 || captured || reachedHome;
 
   io.to(room.id).emit("moveResult", {
@@ -657,12 +660,9 @@ function handleRequestMove(socket, room, data) {
   if (extra) {
     room.canRoll = true;
   } else {
-    if (pending.length > 0 && hasAnyValidMove(player, pending)) {
-      room.canRoll = false;
-    } else {
-      room.canRoll = false;
-      pending.length = 0; 
-    }
+    // If this specific move didn't earn an extra turn, ensure canRoll stays false 
+    // so they cannot roll again before playing remaining pending dice or ending their turn.
+    room.canRoll = false;
   }
 
   sendState(room);
