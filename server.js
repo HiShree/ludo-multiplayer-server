@@ -497,7 +497,6 @@ function handleRequestRoll(socket, room) {
   pending.push(roll);
   player.lastRoll = value;
 
-  // Only allow rolling again if 4 or 8 is rolled. Otherwise, rolling closes the roll permission.
   room.canRoll = (value === 4 || value === 8);
 
   io.to(room.id).emit("diceRolled", {
@@ -639,8 +638,6 @@ function handleRequestMove(socket, room, data) {
     return;
   }
 
-  // Extra turn is ONLY given if the specific dice moved was a 4, an 8, a capture occurred, or reached home.
-  // Using a 1, 2, or 3 after previously rolling a 4/8 does NOT trigger an extra turn.
   const extra = roll === 4 || roll === 8 || captured || reachedHome;
 
   io.to(room.id).emit("moveResult", {
@@ -660,20 +657,28 @@ function handleRequestMove(socket, room, data) {
   if (extra) {
     room.canRoll = true;
   } else {
-    // If this specific move didn't earn an extra turn, ensure canRoll stays false 
-    // so they cannot roll again before playing remaining pending dice or ending their turn.
     room.canRoll = false;
   }
 
   sendState(room);
 
   if (extra) {
-    sendSystemMessage(room, captured ? `${player.name} captured a pawn! Roll again.` : reachedHome ? `${player.name} reached HOME! Roll again.` : `${player.name} gets another roll.`);
+    sendSystemMessage(
+      room,
+      captured
+        ? `${player.name} captured a pawn! Roll again.`
+        : reachedHome
+          ? `${player.name} reached HOME! Roll again.`
+          : `${player.name} gets another roll.`
+    );
     return;
   }
 
   if (pending.length > 0 && hasAnyValidMove(player, pending)) {
-    sendSystemMessage(room, `${player.name}: choose another dice.`);
+    sendSystemMessage(
+      room,
+      `${player.name}: choose another dice.`
+    );
     return;
   }
 
@@ -682,10 +687,21 @@ function handleRequestMove(socket, room, data) {
   sendState(room);
 
   const version = ++room.turnVersion;
-  schedule(room, () => {
-    if (!room.started || room.turnVersion !== version) return;
-    nextTurn(room);
-  }, 850);
+
+  schedule(
+    room,
+    () => {
+      if (
+        !room.started ||
+        room.turnVersion !== version
+      ) {
+        return;
+      }
+
+      nextTurn(room);
+    },
+    850
+  );
 }
 
 function handleChat(socket, message) {
