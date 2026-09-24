@@ -647,7 +647,7 @@ button:active{
 
 .chatControls{
     display:grid;
-    grid-template-columns:1fr 48px 48px 65px;
+    grid-template-columns:1fr 48px 65px;
     gap:7px;
     margin-top:8px;
 }
@@ -1212,17 +1212,11 @@ button:active{
             >
 
 
+            <!-- Mic Connect Button (Swaps to Mute Button once active) -->
             <button onclick="toggleMic()"
                     id="micBtn"
-                    title="Connect/Disconnect Mic">
+                    title="Connect Mic">
                 🎤
-            </button>
-
-            <button onclick="toggleMute()"
-                    id="muteBtn"
-                    class="hidden"
-                    title="Mute/Unmute">
-                🔊
             </button>
 
 
@@ -3897,7 +3891,7 @@ function finishLocalMove(
 
                     capture=true;
                     capturedOne = true;
-                    break; // Capture only one pawn per landing
+                    break; // Capture only one pawn
 
                 }
 
@@ -5251,29 +5245,6 @@ async function toggleMic(){
     }
 
     const micBtn = document.getElementById("micBtn");
-    const muteBtn = document.getElementById("muteBtn");
-
-    if(localStream){
-        localStream.getTracks().forEach(track => track.stop());
-        localStream = null;
-        isMuted = false;
-
-        micBtn.classList.remove("micActive");
-        micBtn.textContent = "🎤";
-        
-        muteBtn.classList.add("hidden");
-        muteBtn.textContent = "🔊";
-        muteBtn.style.background = "";
-
-        Object.values(peerConnections).forEach(pc => {
-            try { pc.close(); } catch(e){}
-        });
-        for(const key in peerConnections) delete peerConnections[key];
-
-        document.getElementById("status").textContent = "Microphone disconnected";
-        socket.emit("voiceLeave");
-        return;
-    }
 
     if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
         alert("Your browser does not support microphone access.");
@@ -5290,13 +5261,14 @@ async function toggleMic(){
             video: false
         });
 
-        micBtn.classList.add("micActive");
-        micBtn.textContent = "🎙️";
-        
-        muteBtn.classList.remove("hidden");
+        // Transform the mic button into a Mute/Unmute button once connected
         isMuted = false;
-        muteBtn.textContent = "🔊";
-        muteBtn.style.background = "";
+        micBtn.textContent = "🔊";
+        micBtn.title = "Mute/Unmute";
+        micBtn.style.background = "";
+        micBtn.classList.add("micActive");
+        // Change onclick behavior from toggleMic to toggleMute
+        micBtn.setAttribute("onclick", "toggleMute()");
 
         document.getElementById("status").textContent = "🎙️ Voice chat connected";
 
@@ -5306,7 +5278,7 @@ async function toggleMic(){
         localStream = null;
         micBtn.classList.remove("micActive");
         micBtn.textContent = "🎤";
-        muteBtn.classList.add("hidden");
+        micBtn.title = "Connect Mic";
         console.error("Microphone error:", error);
         alert("Unable to start the microphone.");
     }
@@ -5317,19 +5289,19 @@ function toggleMute(){
     if(!localStream) return;
 
     isMuted = !isMuted;
-    const muteBtn = document.getElementById("muteBtn");
+    const micBtn = document.getElementById("micBtn");
 
     localStream.getAudioTracks().forEach(track => {
         track.enabled = !isMuted;
     });
 
     if(isMuted){
-        muteBtn.textContent = "🔇";
-        muteBtn.style.background = "#ff4757";
+        micBtn.textContent = "🔇";
+        micBtn.style.background = "#ff4757";
         document.getElementById("status").textContent = "🔇 Microphone muted";
     } else {
-        muteBtn.textContent = "🔊";
-        muteBtn.style.background = "";
+        micBtn.textContent = "🔊";
+        micBtn.style.background = "";
         document.getElementById("status").textContent = "🎙️ Microphone unmuted";
     }
 }
@@ -6233,6 +6205,17 @@ function leaveGame(
                 audio.remove();
             }
         );
+
+
+    // Reset Mic button back to default state
+    const micBtn = document.getElementById("micBtn");
+    if(micBtn){
+        micBtn.textContent = "🎤";
+        micBtn.title = "Connect Mic";
+        micBtn.style.background = "";
+        micBtn.classList.remove("micActive");
+        micBtn.setAttribute("onclick", "toggleMic()");
+    }
 
 
     pendingRolls=[];
