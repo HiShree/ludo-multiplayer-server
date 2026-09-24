@@ -647,7 +647,7 @@ button:active{
 
 .chatControls{
     display:grid;
-    grid-template-columns:1fr 55px 65px;
+    grid-template-columns:1fr 48px 48px 65px;
     gap:7px;
     margin-top:8px;
 }
@@ -1037,7 +1037,7 @@ button:active{
 
 <!-- =======================================================
      PRIVATE MENU
-======================================================= -->
+========================================================= -->
 
 <section id="privateMenu" class="hidden">
 
@@ -1213,8 +1213,16 @@ button:active{
 
 
             <button onclick="toggleMic()"
-                    id="micBtn">
+                    id="micBtn"
+                    title="Connect/Disconnect Mic">
                 🎤
+            </button>
+
+            <button onclick="toggleMute()"
+                    id="muteBtn"
+                    class="hidden"
+                    title="Mute/Unmute">
+                🔊
             </button>
 
 
@@ -3839,7 +3847,7 @@ function finishLocalMove(
 
 
     /*
-       CAPTURE
+       CAPTURE (Only captures one pawn if multiple are stacked)
     */
 
     if(
@@ -3847,54 +3855,59 @@ function finishLocalMove(
         !SAFE.includes(boardCell)
     ){
 
-        players.forEach(
-            opponent=>{
+        for(const opponent of players){
 
-                if(
-                    opponent.id===
-                    player.id ||
-                    opponent.hasWon
-                ){
-                    return;
+            if(
+                opponent.id===
+                player.id ||
+                opponent.hasWon
+            ){
+                continue;
+            }
+
+
+            let capturedOne = false;
+            for(
+                let i=0;
+                i<4;
+                i++
+            ){
+
+                const step=
+                    opponent.pawns[i];
+
+
+                if(step>=24){
+                    continue;
                 }
 
 
-                for(
-                    let i=0;
-                    i<4;
-                    i++
+                const opponentCell=
+                    PATHS[
+                        opponent.id
+                    ][step];
+
+
+                if(
+                    opponentCell===
+                    boardCell
                 ){
 
-                    const step=
-                        opponent.pawns[i];
+                    opponent.pawns[i]=0;
 
-
-                    if(step>=24){
-                        continue;
-                    }
-
-
-                    const opponentCell=
-                        PATHS[
-                            opponent.id
-                        ][step];
-
-
-                    if(
-                        opponentCell===
-                        boardCell
-                    ){
-
-                        opponent.pawns[i]=0;
-
-                        capture=true;
-
-                    }
+                    capture=true;
+                    capturedOne = true;
+                    break; // Capture only one pawn per landing
 
                 }
 
             }
-        );
+
+            if(capturedOne){
+                break;
+            }
+
+        }
 
     }
 
@@ -4959,6 +4972,26 @@ if(socket){
 
 
     socket.on(
+        "voiceUserJoined",
+        data => {
+            createPeer(data.playerId, false);
+        }
+    );
+
+    socket.on(
+        "voiceUserLeft",
+        data => {
+            if(peerConnections[data.playerId]){
+                peerConnections[data.playerId].close();
+                delete peerConnections[data.playerId];
+            }
+            const audioEl = document.getElementById(`audio-${data.playerId}`);
+            if(audioEl) audioEl.remove();
+        }
+    );
+
+
+    socket.on(
         "voiceSignal",
         async message=>{
 
@@ -5203,6 +5236,7 @@ document
 ========================================================= */
 
 let localStream=null;
+let isMuted=false;
 
 const peerConnections={};
 
@@ -5211,172 +5245,93 @@ const pendingIceCandidates={};
 
 async function toggleMic(){
 
-    if(
-        !online ||
-        !socket
-    ){
-
-        alert(
-            "Voice chat is available in online games."
-        );
-
+    if(!online || !socket){
+        alert("Voice chat is available in online games.");
         return;
-
     }
 
-
-    const button=
-        document.getElementById(
-            "micBtn"
-        );
-
-
-    /*
-       TURN MIC OFF
-    */
+    const micBtn = document.getElementById("micBtn");
+    const muteBtn = document.getElementById("muteBtn");
 
     if(localStream){
+        localStream.getTracks().forEach(track => track.stop());
+        localStream = null;
+        isMuted = false;
 
-        localStream
-            .getTracks()
-            .forEach(
-                track=>{
-                    track.stop();
-                }
-            );
+        micBtn.classList.remove("micActive");
+        micBtn.textContent = "🎤";
+        
+        muteBtn.classList.add("hidden");
+        muteBtn.textContent = "🔊";
+        muteBtn.style.background = "";
 
+        Object.values(peerConnections).forEach(pc => {
+            try { pc.close(); } catch(e){}
+        });
+        for(const key in peerConnections) delete peerConnections[key];
 
-        localStream=null;
-
-
-        button.classList.remove(
-            "micActive"
-        );
-
-
-        button.textContent=
-            "🎤";
-
-
-        document
-            .getElementById(
-                "status"
-            )
-            .textContent=
-            "Microphone off";
-
-
+        document.getElementById("status").textContent = "Microphone disconnected";
+        socket.emit("voiceLeave");
         return;
-
     }
 
-
-    /*
-       CHECK SUPPORT
-    */
-
-    if(
-        !navigator.mediaDevices ||
-        !navigator.mediaDevices.getUserMedia
-    ){
-
-        alert(
-            "Your browser does not support microphone access."
-        );
-
+    if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+        alert("Your browser does not support microphone access.");
         return;
-
     }
-
 
     try{
+        localStream = await navigator.mediaDevices.getUserMedia({
+            audio: {
+                echoCancellation: true,
+                noiseSuppression: true,
+                autoGainControl: true
+            },
+            video: false
+        });
 
-        localStream=
-            await navigator
-                .mediaDevices
-                .getUserMedia({
+        micBtn.classList.add("micActive");
+        micBtn.textContent = "🎙️";
+        
+        muteBtn.classList.remove("hidden");
+        isMuted = false;
+        muteBtn.textContent = "🔊";
+        muteBtn.style.background = "";
 
-                    audio:{
-                        echoCancellation:true,
-                        noiseSuppression:true,
-                        autoGainControl:true
-                    },
+        document.getElementById("status").textContent = "🎙️ Voice chat connected";
 
-                    video:false
-
-                });
-
-
-        button.classList.add(
-            "micActive"
-        );
-
-
-        button.textContent=
-            "🎙️";
-
-
-        document
-            .getElementById(
-                "status"
-            )
-            .textContent=
-            "🎙️ Microphone on";
-
-
-        socket.emit(
-            "voiceJoin"
-        );
-
+        socket.emit("voiceJoin");
 
     }catch(error){
-
-        localStream=null;
-
-
-        button.classList.remove(
-            "micActive"
-        );
-
-
-        button.textContent=
-            "🎤";
-
-
-        console.error(
-            "Microphone error:",
-            error
-        );
-
-
-        if(
-            error.name===
-            "NotAllowedError"
-        ){
-
-            alert(
-                "Microphone permission was denied. Please allow microphone permission for this site in your browser settings."
-            );
-
-        }else if(
-            error.name===
-            "NotFoundError"
-        ){
-
-            alert(
-                "No microphone was found on this device."
-            );
-
-        }else{
-
-            alert(
-                "Unable to start the microphone."
-            );
-
-        }
-
+        localStream = null;
+        micBtn.classList.remove("micActive");
+        micBtn.textContent = "🎤";
+        muteBtn.classList.add("hidden");
+        console.error("Microphone error:", error);
+        alert("Unable to start the microphone.");
     }
+}
 
+
+function toggleMute(){
+    if(!localStream) return;
+
+    isMuted = !isMuted;
+    const muteBtn = document.getElementById("muteBtn");
+
+    localStream.getAudioTracks().forEach(track => {
+        track.enabled = !isMuted;
+    });
+
+    if(isMuted){
+        muteBtn.textContent = "🔇";
+        muteBtn.style.background = "#ff4757";
+        document.getElementById("status").textContent = "🔇 Microphone muted";
+    } else {
+        muteBtn.textContent = "🔊";
+        muteBtn.style.background = "";
+        document.getElementById("status").textContent = "🎙️ Microphone unmuted";
+    }
 }
 
 
@@ -6201,6 +6156,10 @@ function leaveGame(
 
         socket.emit(
             "leaveRoom"
+        );
+
+        socket.emit(
+            "voiceLeave"
         );
 
     }
