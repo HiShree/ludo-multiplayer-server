@@ -2428,9 +2428,11 @@ function renderRollChoices(){
     );
 
 
+    const isMyTurnOnline = online ? (active === myId) : isCurrentHumanTurn();
+
     if(
         canRoll &&
-        isCurrentHumanTurn() &&
+        isMyTurnOnline &&
         !animating
     ){
 
@@ -2526,14 +2528,9 @@ function render(){
             }
 
 
-            const allowed=
-                pIdx === active &&
-                canRoll &&
-                !animating &&
-                (
-                    !online ||
-                    pIdx === myId
-                );
+            const allowed = online 
+                ? (pIdx === active && pIdx === myId && !animating)
+                : (pIdx === active && canRoll && !animating);
 
 
             button.disabled=
@@ -3111,6 +3108,21 @@ function rollDice(playerIdx){
         return;
     }
 
+    if(online){
+        if(!socket){
+            return;
+        }
+
+        if(playerIdx !== myId || active !== myId){
+            return;
+        }
+
+        socket.emit(
+            "requestRoll"
+        );
+
+        return;
+    }
 
     if(playerIdx!==active){
         return;
@@ -3126,34 +3138,41 @@ function rollDice(playerIdx){
     }
 
 
-    if(
-        online &&
-        playerIdx!==myId
-    ){
-        return;
-    }
-
-
     if(!canRoll){
         return;
     }
 
 
-    if(online){
+    if(
+        rollPermissionIndex>=0 &&
+        pendingRolls[
+            rollPermissionIndex
+        ]
+    ){
 
-        if(!socket){
-            return;
-        }
-
-
-        socket.emit(
-            "requestRoll"
-        );
-
-
-        return;
+        pendingRolls[
+            rollPermissionIndex
+        ].extraAvailable=false;
 
     }
+
+
+    rollPermissionIndex=-1;
+
+
+    const value=
+        DICE_VALUES[
+            Math.floor(
+                Math.random()*
+                DICE_VALUES.length
+            )
+        ];
+
+
+    applyLocalRoll(
+        player,
+        value
+    );
 
 }
 
