@@ -3099,12 +3099,22 @@ function hasValidMove(
 
 
 /* =========================================================
-   ROLL (Fixed for Online mode)
+   ROLL (Fixed for both Local and Online modes)
 ========================================================= */
 
 function rollDice(playerIdx){
 
     if(animating){
+        return;
+    }
+
+    if(playerIdx !== active){
+        return;
+    }
+
+    const player = players.find(p => (p.index ?? p.id) === playerIdx);
+
+    if(!player){
         return;
     }
 
@@ -3123,20 +3133,6 @@ function rollDice(playerIdx){
 
         return;
     }
-
-    if(playerIdx!==active){
-        return;
-    }
-
-
-    const player=
-        players.find(p => (p.index ?? p.id) === playerIdx);
-
-
-    if(!player){
-        return;
-    }
-
 
     if(!canRoll){
         return;
