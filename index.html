@@ -3174,6 +3174,250 @@ function rollDice(playerIdx){
 
 
 /* =========================================================
+   LOCAL ROLL
+========================================================= */
+
+function applyLocalRoll(
+    player,
+    value
+){
+
+    player.lastRoll=
+        value;
+
+
+    const die={
+
+        id:
+            `${Date.now()}_${Math.random()}`,
+
+        value:value,
+
+        extraAvailable:
+            value===4 ||
+            value===8
+
+    };
+
+
+    pendingRolls.push(
+        die
+    );
+
+
+    selectedRollIndex=
+        pendingRolls.length-1;
+
+
+    if(
+        value===4 ||
+        value===8
+    ){
+
+        canRoll=true;
+
+        rollPermissionIndex=
+            pendingRolls.length-1;
+
+    }else{
+
+        canRoll=false;
+
+        rollPermissionIndex=-1;
+
+    }
+
+
+    playDiceSound();
+
+    render();
+
+
+    if(
+        !hasValidMove(
+            player,
+            value
+        )
+    ){
+
+        const noMoveDieId=
+            die.id;
+
+
+        setTimeout(
+            ()=>{
+
+                consumeNoMoveLocalById(
+                    noMoveDieId
+                );
+
+            },
+            450
+        );
+
+
+        return;
+
+    }
+
+
+    if(player.bot){
+
+        botAct();
+
+    }
+
+}
+
+
+/* =========================================================
+   NO MOVE
+========================================================= */
+
+function consumeNoMoveLocalById(
+    dieId
+){
+
+    const index=
+        pendingRolls.findIndex(
+            die=>
+                die.id===dieId
+        );
+
+
+    if(index<0){
+        return;
+    }
+
+
+    consumeNoMoveLocal(index);
+
+}
+
+
+function consumeNoMoveLocal(
+    index
+){
+
+    if(
+        index<0 ||
+        index>=pendingRolls.length
+    ){
+        return;
+    }
+
+
+    const die=
+        pendingRolls[index];
+
+
+    const hadExtra=
+        !!die.extraAvailable;
+
+
+    pendingRolls.splice(
+        index,
+        1
+    );
+
+
+    if(
+        selectedRollIndex>=
+        pendingRolls.length
+    ){
+
+        selectedRollIndex=
+            Math.max(
+                0,
+                pendingRolls.length-1
+            );
+
+    }
+
+
+    rollPermissionIndex=-1;
+
+
+    const player=
+        players[active];
+
+
+    if(!player){
+        return;
+    }
+
+
+    const anotherMoveExists=
+        pendingRolls.some(
+            d=>
+                hasValidMove(
+                    player,
+                    d.value
+                )
+        );
+
+
+    if(anotherMoveExists){
+
+        canRoll=false;
+
+
+        render();
+
+
+        if(player.bot){
+            botAct();
+        }
+
+
+        return;
+
+    }
+
+
+    if(hadExtra){
+
+        canRoll=true;
+
+        rollPermissionIndex=-1;
+
+
+        render();
+
+
+        if(player.bot){
+            botAct();
+        }
+
+
+        return;
+
+    }
+
+
+    pendingRolls=[];
+
+    selectedRollIndex=0;
+
+    rollPermissionIndex=-1;
+
+    canRoll=false;
+
+
+    render();
+
+
+    setTimeout(
+        ()=>{
+            nextLocalTurn();
+        },
+        450
+    );
+
+}
+
+
+/* =========================================================
    REQUEST MOVE
 ========================================================= */
 
@@ -3257,6 +3501,843 @@ function requestMove(
         return;
 
     }
+
+
+    moveLocal(
+        playerIdx,
+        pawnIndex,
+        selectedRollIndex
+    );
+
+}
+
+
+/* =========================================================
+   LOCAL MOVE
+========================================================= */
+
+function moveLocal(
+    playerId,
+    pawnIndex,
+    rollIndex
+){
+
+    if(animating){
+        return;
+    }
+
+
+    const player=
+        players[playerId];
+
+
+    if(!player){
+        return;
+    }
+
+
+    if(
+        rollIndex<0 ||
+        rollIndex>=pendingRolls.length
+    ){
+        return;
+    }
+
+
+    const die=
+        pendingRolls[rollIndex];
+
+
+    const roll=
+        die.value;
+
+
+    const from=
+        player.pawns[pawnIndex];
+
+
+    const to=
+        from+roll;
+
+
+    if(
+        !canMove(
+            player,
+            pawnIndex,
+            roll
+        )
+    ){
+        return;
+    }
+
+
+    pendingRolls.splice(
+        rollIndex,
+        1
+    );
+
+
+    if(
+        selectedRollIndex>=
+        pendingRolls.length
+    ){
+
+        selectedRollIndex=
+            Math.max(
+                0,
+                pendingRolls.length-1
+            );
+
+    }
+
+
+    rollPermissionIndex=-1;
+
+    canRoll=false;
+
+    animating=true;
+
+
+    render();
+
+
+    animateLocalMove(
+        player,
+        pawnIndex,
+        from,
+        to,
+        ()=>{
+
+            finishLocalMove(
+                player,
+                pawnIndex,
+                from,
+                to,
+                die
+            );
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   ANIMATION
+========================================================= */
+
+function animateLocalMove(
+    player,
+    pawnIndex,
+    from,
+    to,
+    done
+){
+
+    if(from>=to){
+
+        done();
+
+        return;
+
+    }
+
+
+    let current=
+        from;
+
+
+    const token=
+        gameToken;
+
+
+    function step(){
+
+        if(token!==gameToken){
+            return;
+        }
+
+
+        current++;
+
+
+        player.pawns[pawnIndex]=
+            current;
+
+
+        renderBoard();
+
+
+        playMoveSound();
+
+
+        if(current<to){
+
+            setTimeout(
+                step,
+                150
+            );
+
+        }else{
+
+            setTimeout(
+                done,
+                160
+            );
+
+        }
+
+    }
+
+
+    step();
+
+}
+
+
+/* =========================================================
+   FINISH LOCAL MOVE
+========================================================= */
+
+function finishLocalMove(
+    player,
+    pawnIndex,
+    from,
+    to,
+    die
+){
+
+    const boardCell=
+        PATHS[
+            player.id
+        ][to];
+
+
+    let capture=false;
+
+
+    /*
+       CAPTURE (Only captures one pawn if multiple are stacked)
+    */
+
+    if(
+        to<24 &&
+        !SAFE.includes(boardCell)
+    ){
+
+        for(const opponent of players){
+
+            if(
+                opponent.id===
+                player.id ||
+                opponent.hasWon
+            ){
+                continue;
+            }
+
+
+            let capturedOne = false;
+            for(
+                let i=0;
+                i<4;
+                i++
+            ){
+
+                const step=
+                    opponent.pawns[i];
+
+
+                if(step>=24){
+                    continue;
+                }
+
+
+                const opponentCell=
+                    PATHS[
+                        opponent.id
+                    ][step];
+
+
+                if(
+                    opponentCell===
+                    boardCell
+                ){
+
+                    opponent.pawns[i]=0;
+
+                    capture=true;
+                    capturedOne = true;
+                    break; // Capture only one pawn
+
+                }
+
+            }
+
+            if(capturedOne){
+                break;
+            }
+
+        }
+
+    }
+
+
+    if(capture){
+
+        player.hasKilled=true;
+
+        playCaptureSound();
+
+    }
+
+
+    const reachedHome=
+        to===24;
+
+
+    /*
+       ALL FOUR HOME
+    */
+
+    if(
+        player.pawns.every(
+            step=>
+                step===24
+        )
+    ){
+
+        player.hasWon=true;
+
+        player.rank=
+            currentRank++;
+
+
+        showWinPopup(
+            player
+        );
+
+    }
+
+
+    /*
+       EXTRA TURN
+    */
+
+    let extra=
+        !!die.extraAvailable;
+
+
+    if(capture){
+        extra=true;
+    }
+
+
+    if(
+        reachedHome &&
+        !player.hasWon
+    ){
+
+        extra=true;
+
+    }
+
+
+    animating=false;
+
+
+    /*
+       PLAYER FINISHED
+    */
+
+    if(player.hasWon){
+
+        render();
+
+
+        /*
+           If only one player remains,
+           the match is finished.
+        */
+
+        if(
+            players.filter(
+                p=>!p.hasWon
+            ).length<=1
+        ){
+
+            players.forEach(
+                p=>{
+
+                    if(!p.hasWon){
+
+                        p.hasWon=true;
+
+                        p.rank=
+                            currentRank++;
+
+                    }
+
+                }
+            );
+
+
+            render();
+
+
+            setTimeout(
+                ()=>{
+                    showWinPopup(
+                        player,
+                        true
+                    );
+                },
+                250
+            );
+
+
+            return;
+
+        }
+
+
+        setTimeout(
+            nextLocalTurn,
+            500
+        );
+
+
+        return;
+
+    }
+
+
+    /*
+       EXTRA TURN
+    */
+
+    if(extra){
+
+        canRoll=true;
+
+        rollPermissionIndex=-1;
+
+
+        render();
+
+
+        if(player.bot){
+
+            botAct();
+
+        }
+
+
+        return;
+
+    }
+
+
+    /*
+       REMAINING DICE
+    */
+
+    if(
+        pendingRolls.length>0
+    ){
+
+        const possible=
+            pendingRolls.some(
+                d=>
+                    hasValidMove(
+                        player,
+                        d.value
+                    )
+            );
+
+
+        if(!possible){
+
+            pendingRolls=[];
+
+            selectedRollIndex=0;
+
+            canRoll=false;
+
+
+            render();
+
+
+            setTimeout(
+                nextLocalTurn,
+                400
+            );
+
+
+            return;
+
+        }
+
+
+        canRoll=false;
+
+
+        render();
+
+
+        if(player.bot){
+
+            botAct();
+
+        }
+
+
+        return;
+
+    }
+
+
+    /*
+       END TURN
+    */
+
+    setTimeout(
+        nextLocalTurn,
+        400
+    );
+
+}
+
+
+/* =========================================================
+   NEXT LOCAL TURN
+========================================================= */
+
+function nextLocalTurn(){
+
+    if(
+        players.filter(
+            p=>!p.hasWon
+        ).length<=1
+    ){
+        return;
+    }
+
+
+    for(
+        let step=1;
+        step<=players.length;
+        step++
+    ){
+
+        const index=
+            (
+                active+
+                step
+            )%
+            players.length;
+
+
+        if(
+            players[index] &&
+            !players[index].hasWon
+        ){
+
+            active=index;
+
+            break;
+
+        }
+
+    }
+
+
+    pendingRolls=[];
+
+    selectedRollIndex=0;
+
+    rollPermissionIndex=-1;
+
+    canRoll=true;
+
+    animating=false;
+
+
+    render();
+
+
+    botAct();
+
+}
+
+
+/* =========================================================
+   BOT
+========================================================= */
+
+function botAct(){
+
+    clearTimeout(
+        botTimer
+    );
+
+
+    const bot=
+        players[active];
+
+
+    if(
+        !bot ||
+        !bot.bot ||
+        animating
+    ){
+        return;
+    }
+
+
+    const choices=[];
+
+
+    pendingRolls.forEach(
+        (die,rollIndex)=>{
+
+            bot.pawns.forEach(
+                (step,pawnIndex)=>{
+
+                    if(
+                        canMove(
+                            bot,
+                            pawnIndex,
+                            die.value
+                        )
+                    ){
+
+                        const to=
+                            step+
+                            die.value;
+
+
+                        let score=
+                            die.value;
+
+
+                        if(to===24){
+
+                            score+=
+                                1000;
+
+                        }
+
+
+                        if(
+                            wouldCapture(
+                                bot,
+                                to
+                            )
+                        ){
+
+                            score+=
+                                500;
+
+                        }
+
+
+                        score+=
+                            to*
+                            2;
+
+
+                        choices.push({
+
+                            rollIndex:
+                                rollIndex,
+
+                            pawnIndex:
+                                pawnIndex,
+
+                            score:
+                                score
+
+                        });
+
+                    }
+
+                }
+            );
+
+        }
+    );
+
+
+    if(
+        choices.length>0
+    ){
+
+        choices.sort(
+            (a,b)=>
+                b.score-
+                a.score
+        );
+
+
+        const choice=
+            choices[0];
+
+
+        selectedRollIndex=
+            choice.rollIndex;
+
+
+        render();
+
+
+        botTimer=
+            setTimeout(
+                ()=>{
+
+                    moveLocal(
+                        bot.id,
+                        choice.pawnIndex,
+                        choice.rollIndex
+                    );
+
+                },
+                650
+            );
+
+
+        return;
+
+    }
+
+
+    if(canRoll){
+
+        botTimer=
+            setTimeout(
+                ()=>{
+
+                    rollDice(
+                        bot.id
+                    );
+
+                },
+                650
+            );
+
+
+        return;
+
+    }
+
+
+    if(
+        pendingRolls.length>0
+    ){
+
+        const uselessIndex=
+            pendingRolls.findIndex(
+                die=>
+                    !hasValidMove(
+                        bot,
+                        die.value
+                    )
+            );
+
+
+        if(uselessIndex>=0){
+
+            botTimer=
+                setTimeout(
+                    ()=>{
+
+                        consumeNoMoveLocal(
+                            uselessIndex
+                        );
+
+                    },
+                    500
+                );
+
+
+            return;
+
+        }
+
+
+        pendingRolls=[];
+
+        selectedRollIndex=0;
+
+        canRoll=true;
+
+        render();
+
+
+        botTimer=
+            setTimeout(
+                ()=>{
+                    rollDice(
+                        bot.id
+                    );
+                },
+                500
+            );
+
+    }
+
+}
+
+
+/* =========================================================
+   BOT CAPTURE
+========================================================= */
+
+function wouldCapture(
+    player,
+    to
+){
+
+    if(to>=24){
+        return false;
+    }
+
+
+    const cell=
+        PATHS[
+            player.id
+        ][to];
+
+
+    if(
+        SAFE.includes(cell)
+    ){
+        return false;
+    }
+
+
+    return players.some(
+        opponent=>{
+
+            if(
+                opponent.id===
+                player.id ||
+                opponent.hasWon
+            ){
+                return false;
+            }
+
+
+            return opponent.pawns.some(
+                step=>
+                    step<24 &&
+                    PATHS[
+                        opponent.id
+                    ][step]===
+                    cell
+            );
+
+        }
+    );
 
 }
 
