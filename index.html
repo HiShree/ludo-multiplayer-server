@@ -1567,6 +1567,8 @@ function freshPlayer(
 
         id:id,
 
+        index:id,
+
         name:NAMES[id],
 
         color:COLORS[id],
@@ -1579,6 +1581,8 @@ function freshPlayer(
         ],
 
         hasKilled:false,
+
+        finished:false,
 
         hasWon:false,
 
@@ -1675,17 +1679,18 @@ function setupPanels(){
     players.forEach(
         player=>{
 
+            const pIdx = player.index ?? player.id;
             const card=
                 document.createElement("div");
 
 
             card.id=
-                `playerCard-${player.index ?? player.id}`;
+                `playerCard-${pIdx}`;
 
 
             card.className=
                 `playerCard ${
-                    ["blue","red","green","yellow"][player.index ?? player.id]
+                    ["blue","red","green","yellow"][pIdx]
                 }`;
 
 
@@ -1696,7 +1701,7 @@ function setupPanels(){
                 </div>
 
                 <button
-                    id="dice-${player.index ?? player.id}"
+                    id="dice-${pIdx}"
                     class="playerDice">
                     🎲
                 </button>
@@ -1712,7 +1717,7 @@ function setupPanels(){
 
 
             dice.onclick=()=>{
-                rollDice(player.index ?? player.id);
+                rollDice(pIdx);
             };
 
         }
@@ -2342,19 +2347,16 @@ function selectRoll(index){
 
 function isCurrentHumanTurn(){
 
-    const current=
-        players.find(p => (p.index ?? p.id) === active);
-
-
-    if(!current){
-        return false;
-    }
-
-
     if(online){
         return active === myId;
     }
 
+    const current=
+        players.find(p => (p.index ?? p.id) === active);
+
+    if(!current){
+        return false;
+    }
 
     return !current.bot;
 
@@ -2770,7 +2772,6 @@ function joinPublic(count){
 
     myId=null;
 
-    // Initialize temporary dummy slots so panels and board render instantly on join
     players = [];
     for(let i=0; i<count; i++){
         players.push({
@@ -2853,7 +2854,7 @@ function createPrivate(count){
 
     online=true;
 
-    myId=0; // Creator is default index 0 (Blue)
+    myId=0;
 
     players = [];
     for(let i=0; i<count; i++){
@@ -3101,7 +3102,7 @@ function hasValidMove(
 
 
 /* =========================================================
-   ROLL
+   ROLL (Fixed for Online mode)
 ========================================================= */
 
 function rollDice(playerIdx){
