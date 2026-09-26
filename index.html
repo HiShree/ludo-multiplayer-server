@@ -341,14 +341,18 @@ button:active{
 
 
 /* =========================================================
-   CLASSIC CORNER PLAYER CARDS (Ludo Style Layout)
+   CLASSIC CORNER PLAYER CARDS (Square Dice Boxes)
 ========================================================= */
 
 .playersGrid{
     display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:6px;
-    margin:6px 0;
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas: 
+        "red green"
+        "blue yellow";
+    gap: 8px;
+    margin: 8px auto;
+    max-width: 440px;
 }
 
 .playerCard{
@@ -356,19 +360,25 @@ button:active{
     align-items:center;
     justify-content:space-between;
     padding:6px 10px;
-    border-radius:12px;
+    border-radius:14px;
     background:rgba(255,255,255,.12);
     border:2px solid rgba(255,255,255,.2);
     box-shadow:0 4px 12px rgba(0,0,0,.15);
     transition:.2s;
+    min-height: 48px;
 }
+
+.playerCard.blue { grid-area: blue; }
+.playerCard.red { grid-area: red; }
+.playerCard.green { grid-area: green; }
+.playerCard.yellow { grid-area: yellow; }
 
 .playerCard.active{
     border-color:#ffd84d;
     box-shadow:
         0 0 0 2px rgba(255,216,77,.3),
         0 6px 18px rgba(0,0,0,.25);
-    background:rgba(255,255,255,.2);
+    background:rgba(255,255,255,.22);
 }
 
 .playerName{
@@ -376,9 +386,10 @@ button:active{
     font-weight:900;
 }
 
+/* Small square dice button like classic Ludo */
 .playerDice{
-    width:34px;
-    height:34px;
+    width:36px;
+    height:36px;
     display:flex;
     align-items:center;
     justify-content:center;
@@ -424,8 +435,8 @@ button:active{
 }
 
 .rollChoice{
-    width:36px;
-    height:36px;
+    width:38px;
+    height:38px;
     border-radius:10px;
     background:
         linear-gradient(135deg,#ffffff,#dce7ff);
