@@ -37,9 +37,9 @@ body{
         linear-gradient(145deg,#102653,#1f4386 48%,#30245f);
     min-height:100vh;
     padding:
-        max(10px,env(safe-area-inset-top))
-        8px
-        max(15px,env(safe-area-inset-bottom));
+        max(12px,env(safe-area-inset-top))
+        10px
+        max(18px,env(safe-area-inset-bottom));
 }
 
 button,input{
@@ -283,7 +283,7 @@ button:active{
 }
 
 .gameHeader{
-    padding:2px 0 4px;
+    padding:5px 0 8px;
     text-align:center;
 }
 
@@ -291,31 +291,31 @@ button:active{
     display:flex;
     align-items:center;
     justify-content:center;
-    gap:6px;
-    font-size:clamp(24px,6vw,32px);
+    gap:8px;
+    font-size:clamp(30px,8vw,42px);
     font-weight:900;
     letter-spacing:-1px;
 }
 
 .brandDice{
-    font-size:28px;
+    font-size:36px;
 }
 
 .topButtons{
     display:grid;
     grid-template-columns:1fr 1fr 1fr;
-    gap:6px;
-    margin-top:6px;
+    gap:9px;
+    margin-top:12px;
 }
 
 .topButton{
-    min-height:38px;
-    border-radius:12px;
+    min-height:51px;
+    border-radius:17px;
     background:rgba(255,255,255,.88);
     color:#253b68;
     font-weight:900;
-    font-size:13px;
-    box-shadow:0 4px 12px rgba(0,0,0,.13);
+    font-size:14px;
+    box-shadow:0 7px 18px rgba(0,0,0,.13);
 }
 
 .leaveButton{
@@ -325,128 +325,122 @@ button:active{
 }
 
 .identity{
-    margin-top:4px;
-    font-size:12px;
+    margin-top:10px;
+    font-size:14px;
     font-weight:800;
     color:#dbe6ff;
 }
 
 .status{
-    margin-top:2px;
-    min-height:20px;
-    font-size:14px;
+    margin-top:3px;
+    min-height:24px;
+    font-size:18px;
     font-weight:900;
-    color:#ffd84d;
 }
 
 
 /* =========================================================
-   CLASSIC CORNER PLAYER CARDS (Square Dice Boxes)
+   PLAYERS
 ========================================================= */
 
 .playersGrid{
     display:grid;
-    grid-template-columns: 1fr 1fr;
-    grid-template-areas: 
-        "red green"
-        "blue yellow";
-    gap: 8px;
-    margin: 8px auto;
-    max-width: 440px;
+    grid-template-columns:1fr 1fr;
+    gap:9px;
+    margin-top:8px;
 }
 
 .playerCard{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    padding:6px 10px;
-    border-radius:14px;
-    background:rgba(255,255,255,.12);
-    border:2px solid rgba(255,255,255,.2);
-    box-shadow:0 4px 12px rgba(0,0,0,.15);
+    min-width:0;
+    padding:10px;
+    border-radius:20px;
+    background:rgba(255,255,255,.10);
+    border:2px solid transparent;
     transition:.2s;
-    min-height: 48px;
 }
 
-.playerCard.blue { grid-area: blue; }
-.playerCard.red { grid-area: red; }
-.playerCard.green { grid-area: green; }
-.playerCard.yellow { grid-area: yellow; }
-
 .playerCard.active{
-    border-color:#ffd84d;
+    border-color:white;
     box-shadow:
-        0 0 0 2px rgba(255,216,77,.3),
-        0 6px 18px rgba(0,0,0,.25);
-    background:rgba(255,255,255,.22);
+        0 0 0 2px rgba(255,255,255,.08),
+        0 8px 25px rgba(0,0,0,.15);
 }
 
 .playerName{
-    font-size:13px;
+    text-align:center;
+    font-size:18px;
     font-weight:900;
 }
 
-/* Small square dice button like classic Ludo */
 .playerDice{
-    width:36px;
-    height:36px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    border-radius:8px;
+    width:100%;
+    min-height:54px;
+    margin-top:6px;
+    border-radius:16px;
     color:white;
-    background:linear-gradient(145deg,rgba(41,132,232,.95),rgba(30,80,150,.95));
-    font-size:15px;
-    box-shadow:0 2px 6px rgba(0,0,0,.3);
+    background:
+        linear-gradient(145deg,
+        rgba(41,132,232,.85),
+        rgba(51,102,190,.8));
+    font-size:20px;
+    font-weight:900;
 }
 
 .playerDice:disabled{
-    opacity:.4;
+    opacity:.45;
 }
 
-.playerCard.blue .playerName{ color:#2397ff; }
-.playerCard.red .playerName{ color:#ff5969; }
-.playerCard.green .playerName{ color:#39dd83; }
-.playerCard.yellow .playerName{ color:#ffb328; }
+.playerCard.blue .playerName{
+    color:#2397ff;
+}
+
+.playerCard.red .playerName{
+    color:#ff5969;
+}
+
+.playerCard.green .playerName{
+    color:#39dd83;
+}
+
+.playerCard.yellow .playerName{
+    color:#ffb328;
+}
 
 
 /* =========================================================
-   DICE AREA
+   DICE
 ========================================================= */
 
 .diceArea{
-    margin:6px 0;
+    margin:10px 0 11px;
     text-align:center;
 }
 
 .diceLabel{
     color:#e6edff;
-    font-size:12px;
+    font-size:14px;
     font-weight:800;
-    margin-bottom:4px;
+    margin-bottom:7px;
 }
 
 .rollChoices{
     display:flex;
     justify-content:center;
     flex-wrap:wrap;
-    gap:6px;
-    min-height:34px;
+    gap:8px;
+    min-height:42px;
 }
 
 .rollChoice{
-    width:38px;
-    height:38px;
-    border-radius:10px;
+    min-width:55px;
+    height:43px;
+    border-radius:14px;
     background:
         linear-gradient(135deg,#ffffff,#dce7ff);
     color:#254278;
-    font-size:14px;
+    font-size:17px;
     font-weight:900;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    box-shadow:0 3px 8px rgba(0,0,0,.18);
+    box-shadow:0 5px 15px rgba(0,0,0,.18);
 }
 
 .rollChoice.selected{
@@ -454,18 +448,17 @@ button:active{
         linear-gradient(135deg,#ffd84d,#ff9f2e);
     color:#432d00;
     transform:translateY(-2px);
-    box-shadow:0 5px 15px rgba(255,190,50,.35);
+    box-shadow:0 7px 18px rgba(255,190,50,.35);
 }
 
 .rollAgain{
-    min-width:110px;
-    height:36px;
-    border-radius:12px;
+    min-width:130px;
+    height:43px;
+    border-radius:14px;
     color:white;
     font-weight:900;
     background:
         linear-gradient(135deg,#22c997,#168f76);
-    font-size:13px;
 }
 
 
@@ -475,15 +468,15 @@ button:active{
 
 .boardWrap{
     width:100%;
-    max-width:440px;
+    max-width:520px;
     margin:0 auto;
     padding:4px;
-    border-radius:20px;
+    border-radius:25px;
     background:
         linear-gradient(145deg,
         rgba(255,255,255,.25),
         rgba(255,255,255,.08));
-    box-shadow:0 12px 30px rgba(0,0,0,.28);
+    box-shadow:0 18px 40px rgba(0,0,0,.28);
 }
 
 #board{
@@ -493,7 +486,7 @@ button:active{
     grid-template-columns:repeat(5,1fr);
     grid-template-rows:repeat(5,1fr);
     overflow:hidden;
-    border-radius:16px;
+    border-radius:21px;
     background:#eef2f8;
 }
 
@@ -505,6 +498,12 @@ button:active{
     justify-content:center;
     background:
         linear-gradient(145deg,#ffffff,#edf1f6);
+
+    /*
+       Important:
+       Pawns are positioned relative to
+       this exact cell.
+    */
     overflow:hidden;
 }
 
@@ -537,7 +536,7 @@ button:active{
 .arrow{
     position:absolute;
     opacity:.45;
-    font-size:16px;
+    font-size:18px;
     color:#263b5c;
     pointer-events:none;
     z-index:1;
@@ -550,18 +549,38 @@ button:active{
 
 .pawn{
     position:absolute;
+
+    /*
+       Width is relative to the CELL,
+       not the whole board.
+    */
     width:30%;
     aspect-ratio:1;
+
     border-radius:50%;
     border:2px solid white;
-    box-shadow:0 3px 7px rgba(0,0,0,.35);
+
+    box-shadow:
+        0 3px 7px rgba(0,0,0,.35);
+
     z-index:10;
+
+    /*
+       left/top represent the CENTER
+       of the pawn.
+    */
     transform:translate(-50%,-50%);
+
     transition:
         left .12s linear,
         top .12s linear,
         transform .12s ease;
+
     pointer-events:none;
+
+    /*
+       Prevent pawn from being stretched.
+    */
     flex-shrink:0;
 }
 
@@ -595,31 +614,31 @@ button:active{
 ========================================================= */
 
 #communication{
-    margin-top:10px;
-    padding:10px;
-    border-radius:18px;
+    margin-top:14px;
+    padding:15px;
+    border-radius:23px;
     background:rgba(8,29,68,.48);
     border:1px solid rgba(255,255,255,.08);
 }
 
 .chatTitle{
-    font-size:15px;
+    font-size:19px;
     font-weight:900;
-    margin-bottom:6px;
+    margin-bottom:9px;
 }
 
 .chatMessages{
-    height:80px;
+    height:105px;
     overflow-y:auto;
-    padding:6px;
-    border-radius:12px;
+    padding:9px;
+    border-radius:15px;
     background:rgba(0,0,0,.15);
 }
 
 .chatMessage{
-    margin:3px 0;
-    font-size:12px;
-    line-height:1.2;
+    margin:5px 0;
+    font-size:13px;
+    line-height:1.3;
 }
 
 .chatMessage strong{
@@ -628,9 +647,9 @@ button:active{
 
 .chatControls{
     display:grid;
-    grid-template-columns:1fr 40px 55px;
-    gap:5px;
-    margin-top:6px;
+    grid-template-columns:1fr 48px 65px;
+    gap:7px;
+    margin-top:8px;
 }
 
 .chatControls input{
@@ -638,12 +657,10 @@ button:active{
     min-width:0;
     border:0;
     outline:none;
-    border-radius:10px;
-    padding:0 10px;
+    border-radius:13px;
+    padding:0 12px;
     color:white;
     background:rgba(255,255,255,.13);
-    height:36px;
-    font-size:13px;
 }
 
 .chatControls input::placeholder{
@@ -651,12 +668,10 @@ button:active{
 }
 
 .chatControls button{
-    border-radius:10px;
+    border-radius:13px;
     background:#3f75d9;
     color:white;
     font-weight:800;
-    height:36px;
-    font-size:13px;
 }
 
 .micActive{
@@ -798,22 +813,39 @@ button:active{
 
 
 @media(max-width:380px){
+
+    body{
+        padding-left:7px;
+        padding-right:7px;
+    }
+
     .heroDice{
         width:72px;
         height:72px;
         font-size:48px;
     }
-    .playerCard{
-        padding:4px 6px;
+
+    .modeCard{
+        min-height:135px;
+        padding:14px 11px;
     }
+
+    .modeIcon{
+        font-size:34px;
+    }
+
     .playerName{
-        font-size:11px;
+        font-size:16px;
     }
+
     .playerDice{
-        width:30px;
-        height:30px;
-        font-size:13px;
+        min-height:49px;
     }
+
+    .pawn{
+        border-width:2px;
+    }
+
 }
 
 </style>
@@ -1631,7 +1663,7 @@ function openPrivateMenu(){
 
 
 /* =========================================================
-   PANELS (2x2 Corner Grid Layout resembling Ludo corners)
+   PANELS
 ========================================================= */
 
 function setupPanels(){
@@ -1768,7 +1800,7 @@ function boardStatic(){
                 z-index:2;
                 font-weight:900;
                 color:#315c91;
-                font-size:12px;
+                font-size:13px;
                 pointer-events:none;
             `;
 
@@ -2711,11 +2743,6 @@ function startLocal(count){
     startBase();
 
 
-    /*
-       Only starts the bot if Blue
-       somehow isn't the active player.
-    */
-
     botAct();
 
 }
@@ -3072,7 +3099,7 @@ function hasValidMove(
 
 
 /* =========================================================
-   ROLL
+   ROLL (Fixed for both Local and Online modes)
 ========================================================= */
 
 function rollDice(playerIdx){
@@ -3206,11 +3233,6 @@ function applyLocalRoll(
     render();
 
 
-    /*
-       No move for this specific
-       dice.
-    */
-
     if(
         !hasValidMove(
             player,
@@ -3238,17 +3260,6 @@ function applyLocalRoll(
 
     }
 
-
-    /*
-       IMPORTANT BOT FIX:
-
-       Do not immediately roll again
-       just because 4/8 was rolled.
-
-       The bot first uses a movable
-       pending dice. If no movable
-       dice remains, then it rolls again.
-    */
 
     if(player.bot){
 
@@ -3364,11 +3375,6 @@ function consumeNoMoveLocal(
     }
 
 
-    /*
-       4/8 with no valid move
-       still grants another roll.
-    */
-
     if(hadExtra){
 
         canRoll=true;
@@ -3388,11 +3394,6 @@ function consumeNoMoveLocal(
 
     }
 
-
-    /*
-       No usable dice and no
-       extra roll.
-    */
 
     pendingRolls=[];
 
@@ -4093,17 +4094,6 @@ function botAct(){
     }
 
 
-    /*
-       ------------------------------------------------------
-       IMPORTANT BOT LOGIC
-       ------------------------------------------------------
-
-       If a usable dice is already available,
-       the bot MUST use it first.
-
-       This is especially important for 4/8.
-       */
-
     const choices=[];
 
 
@@ -4130,10 +4120,6 @@ function botAct(){
                             die.value;
 
 
-                        /*
-                           HOME is strongly preferred.
-                        */
-
                         if(to===24){
 
                             score+=
@@ -4141,10 +4127,6 @@ function botAct(){
 
                         }
 
-
-                        /*
-                           Capture is preferred.
-                        */
 
                         if(
                             wouldCapture(
@@ -4158,11 +4140,6 @@ function botAct(){
 
                         }
 
-
-                        /*
-                           Advance the furthest
-                           pawn slightly.
-                        */
 
                         score+=
                             to*
@@ -4190,12 +4167,6 @@ function botAct(){
         }
     );
 
-
-    /*
-       ------------------------------------------------------
-       IF A MOVE EXISTS, MAKE IT
-       ------------------------------------------------------
-    */
 
     if(
         choices.length>0
@@ -4239,17 +4210,6 @@ function botAct(){
     }
 
 
-    /*
-       ------------------------------------------------------
-       NO USABLE PENDING DICE
-       ------------------------------------------------------
-
-       If there is an available 4/8 extra roll,
-       roll again.
-
-       Otherwise dismiss unusable dice.
-    */
-
     if(canRoll){
 
         botTimer=
@@ -4269,12 +4229,6 @@ function botAct(){
 
     }
 
-
-    /*
-       If no roll is available and there
-       are useless pending dice, dismiss
-       one of them.
-    */
 
     if(
         pendingRolls.length>0
@@ -4309,10 +4263,6 @@ function botAct(){
 
         }
 
-
-        /*
-           Safety fallback.
-        */
 
         pendingRolls=[];
 
@@ -4495,10 +4445,6 @@ function applyOnlineState(
 
 if(socket){
 
-    /*
-       PLAYER ASSIGNMENT
-    */
-
     socket.on(
         "assignPlayer",
         data=>{
@@ -4520,10 +4466,6 @@ if(socket){
     );
 
 
-    /*
-       GAME START
-    */
-
     socket.on(
         "gameStart",
         data=>{
@@ -4543,11 +4485,6 @@ if(socket){
     );
 
 
-    /*
-       SYSTEM MESSAGES
-       ONLY STATUS
-    */
-
     socket.on(
         "systemMessage",
         message=>{
@@ -4562,10 +4499,6 @@ if(socket){
         }
     );
 
-
-    /*
-       PRIVATE ROOM
-    */
 
     socket.on(
         "privateRoomCreated",
@@ -4592,10 +4525,6 @@ if(socket){
     );
 
 
-    /*
-       ROOM ERROR
-    */
-
     socket.on(
         "roomError",
         message=>{
@@ -4611,10 +4540,6 @@ if(socket){
     );
 
 
-    /*
-       ACTION ERROR
-    */
-
     socket.on(
         "actionError",
         message=>{
@@ -4629,10 +4554,6 @@ if(socket){
         }
     );
 
-
-    /*
-       DICE ROLLED
-    */
 
     socket.on(
         "diceRolled",
@@ -4714,10 +4635,6 @@ if(socket){
     );
 
 
-    /*
-       MOVE RESULT
-    */
-
     socket.on(
         "moveResult",
         data=>{
@@ -4757,10 +4674,6 @@ if(socket){
     );
 
 
-    /*
-       GAME STATE
-    */
-
     socket.on(
         "gameState",
         state=>{
@@ -4782,10 +4695,6 @@ if(socket){
     );
 
 
-    /*
-       GAME FINISHED
-    */
-
     socket.on(
         "gameFinished",
         ()=>{
@@ -4800,10 +4709,6 @@ if(socket){
         }
     );
 
-
-    /*
-       ROOM CLOSED
-    */
 
     socket.on(
         "roomClosed",
@@ -4822,10 +4727,6 @@ if(socket){
     );
 
 
-    /*
-       PLAYER CHAT ONLY
-    */
-
     socket.on(
         "receiveChatMessage",
         data=>{
@@ -4838,10 +4739,6 @@ if(socket){
         }
     );
 
-
-    /*
-       VOICE
-    */
 
     socket.on(
         "voicePeers",
@@ -5440,11 +5337,6 @@ async function handleVoiceSignal(
         }
 
 
-        /*
-           ICE candidates can arrive before
-           remote description.
-        */
-
         if(data.candidate){
 
             if(
@@ -5481,10 +5373,6 @@ async function handleVoiceSignal(
 
         }
 
-
-        /*
-           Add queued ICE candidates.
-        */
 
         if(
             pc.remoteDescription &&
@@ -6004,11 +5892,6 @@ function leaveGame(
     gameToken++;
 
 
-    /*
-       Tell server about intentional
-       online leave.
-    */
-
     if(
         notifyServer &&
         online &&
@@ -6026,10 +5909,6 @@ function leaveGame(
     }
 
 
-    /*
-       Stop microphone.
-    */
-
     if(localStream){
 
         localStream
@@ -6045,10 +5924,6 @@ function leaveGame(
 
     }
 
-
-    /*
-       Close voice connections.
-    */
 
     Object.values(
         peerConnections
