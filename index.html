@@ -10,7 +10,7 @@
                user-scalable=no,
                viewport-fit=cover">
 
-<title>Ludo Twist</title>
+<title>Ludo Twist v2</title>
 
 <script src="/socket.io/socket.io.js"></script>
 
@@ -340,78 +340,78 @@ button:active{
 
 
 /* =========================================================
-   PLAYERS (Compact Horizontal Grid for 4 Players)
+   PLAYERS (Forced Side-by-Side Horizontal Row)
 ========================================================= */
 
 .playersGrid{
-    display:grid;
-    grid-template-columns:repeat(4, 1fr);
-    gap:6px;
-    margin-top:8px;
+    display:flex!important;
+    flex-direction:row!important;
+    justify-content:space-between!important;
+    gap:4px!important;
+    margin-top:8px!important;
+    width:100%!important;
 }
 
 .playerCard{
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    padding:8px 4px;
-    border-radius:16px;
-    background:rgba(255,255,255,.10);
-    border:2px solid transparent;
-    transition:.2s;
+    flex:1!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    padding:6px 2px!important;
+    border-radius:12px!important;
+    background:rgba(255,255,255,.10)!important;
+    border:2px solid transparent!important;
+    transition:.2s!important;
+    min-width:0!important;
 }
 
 .playerCard.active{
-    border-color:white;
-    box-shadow:
-        0 0 0 2px rgba(255,255,255,.08),
-        0 4px 15px rgba(0,0,0,.15);
+    border-color:white!important;
+    box-shadow:0 0 0 2px rgba(255,255,255,.08), 0 4px 15px rgba(0,0,0,.15)!important;
 }
 
 .playerName{
-    text-align:center;
-    font-size:12px;
-    font-weight:900;
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
+    text-align:center!important;
+    font-size:11px!important;
+    font-weight:900!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+    width:100%!important;
 }
 
 .playerDice{
-    width:38px;
-    height:38px;
-    margin:4px auto 0;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    border-radius:10px;
-    color:white;
-    background:
-        linear-gradient(145deg,
-        rgba(41,132,232,.9),
-        rgba(30,80,150,.9));
-    font-size:18px;
-    box-shadow:0 3px 8px rgba(0,0,0,.25);
+    width:34px!important;
+    height:34px!important;
+    margin:3px auto 0!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    border-radius:8px!important;
+    color:white!important;
+    background:linear-gradient(145deg,rgba(41,132,232,.9),rgba(30,80,150,.9))!important;
+    font-size:14px!important;
+    box-shadow:0 2px 6px rgba(0,0,0,.25)!important;
 }
 
 .playerDice:disabled{
-    opacity:.45;
+    opacity:.45!important;
 }
 
 .playerCard.blue .playerName{
-    color:#2397ff;
+    color:#2397ff!important;
 }
 
 .playerCard.red .playerName{
-    color:#ff5969;
+    color:#ff5969!important;
 }
 
 .playerCard.green .playerName{
-    color:#39dd83;
+    color:#39dd83!important;
 }
 
 .playerCard.yellow .playerName{
-    color:#ffb328;
+    color:#ffb328!important;
 }
 
 
@@ -420,15 +420,15 @@ button:active{
 ========================================================= */
 
 .diceArea{
-    margin:10px 0 11px;
+    margin:8px 0 10px;
     text-align:center;
 }
 
 .diceLabel{
     color:#e6edff;
-    font-size:14px;
+    font-size:13px;
     font-weight:800;
-    margin-bottom:7px;
+    margin-bottom:5px;
 }
 
 .rollChoices{
@@ -440,18 +440,18 @@ button:active{
 }
 
 .rollChoice{
-    width:42px;
-    height:42px;
-    border-radius:12px;
+    width:38px;
+    height:38px;
+    border-radius:10px;
     background:
         linear-gradient(135deg,#ffffff,#dce7ff);
     color:#254278;
-    font-size:15px;
+    font-size:14px;
     font-weight:900;
     display:flex;
     align-items:center;
     justify-content:center;
-    box-shadow:0 4px 10px rgba(0,0,0,.18);
+    box-shadow:0 3px 8px rgba(0,0,0,.18);
 }
 
 .rollChoice.selected{
@@ -459,13 +459,13 @@ button:active{
         linear-gradient(135deg,#ffd84d,#ff9f2e);
     color:#432d00;
     transform:translateY(-2px);
-    box-shadow:0 7px 18px rgba(255,190,50,.35);
+    box-shadow:0 5px 15px rgba(255,190,50,.35);
 }
 
 .rollAgain{
-    min-width:130px;
-    height:43px;
-    border-radius:14px;
+    min-width:120px;
+    height:38px;
+    border-radius:12px;
     color:white;
     font-weight:900;
     background:
@@ -843,16 +843,6 @@ button:active{
 
     .modeIcon{
         font-size:34px;
-    }
-
-    .playerName{
-        font-size:11px;
-    }
-
-    .playerDice{
-        width:32px;
-        height:32px;
-        font-size:14px;
     }
 
     .pawn{
