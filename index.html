@@ -10,7 +10,7 @@
                user-scalable=no,
                viewport-fit=cover">
 
-<title>Ludo Twist v2</title>
+<title>Ludo Twist</title>
 
 <script src="/socket.io/socket.io.js"></script>
 
@@ -37,9 +37,9 @@ body{
         linear-gradient(145deg,#102653,#1f4386 48%,#30245f);
     min-height:100vh;
     padding:
-        max(12px,env(safe-area-inset-top))
-        10px
-        max(18px,env(safe-area-inset-bottom));
+        max(10px,env(safe-area-inset-top))
+        8px
+        max(15px,env(safe-area-inset-bottom));
 }
 
 button,input{
@@ -283,7 +283,7 @@ button:active{
 }
 
 .gameHeader{
-    padding:5px 0 8px;
+    padding:2px 0 4px;
     text-align:center;
 }
 
@@ -291,31 +291,31 @@ button:active{
     display:flex;
     align-items:center;
     justify-content:center;
-    gap:8px;
-    font-size:clamp(30px,8vw,42px);
+    gap:6px;
+    font-size:clamp(24px,6vw,32px);
     font-weight:900;
     letter-spacing:-1px;
 }
 
 .brandDice{
-    font-size:36px;
+    font-size:28px;
 }
 
 .topButtons{
     display:grid;
     grid-template-columns:1fr 1fr 1fr;
-    gap:9px;
-    margin-top:12px;
+    gap:6px;
+    margin-top:6px;
 }
 
 .topButton{
-    min-height:51px;
-    border-radius:17px;
+    min-height:38px;
+    border-radius:12px;
     background:rgba(255,255,255,.88);
     color:#253b68;
     font-weight:900;
-    font-size:14px;
-    box-shadow:0 7px 18px rgba(0,0,0,.13);
+    font-size:13px;
+    box-shadow:0 4px 12px rgba(0,0,0,.13);
 }
 
 .leaveButton{
@@ -325,110 +325,94 @@ button:active{
 }
 
 .identity{
-    margin-top:10px;
-    font-size:14px;
+    margin-top:4px;
+    font-size:12px;
     font-weight:800;
     color:#dbe6ff;
 }
 
 .status{
-    margin-top:3px;
-    min-height:24px;
-    font-size:18px;
+    margin-top:2px;
+    min-height:20px;
+    font-size:14px;
     font-weight:900;
+    color:#ffd84d;
 }
 
 
 /* =========================================================
-   PLAYERS (Forced Side-by-Side Horizontal Row)
+   CLASSIC CORNER PLAYER CARDS (Ludo Style Layout)
 ========================================================= */
 
 .playersGrid{
-    display:flex!important;
-    flex-direction:row!important;
-    justify-content:space-between!important;
-    gap:4px!important;
-    margin-top:8px!important;
-    width:100%!important;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:6px;
+    margin:6px 0;
 }
 
 .playerCard{
-    flex:1!important;
-    display:flex!important;
-    flex-direction:column!important;
-    align-items:center!important;
-    padding:6px 2px!important;
-    border-radius:12px!important;
-    background:rgba(255,255,255,.10)!important;
-    border:2px solid transparent!important;
-    transition:.2s!important;
-    min-width:0!important;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:6px 10px;
+    border-radius:12px;
+    background:rgba(255,255,255,.12);
+    border:2px solid rgba(255,255,255,.2);
+    box-shadow:0 4px 12px rgba(0,0,0,.15);
+    transition:.2s;
 }
 
 .playerCard.active{
-    border-color:white!important;
-    box-shadow:0 0 0 2px rgba(255,255,255,.08), 0 4px 15px rgba(0,0,0,.15)!important;
+    border-color:#ffd84d;
+    box-shadow:
+        0 0 0 2px rgba(255,216,77,.3),
+        0 6px 18px rgba(0,0,0,.25);
+    background:rgba(255,255,255,.2);
 }
 
 .playerName{
-    text-align:center!important;
-    font-size:11px!important;
-    font-weight:900!important;
-    white-space:nowrap!important;
-    overflow:hidden!important;
-    text-overflow:ellipsis!important;
-    width:100%!important;
+    font-size:13px;
+    font-weight:900;
 }
 
 .playerDice{
-    width:34px!important;
-    height:34px!important;
-    margin:3px auto 0!important;
-    display:flex!important;
-    align-items:center!important;
-    justify-content:center!important;
-    border-radius:8px!important;
-    color:white!important;
-    background:linear-gradient(145deg,rgba(41,132,232,.9),rgba(30,80,150,.9))!important;
-    font-size:14px!important;
-    box-shadow:0 2px 6px rgba(0,0,0,.25)!important;
+    width:34px;
+    height:34px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:8px;
+    color:white;
+    background:linear-gradient(145deg,rgba(41,132,232,.95),rgba(30,80,150,.95));
+    font-size:15px;
+    box-shadow:0 2px 6px rgba(0,0,0,.3);
 }
 
 .playerDice:disabled{
-    opacity:.45!important;
+    opacity:.4;
 }
 
-.playerCard.blue .playerName{
-    color:#2397ff!important;
-}
-
-.playerCard.red .playerName{
-    color:#ff5969!important;
-}
-
-.playerCard.green .playerName{
-    color:#39dd83!important;
-}
-
-.playerCard.yellow .playerName{
-    color:#ffb328!important;
-}
+.playerCard.blue .playerName{ color:#2397ff; }
+.playerCard.red .playerName{ color:#ff5969; }
+.playerCard.green .playerName{ color:#39dd83; }
+.playerCard.yellow .playerName{ color:#ffb328; }
 
 
 /* =========================================================
-   DICE
+   DICE AREA
 ========================================================= */
 
 .diceArea{
-    margin:8px 0 10px;
+    margin:6px 0;
     text-align:center;
 }
 
 .diceLabel{
     color:#e6edff;
-    font-size:13px;
+    font-size:12px;
     font-weight:800;
-    margin-bottom:5px;
+    margin-bottom:4px;
 }
 
 .rollChoices{
@@ -436,12 +420,12 @@ button:active{
     justify-content:center;
     flex-wrap:wrap;
     gap:6px;
-    min-height:36px;
+    min-height:34px;
 }
 
 .rollChoice{
-    width:38px;
-    height:38px;
+    width:36px;
+    height:36px;
     border-radius:10px;
     background:
         linear-gradient(135deg,#ffffff,#dce7ff);
@@ -463,13 +447,14 @@ button:active{
 }
 
 .rollAgain{
-    min-width:120px;
-    height:38px;
+    min-width:110px;
+    height:36px;
     border-radius:12px;
     color:white;
     font-weight:900;
     background:
         linear-gradient(135deg,#22c997,#168f76);
+    font-size:13px;
 }
 
 
@@ -479,15 +464,15 @@ button:active{
 
 .boardWrap{
     width:100%;
-    max-width:520px;
+    max-width:440px;
     margin:0 auto;
     padding:4px;
-    border-radius:25px;
+    border-radius:20px;
     background:
         linear-gradient(145deg,
         rgba(255,255,255,.25),
         rgba(255,255,255,.08));
-    box-shadow:0 18px 40px rgba(0,0,0,.28);
+    box-shadow:0 12px 30px rgba(0,0,0,.28);
 }
 
 #board{
@@ -497,7 +482,7 @@ button:active{
     grid-template-columns:repeat(5,1fr);
     grid-template-rows:repeat(5,1fr);
     overflow:hidden;
-    border-radius:21px;
+    border-radius:16px;
     background:#eef2f8;
 }
 
@@ -509,12 +494,6 @@ button:active{
     justify-content:center;
     background:
         linear-gradient(145deg,#ffffff,#edf1f6);
-
-    /*
-       Important:
-       Pawns are positioned relative to
-       this exact cell.
-    */
     overflow:hidden;
 }
 
@@ -547,7 +526,7 @@ button:active{
 .arrow{
     position:absolute;
     opacity:.45;
-    font-size:18px;
+    font-size:16px;
     color:#263b5c;
     pointer-events:none;
     z-index:1;
@@ -560,38 +539,18 @@ button:active{
 
 .pawn{
     position:absolute;
-
-    /*
-       Width is relative to the CELL,
-       not the whole board.
-    */
     width:30%;
     aspect-ratio:1;
-
     border-radius:50%;
     border:2px solid white;
-
-    box-shadow:
-        0 3px 7px rgba(0,0,0,.35);
-
+    box-shadow:0 3px 7px rgba(0,0,0,.35);
     z-index:10;
-
-    /*
-       left/top represent the CENTER
-       of the pawn.
-    */
     transform:translate(-50%,-50%);
-
     transition:
         left .12s linear,
         top .12s linear,
         transform .12s ease;
-
     pointer-events:none;
-
-    /*
-       Prevent pawn from being stretched.
-    */
     flex-shrink:0;
 }
 
@@ -625,31 +584,31 @@ button:active{
 ========================================================= */
 
 #communication{
-    margin-top:14px;
-    padding:15px;
-    border-radius:23px;
+    margin-top:10px;
+    padding:10px;
+    border-radius:18px;
     background:rgba(8,29,68,.48);
     border:1px solid rgba(255,255,255,.08);
 }
 
 .chatTitle{
-    font-size:19px;
+    font-size:15px;
     font-weight:900;
-    margin-bottom:9px;
+    margin-bottom:6px;
 }
 
 .chatMessages{
-    height:105px;
+    height:80px;
     overflow-y:auto;
-    padding:9px;
-    border-radius:15px;
+    padding:6px;
+    border-radius:12px;
     background:rgba(0,0,0,.15);
 }
 
 .chatMessage{
-    margin:5px 0;
-    font-size:13px;
-    line-height:1.3;
+    margin:3px 0;
+    font-size:12px;
+    line-height:1.2;
 }
 
 .chatMessage strong{
@@ -658,9 +617,9 @@ button:active{
 
 .chatControls{
     display:grid;
-    grid-template-columns:1fr 48px 65px;
-    gap:7px;
-    margin-top:8px;
+    grid-template-columns:1fr 40px 55px;
+    gap:5px;
+    margin-top:6px;
 }
 
 .chatControls input{
@@ -668,10 +627,12 @@ button:active{
     min-width:0;
     border:0;
     outline:none;
-    border-radius:13px;
-    padding:0 12px;
+    border-radius:10px;
+    padding:0 10px;
     color:white;
     background:rgba(255,255,255,.13);
+    height:36px;
+    font-size:13px;
 }
 
 .chatControls input::placeholder{
@@ -679,10 +640,12 @@ button:active{
 }
 
 .chatControls button{
-    border-radius:13px;
+    border-radius:10px;
     background:#3f75d9;
     color:white;
     font-weight:800;
+    height:36px;
+    font-size:13px;
 }
 
 .micActive{
@@ -824,31 +787,22 @@ button:active{
 
 
 @media(max-width:380px){
-
-    body{
-        padding-left:7px;
-        padding-right:7px;
-    }
-
     .heroDice{
         width:72px;
         height:72px;
         font-size:48px;
     }
-
-    .modeCard{
-        min-height:135px;
-        padding:14px 11px;
+    .playerCard{
+        padding:4px 6px;
     }
-
-    .modeIcon{
-        font-size:34px;
+    .playerName{
+        font-size:11px;
     }
-
-    .pawn{
-        border-width:2px;
+    .playerDice{
+        width:30px;
+        height:30px;
+        font-size:13px;
     }
-
 }
 
 </style>
@@ -1666,7 +1620,7 @@ function openPrivateMenu(){
 
 
 /* =========================================================
-   PANELS
+   PANELS (2x2 Corner Grid Layout resembling Ludo corners)
 ========================================================= */
 
 function setupPanels(){
@@ -1803,7 +1757,7 @@ function boardStatic(){
                 z-index:2;
                 font-weight:900;
                 color:#315c91;
-                font-size:13px;
+                font-size:12px;
                 pointer-events:none;
             `;
 
