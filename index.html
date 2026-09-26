@@ -340,20 +340,22 @@ button:active{
 
 
 /* =========================================================
-   PLAYERS
+   PLAYERS (Compact Horizontal Grid for 4 Players)
 ========================================================= */
 
 .playersGrid{
     display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:9px;
+    grid-template-columns:repeat(4, 1fr);
+    gap:6px;
     margin-top:8px;
 }
 
 .playerCard{
-    min-width:0;
-    padding:10px;
-    border-radius:20px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:8px 4px;
+    border-radius:16px;
     background:rgba(255,255,255,.10);
     border:2px solid transparent;
     transition:.2s;
@@ -363,27 +365,33 @@ button:active{
     border-color:white;
     box-shadow:
         0 0 0 2px rgba(255,255,255,.08),
-        0 8px 25px rgba(0,0,0,.15);
+        0 4px 15px rgba(0,0,0,.15);
 }
 
 .playerName{
     text-align:center;
-    font-size:18px;
+    font-size:12px;
     font-weight:900;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
 }
 
 .playerDice{
-    width:100%;
-    min-height:54px;
-    margin-top:6px;
-    border-radius:16px;
+    width:38px;
+    height:38px;
+    margin:4px auto 0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:10px;
     color:white;
     background:
         linear-gradient(145deg,
-        rgba(41,132,232,.85),
-        rgba(51,102,190,.8));
-    font-size:20px;
-    font-weight:900;
+        rgba(41,132,232,.9),
+        rgba(30,80,150,.9));
+    font-size:18px;
+    box-shadow:0 3px 8px rgba(0,0,0,.25);
 }
 
 .playerDice:disabled{
@@ -427,20 +435,23 @@ button:active{
     display:flex;
     justify-content:center;
     flex-wrap:wrap;
-    gap:8px;
-    min-height:42px;
+    gap:6px;
+    min-height:36px;
 }
 
 .rollChoice{
-    min-width:55px;
-    height:43px;
-    border-radius:14px;
+    width:42px;
+    height:42px;
+    border-radius:12px;
     background:
         linear-gradient(135deg,#ffffff,#dce7ff);
     color:#254278;
-    font-size:17px;
+    font-size:15px;
     font-weight:900;
-    box-shadow:0 5px 15px rgba(0,0,0,.18);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    box-shadow:0 4px 10px rgba(0,0,0,.18);
 }
 
 .rollChoice.selected{
@@ -835,11 +846,13 @@ button:active{
     }
 
     .playerName{
-        font-size:16px;
+        font-size:11px;
     }
 
     .playerDice{
-        min-height:49px;
+        width:32px;
+        height:32px;
+        font-size:14px;
     }
 
     .pawn{
@@ -2743,6 +2756,11 @@ function startLocal(count){
     startBase();
 
 
+    /*
+       Only starts the bot if Blue
+       somehow isn't the active player.
+    */
+
     botAct();
 
 }
@@ -3099,7 +3117,7 @@ function hasValidMove(
 
 
 /* =========================================================
-   ROLL (Fixed for both Local and Online modes)
+   ROLL
 ========================================================= */
 
 function rollDice(playerIdx){
@@ -3233,6 +3251,11 @@ function applyLocalRoll(
     render();
 
 
+    /*
+       No move for this specific
+       dice.
+    */
+
     if(
         !hasValidMove(
             player,
@@ -3260,6 +3283,17 @@ function applyLocalRoll(
 
     }
 
+
+    /*
+       IMPORTANT BOT FIX:
+
+       Do not immediately roll again
+       just because 4/8 was rolled.
+
+       The bot first uses a movable
+       pending dice. If no movable
+       dice remains, then it rolls again.
+    */
 
     if(player.bot){
 
@@ -3375,6 +3409,11 @@ function consumeNoMoveLocal(
     }
 
 
+    /*
+       4/8 with no valid move
+       still grants another roll.
+    */
+
     if(hadExtra){
 
         canRoll=true;
@@ -3394,6 +3433,11 @@ function consumeNoMoveLocal(
 
     }
 
+
+    /*
+       No usable dice and no
+       extra roll.
+    */
 
     pendingRolls=[];
 
@@ -4094,6 +4138,17 @@ function botAct(){
     }
 
 
+    /*
+       ------------------------------------------------------
+       IMPORTANT BOT LOGIC
+       ------------------------------------------------------
+
+       If a usable dice is already available,
+       the bot MUST use it first.
+
+       This is especially important for 4/8.
+       */
+
     const choices=[];
 
 
@@ -4120,6 +4175,10 @@ function botAct(){
                             die.value;
 
 
+                        /*
+                           HOME is strongly preferred.
+                        */
+
                         if(to===24){
 
                             score+=
@@ -4127,6 +4186,10 @@ function botAct(){
 
                         }
 
+
+                        /*
+                           Capture is preferred.
+                        */
 
                         if(
                             wouldCapture(
@@ -4140,6 +4203,11 @@ function botAct(){
 
                         }
 
+
+                        /*
+                           Advance the furthest
+                           pawn slightly.
+                        */
 
                         score+=
                             to*
@@ -4167,6 +4235,12 @@ function botAct(){
         }
     );
 
+
+    /*
+       ------------------------------------------------------
+       IF A MOVE EXISTS, MAKE IT
+       ------------------------------------------------------
+    */
 
     if(
         choices.length>0
@@ -4210,6 +4284,17 @@ function botAct(){
     }
 
 
+    /*
+       ------------------------------------------------------
+       NO USABLE PENDING DICE
+       ------------------------------------------------------
+
+       If there is an available 4/8 extra roll,
+       roll again.
+
+       Otherwise dismiss unusable dice.
+    */
+
     if(canRoll){
 
         botTimer=
@@ -4229,6 +4314,12 @@ function botAct(){
 
     }
 
+
+    /*
+       If no roll is available and there
+       are useless pending dice, dismiss
+       one of them.
+    */
 
     if(
         pendingRolls.length>0
@@ -4263,6 +4354,10 @@ function botAct(){
 
         }
 
+
+        /*
+           Safety fallback.
+        */
 
         pendingRolls=[];
 
@@ -4445,6 +4540,10 @@ function applyOnlineState(
 
 if(socket){
 
+    /*
+       PLAYER ASSIGNMENT
+    */
+
     socket.on(
         "assignPlayer",
         data=>{
@@ -4466,6 +4565,10 @@ if(socket){
     );
 
 
+    /*
+       GAME START
+    */
+
     socket.on(
         "gameStart",
         data=>{
@@ -4485,6 +4588,11 @@ if(socket){
     );
 
 
+    /*
+       SYSTEM MESSAGES
+       ONLY STATUS
+    */
+
     socket.on(
         "systemMessage",
         message=>{
@@ -4499,6 +4607,10 @@ if(socket){
         }
     );
 
+
+    /*
+       PRIVATE ROOM
+    */
 
     socket.on(
         "privateRoomCreated",
@@ -4525,6 +4637,10 @@ if(socket){
     );
 
 
+    /*
+       ROOM ERROR
+    */
+
     socket.on(
         "roomError",
         message=>{
@@ -4540,6 +4656,10 @@ if(socket){
     );
 
 
+    /*
+       ACTION ERROR
+    */
+
     socket.on(
         "actionError",
         message=>{
@@ -4554,6 +4674,10 @@ if(socket){
         }
     );
 
+
+    /*
+       DICE ROLLED
+    */
 
     socket.on(
         "diceRolled",
@@ -4635,6 +4759,10 @@ if(socket){
     );
 
 
+    /*
+       MOVE RESULT
+    */
+
     socket.on(
         "moveResult",
         data=>{
@@ -4674,6 +4802,10 @@ if(socket){
     );
 
 
+    /*
+       GAME STATE
+    */
+
     socket.on(
         "gameState",
         state=>{
@@ -4695,6 +4827,10 @@ if(socket){
     );
 
 
+    /*
+       GAME FINISHED
+    */
+
     socket.on(
         "gameFinished",
         ()=>{
@@ -4709,6 +4845,10 @@ if(socket){
         }
     );
 
+
+    /*
+       ROOM CLOSED
+    */
 
     socket.on(
         "roomClosed",
@@ -4727,6 +4867,10 @@ if(socket){
     );
 
 
+    /*
+       PLAYER CHAT ONLY
+    */
+
     socket.on(
         "receiveChatMessage",
         data=>{
@@ -4739,6 +4883,10 @@ if(socket){
         }
     );
 
+
+    /*
+       VOICE
+    */
 
     socket.on(
         "voicePeers",
@@ -5337,6 +5485,11 @@ async function handleVoiceSignal(
         }
 
 
+        /*
+           ICE candidates can arrive before
+           remote description.
+        */
+
         if(data.candidate){
 
             if(
@@ -5373,6 +5526,10 @@ async function handleVoiceSignal(
 
         }
 
+
+        /*
+           Add queued ICE candidates.
+        */
 
         if(
             pc.remoteDescription &&
@@ -5892,6 +6049,11 @@ function leaveGame(
     gameToken++;
 
 
+    /*
+       Tell server about intentional
+       online leave.
+    */
+
     if(
         notifyServer &&
         online &&
@@ -5909,6 +6071,10 @@ function leaveGame(
     }
 
 
+    /*
+       Stop microphone.
+    */
+
     if(localStream){
 
         localStream
@@ -5924,6 +6090,10 @@ function leaveGame(
 
     }
 
+
+    /*
+       Close voice connections.
+    */
 
     Object.values(
         peerConnections
