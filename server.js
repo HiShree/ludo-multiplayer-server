@@ -185,7 +185,7 @@ function isValidMove(
 
 
 /* =========================================================
-   CAPTURE (Captures only one pawn per landing)
+   CAPTURE
 ========================================================= */
 
 function performCapture(
@@ -235,7 +235,7 @@ function performCapture(
 
         captured = true;
         capturedOne = true;
-        break; // Capture only one pawn
+        break;
       }
     }
 
@@ -1680,9 +1680,9 @@ function handleRequestMove(
     return;
   }
 
+  // FIX: Only grant extra turn if captured or reached home. 
+  // Spending an existing die from the pool of value 4 or 8 does not trigger an extra roll.
   const extra =
-    roll===4 ||
-    roll===8 ||
     captured ||
     reachedHome;
 
