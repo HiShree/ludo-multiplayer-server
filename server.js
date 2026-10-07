@@ -130,7 +130,9 @@ function makeRoom(
 
     turnVersion: 0,
 
-    timers: new Set()
+    timers: new Set(),
+
+    boardTheme: "classic"
 
   };
 }
@@ -297,6 +299,8 @@ function getPublicState(
     canRoll: currentCanRoll,
 
     rank: room.rank,
+
+    boardTheme: room.boardTheme,
 
     players: room.players.map(player => ({
 
@@ -1680,8 +1684,6 @@ function handleRequestMove(
     return;
   }
 
-  // FIX: Only grant extra turn if captured or reached home. 
-  // Spending an existing die from the pool of value 4 or 8 does not trigger an extra roll.
   const extra =
     captured ||
     reachedHome;
