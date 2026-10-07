@@ -42,6 +42,35 @@ body{
         max(18px,env(safe-area-inset-bottom));
 }
 
+/* =========================================================
+   BOARD THEMES
+========================================================= */
+body.theme-neon{
+    background:
+        radial-gradient(circle at 20% 0%,#1a0033 0,transparent 35%),
+        radial-gradient(circle at 100% 100%,#001a33 0,transparent 40%),
+        linear-gradient(145deg,#0a0a12,#121224 48%,#0d0d1a);
+}
+
+body.theme-neon .boardWrap{
+    background:
+        linear-gradient(145deg,
+        rgba(255,0,128,0.25),
+        rgba(0,255,255,0.08));
+    box-shadow:0 18px 40px rgba(0,0,0,0.5), 0 0 20px rgba(0,243,255,0.2);
+}
+
+body.theme-neon #board{
+    background:#0f1016;
+}
+
+body.theme-neon .cell{
+    border-color:#222538;
+    background:
+        linear-gradient(145deg,#181b29,#11131d);
+}
+
+
 button,input{
     font:inherit;
 }
@@ -1234,7 +1263,7 @@ button:active{
 
 <!-- =======================================================
      SETTINGS
-======================================================= -->
+========================================================= -->
 
 <div id="settingsModal"
      class="modal hidden">
@@ -1285,6 +1314,24 @@ button:active{
                 font-weight:800;
              ">
             Volume: 60%
+        </div>
+
+        <!-- Board Theme Options -->
+        <div style="margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.15); padding-top: 12px;">
+            <div style="font-weight: 800; font-size: 14px; margin-bottom: 6px; color:#d5e1fa;">🎨 Board Theme</div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                <button class="menuButton" onclick="setBoardTheme('classic')">Classic Blue</button>
+                <button class="menuButton" onclick="setBoardTheme('neon')">Neon Dark</button>
+            </div>
+        </div>
+
+        <!-- Dice Style Options -->
+        <div style="margin-top: 12px;">
+            <div style="font-weight: 800; font-size: 14px; margin-bottom: 6px; color:#d5e1fa;">🎲 Dice Style</div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                <button class="menuButton" onclick="setDiceStyle('standard')">Standard Faces</button>
+                <button class="menuButton" onclick="setDiceStyle('numbers')">Numbers (1-8)</button>
+            </div>
         </div>
 
 
@@ -1552,6 +1599,33 @@ let currentRank=1;
 let gameToken=0;
 
 let pendingState=null;
+
+let currentBoardTheme = "classic";
+let currentDiceStyle = "numbers";
+
+function setBoardTheme(themeName) {
+    currentBoardTheme = themeName;
+    if (themeName === "neon") {
+        document.body.classList.add("theme-neon");
+    } else {
+        document.body.classList.remove("theme-neon");
+    }
+    playTone(700, 0.06);
+}
+
+function setDiceStyle(styleName) {
+    currentDiceStyle = styleName;
+    render();
+    playTone(700, 0.06);
+}
+
+function getDiceDisplayLabel(value) {
+    if (currentDiceStyle === "standard") {
+        const faces = ["⚀", "⚁", "⚂", "⚃", "⚄", "⚅", "🎲", "🎲"];
+        return faces[value - 1] || `🎲 ${value}`;
+    }
+    return `🎲 ${value}`;
+}
 
 
 /* =========================================================
@@ -2414,7 +2488,7 @@ function renderRollChoices(){
 
 
             button.innerHTML=
-                `🎲 ${die.value}`;
+                getDiceDisplayLabel(die.value);
 
 
             button.onclick=()=>{
@@ -2518,7 +2592,7 @@ function render(){
             ){
 
                 button.textContent=
-                    `🎲 ${player.lastRoll}`;
+                    getDiceDisplayLabel(player.lastRoll);
 
             }else{
 
