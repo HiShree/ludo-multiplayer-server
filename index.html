@@ -3897,23 +3897,18 @@ function finishLocalMove(
        EXTRA TURN FIX: Spending an existing die from the pool
        should NOT grant an extra turn unless it captured or reached home.
     */
-    let extra = false;
+    let extra = !!die && (
+    Number(die.value) === 4 ||
+    Number(die.value) === 8
+);
 
-    if(capture){
-        extra=true;
-    }
+if (capture) {
+    extra = true;
+}
 
-
-    if(
-        reachedHome &&
-        !player.hasWon
-    ){
-
-        extra=true;
-
-    }
-
-
+if (reachedHome && !player.hasWon) {
+    extra = true;
+}
     animating=false;
 
 
