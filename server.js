@@ -1278,9 +1278,12 @@ function handleRequestRoll(
   player.lastRoll =
     value;
 
-  room.canRoll =
-    value===4 ||
-    value===8;
+  /*
+   * EXTRA-CHANCE RULE:
+   * A roll of 4 or 8 grants another roll,
+   * but the current dice must be used first.
+   */
+  room.canRoll = false;
 
   io.to(room.id).emit(
     "diceRolled",
@@ -1684,7 +1687,15 @@ function handleRequestMove(
     return;
   }
 
+  /*
+   * EXTRA-CHANCE RULE:
+   * The player gets another roll if:
+   * 1. The dice was 4 or 8.
+   * 2. The player captured an opponent's pawn.
+   * 3. The player reached HOME.
+   */
   const extra =
+    rollObject.extraAvailable ||
     captured ||
     reachedHome;
 
